@@ -1,3 +1,21 @@
+/*
+ * Copyright (C) 2014, United States Government, as represented by the
+ * Administrator of the National Aeronautics and Space Administration.
+ * All rights reserved.
+ *
+ * Symbolic Pathfinder (jpf-symbc) is licensed under the Apache License, 
+ * Version 2.0 (the "License"); you may not use this file except
+ * in compliance with the License. You may obtain a copy of the License at
+ * 
+ *        http://www.apache.org/licenses/LICENSE-2.0. 
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and 
+ * limitations under the License.
+ */
+
 //
 //Copyright (C) 2005 United States Government as represented by the
 //Administrator of the National Aeronautics and Space Administration
@@ -22,30 +40,18 @@ import static gov.nasa.jpf.symbc.numeric.Operator.*;
 
 abstract class LinearIntegerExpression extends IntegerExpression
 {
-   public IntegerExpression _minus_reverse (int i)
-   {
-	return new BinaryLinearIntegerExpression(new IntegerConstant(i), MINUS, this);
-   }
 
    public IntegerExpression _minus_reverse (long i)
    {
-	return new BinaryLinearIntegerExpression(new IntegerConstant((int)i), MINUS, this);
+	return new BinaryLinearIntegerExpression(new IntegerConstant(i), MINUS, this);
    }
-
-    public IntegerExpression _minus (int i) {
-		//simplify
-		if (i == 0)
-			return this;
-
-    	return new BinaryLinearIntegerExpression(this, MINUS, new IntegerConstant(i));
-    }
 
     public IntegerExpression _minus (long i) {
 		//simplify
 		if (i == 0)
 			return this;
 
-		return new BinaryLinearIntegerExpression(this, MINUS, new IntegerConstant((int)i));
+		return new BinaryLinearIntegerExpression(this, MINUS, new IntegerConstant(i));
     }
 
     public IntegerExpression _minus (IntegerExpression e) {
@@ -65,7 +71,7 @@ abstract class LinearIntegerExpression extends IntegerExpression
 	}
     }
 
-    public IntegerExpression _mul (int i) {
+    public IntegerExpression _mul (long i) {
 		//simplify
 		if (i == 1)
 			return this;
@@ -75,19 +81,8 @@ abstract class LinearIntegerExpression extends IntegerExpression
 	return new BinaryLinearIntegerExpression(this, MUL, new IntegerConstant(i));
     }
 
-    public IntegerExpression _mul (long i) {
-		//simplify
-		if (i == 1)
-			return this;
-		if (i == 0)
-			return new IntegerConstant(0);
-
-    	return new BinaryLinearIntegerExpression(this, MUL, new IntegerConstant((int)i));
-    }
-
     public IntegerExpression _mul (IntegerExpression e)
     {
-
 		//simplify
 		if (e instanceof IntegerConstant) {
 			IntegerConstant ic = (IntegerConstant)e;
@@ -105,7 +100,7 @@ abstract class LinearIntegerExpression extends IntegerExpression
     }
 
 
-	public IntegerExpression _div (int i)
+	public IntegerExpression _div (long i)
 	{
 		// simplify
 		assert (i != 0);
@@ -131,23 +126,6 @@ abstract class LinearIntegerExpression extends IntegerExpression
 		return super._div(e);
 	}
 
-	public IntegerExpression _div_reverse (int i)
-	{
-		if (i == 0)
-			return new IntegerConstant(0);
-		return super._div(i);
-	}
-
-	public IntegerExpression _div (long i)
-	{
-		// simplify
-		assert (i != 0);
-		if (i == 1)
-			return this;
-
-		return new BinaryLinearIntegerExpression(this, DIV, new IntegerConstant((int)i));
-	}
-
 	public IntegerExpression _div_reverse (long i)
 	{
 		if (i == 0)
@@ -155,20 +133,12 @@ abstract class LinearIntegerExpression extends IntegerExpression
 		return super._div(i);
 	}
 
-    public IntegerExpression _plus (int i) {
-		//simplify
-		if (i == 0)
-			return this;
-
-	return new BinaryLinearIntegerExpression(this, PLUS, new IntegerConstant(i));
-    }
-
     public IntegerExpression _plus (long i) {
 		//simplify
 		if (i == 0)
 			return this;
 
-    	return new BinaryLinearIntegerExpression(this, PLUS, new IntegerConstant((int)i));
+	return new BinaryLinearIntegerExpression(this, PLUS, new IntegerConstant(i));
     }
 
     public IntegerExpression _plus (IntegerExpression e) {
@@ -191,18 +161,11 @@ abstract class LinearIntegerExpression extends IntegerExpression
 	return new BinaryLinearIntegerExpression(new IntegerConstant(0), MINUS, this);
     }
 
-    public IntegerExpression _and(int i) {
-    	if(i == 0) {
-    		return new IntegerConstant(0);
-    	}
-    	return new BinaryLinearIntegerExpression(this, AND, new IntegerConstant(i));
-    }
-
     public IntegerExpression _and(long i) {
     	if(i == 0) {
     		return new IntegerConstant(0);
     	}
-    	return new BinaryLinearIntegerExpression(this, AND, new IntegerConstant((int)i));
+    	return new BinaryLinearIntegerExpression(this, AND, new IntegerConstant(i));
     }
 
     public IntegerExpression _and(IntegerExpression e) {
@@ -219,18 +182,11 @@ abstract class LinearIntegerExpression extends IntegerExpression
     	return new BinaryNonLinearIntegerExpression(this, AND, e);
     }
 
-    public IntegerExpression _or(int i) {
-    	if(i == 0) {
-    		return this;
-    	}
-    	return new BinaryLinearIntegerExpression(this, OR, new IntegerConstant(i));
-    }
-
     public IntegerExpression _or(long i) {
     	if(i == 0) {
     		return this;
     	}
-    	return new BinaryLinearIntegerExpression(this, OR, new IntegerConstant((int)i));
+    	return new BinaryLinearIntegerExpression(this, OR, new IntegerConstant(i));
     }
 
     public IntegerExpression _or(IntegerExpression e) {
@@ -247,12 +203,8 @@ abstract class LinearIntegerExpression extends IntegerExpression
     	return new BinaryNonLinearIntegerExpression(this, OR, e);
     }
 
-    public IntegerExpression _xor(int i) {
-    	return new BinaryLinearIntegerExpression(this, XOR, new IntegerConstant(i));
-    }
-
     public IntegerExpression _xor(long i) {
-    	return new BinaryLinearIntegerExpression(this, XOR, new IntegerConstant((int)i));
+    	return new BinaryLinearIntegerExpression(this, XOR, new IntegerConstant(i));
     }
 
     public IntegerExpression _xor(IntegerExpression e) {
@@ -265,18 +217,11 @@ abstract class LinearIntegerExpression extends IntegerExpression
     	return new BinaryNonLinearIntegerExpression(this, XOR, e);
     }
 
-    public IntegerExpression _shiftR(int i) {
-    	if(i == 0) {
-    		return this;
-    	}
-    	return new BinaryLinearIntegerExpression(this, SHIFTR, new IntegerConstant(i));
-    }
-
     public IntegerExpression _shiftR(long i) {
     	if(i == 0) {
     		return this;
     	}
-    	return new BinaryLinearIntegerExpression(this, SHIFTR, new IntegerConstant((int)i));
+    	return new BinaryLinearIntegerExpression(this, SHIFTR, new IntegerConstant(i));
     }
 
     public IntegerExpression _shiftR(IntegerExpression e) {
@@ -293,18 +238,11 @@ abstract class LinearIntegerExpression extends IntegerExpression
     	return new BinaryNonLinearIntegerExpression(this, SHIFTR, e);
     }
 
-    public IntegerExpression _shiftUR(int i) {
-    	if(i == 0) {
-    		return this;
-    	}
-    	return new BinaryLinearIntegerExpression(this, SHIFTUR, new IntegerConstant(i));
-    }
-
     public IntegerExpression _shiftUR(long i) {
     	if(i == 0) {
     		return this;
     	}
-    	return new BinaryLinearIntegerExpression(this, SHIFTUR, new IntegerConstant((int)i));
+    	return new BinaryLinearIntegerExpression(this, SHIFTUR, new IntegerConstant(i));
     }
 
     public IntegerExpression _shiftUR(IntegerExpression e) {
@@ -321,18 +259,11 @@ abstract class LinearIntegerExpression extends IntegerExpression
     	return new BinaryNonLinearIntegerExpression(this, SHIFTUR, e);
     }
 
-    public IntegerExpression _shiftL(int i) {
-    	if(i == 0) {
-    		return this;
-    	}
-    	return new BinaryLinearIntegerExpression(this, SHIFTL, new IntegerConstant(i));
-    }
-
     public IntegerExpression _shiftL(long i) {
     	if(i == 0) {
     		return this;
     	}
-    	return new BinaryLinearIntegerExpression(this, SHIFTL, new IntegerConstant((int)i));
+    	return new BinaryLinearIntegerExpression(this, SHIFTL, new IntegerConstant(i));
     }
 
     public IntegerExpression _shiftL(IntegerExpression e) {

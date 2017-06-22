@@ -1,34 +1,27 @@
-//
-// Copyright (C) 2006 United States Government as represented by the
-// Administrator of the National Aeronautics and Space Administration
-// (NASA).  All Rights Reserved.
-//
-// This software is distributed under the NASA Open Source Agreement
-// (NOSA), version 1.3.  The NOSA has been approved by the Open Source
-// Initiative.  See the file NOSA-1.3-JPF at the top of the distribution
-// directory tree for the complete NOSA document.
-//
-// THE SUBJECT SOFTWARE IS PROVIDED "AS IS" WITHOUT ANY WARRANTY OF ANY
-// KIND, EITHER EXPRESSED, IMPLIED, OR STATUTORY, INCLUDING, BUT NOT
-// LIMITED TO, ANY WARRANTY THAT THE SUBJECT SOFTWARE WILL CONFORM TO
-// SPECIFICATIONS, ANY IMPLIED WARRANTIES OF MERCHANTABILITY, FITNESS FOR
-// A PARTICULAR PURPOSE, OR FREEDOM FROM INFRINGEMENT, ANY WARRANTY THAT
-// THE SUBJECT SOFTWARE WILL BE ERROR FREE, OR ANY WARRANTY THAT
-// DOCUMENTATION, IF PROVIDED, WILL CONFORM TO THE SUBJECT SOFTWARE.
-//
+/*
+ * Copyright (C) 2014, United States Government, as represented by the
+ * Administrator of the National Aeronautics and Space Administration.
+ * All rights reserved.
+ *
+ * Symbolic Pathfinder (jpf-symbc) is licensed under the Apache License, 
+ * Version 2.0 (the "License"); you may not use this file except
+ * in compliance with the License. You may obtain a copy of the License at
+ * 
+ *        http://www.apache.org/licenses/LICENSE-2.0. 
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and 
+ * limitations under the License.
+ */
 package gov.nasa.jpf.symbc.bytecode;
 
-import gov.nasa.jpf.Config;
-import gov.nasa.jpf.jvm.ChoiceGenerator;
-import gov.nasa.jpf.jvm.ClassInfo;
-import gov.nasa.jpf.jvm.ElementInfo;
-import gov.nasa.jpf.jvm.FieldInfo;
-import gov.nasa.jpf.jvm.KernelState;
-import gov.nasa.jpf.jvm.SystemState;
-import gov.nasa.jpf.jvm.ThreadInfo;
 
-import gov.nasa.jpf.jvm.bytecode.Instruction;
+import gov.nasa.jpf.Config;
+import gov.nasa.jpf.JPFException;
 import gov.nasa.jpf.symbc.SymbolicInstructionFactory;
+import gov.nasa.jpf.symbc.arrays.ArrayExpression;
 import gov.nasa.jpf.symbc.heap.HeapChoiceGenerator;
 import gov.nasa.jpf.symbc.heap.HeapNode;
 import gov.nasa.jpf.symbc.heap.Helper;
@@ -39,7 +32,16 @@ import gov.nasa.jpf.symbc.numeric.PathCondition;
 import gov.nasa.jpf.symbc.numeric.SymbolicInteger;
 import gov.nasa.jpf.symbc.string.StringExpression;
 import gov.nasa.jpf.symbc.string.SymbolicStringBuilder;
+import gov.nasa.jpf.vm.ChoiceGenerator;
+import gov.nasa.jpf.vm.ClassInfo;
+import gov.nasa.jpf.vm.ElementInfo;
+import gov.nasa.jpf.vm.FieldInfo;
+import gov.nasa.jpf.vm.Instruction;
+import gov.nasa.jpf.vm.LoadOnJPFRequired;
+import gov.nasa.jpf.vm.MJIEnv;
+import gov.nasa.jpf.vm.StackFrame;
 //import gov.nasa.jpf.symbc.uberlazy.TypeHierarchy;
+import gov.nasa.jpf.vm.ThreadInfo;
 
 public class GETSTATIC extends gov.nasa.jpf.jvm.bytecode.GETSTATIC {
 	public GETSTATIC(String fieldName, String clsName, String fieldDescriptor){
@@ -52,7 +54,8 @@ public class GETSTATIC extends gov.nasa.jpf.jvm.bytecode.GETSTATIC {
 
 
 	@Override
-	public Instruction execute (SystemState ss, KernelState ks, ThreadInfo ti) {
+	public Instruction execute (ThreadInfo ti) {
+	   
 		ChoiceGenerator<?> prevHeapCG = null;
 		HeapNode[] prevSymRefs = null;
 		int numSymRefs = 0;
@@ -60,39 +63,57 @@ public class GETSTATIC extends gov.nasa.jpf.jvm.bytecode.GETSTATIC {
 		Config conf = ti.getVM().getConfig();
 		String[] lazy = conf.getStringArray("symbolic.lazy");
 		if (lazy == null || !lazy[0].equalsIgnoreCase("true"))
-			return super.execute(ss,ks,ti);
-//TODO: fix polymorphism and subtypes
-//		String subtypes = conf.getString("symbolic.lazy.subtypes", "false");
-//		if(!subtypes.equals("false") &&
-//				TypeHierarchy.typeHierarchies == null) {
-//			TypeHierarchy.buildTypeHierarchy(ti);
-//		}
+			return super.execute(ti);
 
-		FieldInfo fi = getFieldInfo();
-		if (fi == null) {
-			return ti.createAndThrowException("java.lang.NoSuchFieldException",
-					(className + '.' + fname));
-		}
+	    ClassInfo ciField;
+	    FieldInfo fieldInfo;
+	    
+	    try {
+	      fieldInfo = getFieldInfo();
+	    } catch(LoadOnJPFRequired lre) {
+	      return ti.getPC();
+	    }
+	    
+	    if (fieldInfo == null) {
+	      return ti.createAndThrowException("java.lang.NoSuchFieldError",
+	          (className + '.' + fname));
+	    }
+		
+		ciField = fieldInfo.getClassInfo();
+	    
+	    if (!mi.isClinit(ciField) && ciField.initializeClass(ti)) {
+	      // note - this returns the next insn in the topmost clinit that just got pushed
+	      return ti.getPC();
+	    }
 
-		ClassInfo ci = fi.getClassInfo();
-		// start: not sure if this code should stay here
-		//	    if (!mi.isClinit(ci) && requiresClinitCalls(ti, ci))
-		//			  return ti.getPC();
-		// end: not sure if this code should stay here
+	    ElementInfo ei = ciField.getModifiableStaticElementInfo();
+	    //ei = ei. getInstanceWithUpdatedSharedness(ti); POR broken again
 
-		ElementInfo ei = ks.statics.get(ci.getName());
-
-		//end GETSTATIC code from super
+	    if (ei == null){
+	      throw new JPFException("attempt to access field: " + fname + " of uninitialized class: " + ciField.getName());
+	    }
 
 		Object attr = ei.getFieldAttr(fi);
 
-		if (!(fi.isReference() && attr != null && attr != Helper.SymbolicNull))
-			return super.execute(ss,ks,ti);
+		if (!(fi.isReference() && attr != null))
+			return super.execute(ti);
 
-		if(attr instanceof StringExpression || attr instanceof SymbolicStringBuilder)
-				return super.execute(ss,ks,ti); // Strings are handled specially
+		if(attr instanceof StringExpression || attr instanceof SymbolicStringBuilder || attr instanceof ArrayExpression)
+				return super.execute(ti); // Strings are handled specially
 
+		
 		// else: lazy initialization
+		if (SymbolicInstructionFactory.debugMode)
+			  System.out.println("lazy initialization");
+		
+		// may introduce thread choices
+		//POR broken again
+		 //if (isNewPorFieldBoundary(ti)) {
+		   //   if (createAndSetSharedFieldAccessCG( ei, ti)) {
+		        //return this; // not yet because well create the heap cg
+		     // }
+		    //}  
+		   
 
 		int currentChoice;
 		ChoiceGenerator<?> heapCG;
@@ -106,7 +127,7 @@ public class GETSTATIC extends gov.nasa.jpf.jvm.bytecode.GETSTATIC {
 			prevSymRefs = null;
 			numSymRefs = 0;
 			
-			prevHeapCG = ss.getLastChoiceGeneratorOfType(HeapChoiceGenerator.class);
+			prevHeapCG = ti.getVM().getSystemState().getLastChoiceGeneratorOfType(HeapChoiceGenerator.class);
 
 			if (prevHeapCG != null) {
 					// collect candidates for lazy initialization
@@ -118,20 +139,14 @@ public class GETSTATIC extends gov.nasa.jpf.jvm.bytecode.GETSTATIC {
 					  
 			}
 			
-			// TODO: fix
-//			if(!subtypes.equals("false")) {
-//				// get the number of subtypes that exist, and add the number in
-//				// the choice generator in addition to the ones that were there
-//				numNewRefs = TypeHierarchy.getNumOfElements(typeClassInfo.getName());
-//				heapCG = new HeapChoiceGenerator(numSymRefs+increment+numNewRefs); // +null,new
-//			} else {
-				heapCG = new HeapChoiceGenerator(numSymRefs+2);  //+null,new
-			//}
-			ss.setNextChoiceGenerator(heapCG);
+			// TODO: fix subtypes
+            heapCG = new HeapChoiceGenerator(numSymRefs+2);  //+null,new
+			ti.getVM().getSystemState().setNextChoiceGenerator(heapCG);
 			return this;
 		} else {  // this is what really returns results
-			heapCG = ss.getChoiceGenerator();
-			assert (heapCG instanceof HeapChoiceGenerator) : "expected HeapChoiceGenerator, got: " + heapCG;
+			heapCG = ti.getVM().getSystemState().getLastChoiceGeneratorOfType(HeapChoiceGenerator.class);
+			assert (heapCG !=null && heapCG instanceof HeapChoiceGenerator) :
+				  "expected HeapChoiceGenerator, got: " + heapCG;
 			currentChoice = ((HeapChoiceGenerator)heapCG).getNextChoice();
 		}
 
@@ -141,9 +156,6 @@ public class GETSTATIC extends gov.nasa.jpf.jvm.bytecode.GETSTATIC {
 
 		// pcHeap is updated with the pcHeap stored in the choice generator above
 		// get the pcHeap from the previous choice generator of the same type
-		
-		// can not simply re-use prevHeapCG from above because it might have changed during re-execution
-        // bug reported by Willem Visser
 		
 		prevHeapCG = heapCG.getPreviousChoiceGeneratorOfType(HeapChoiceGenerator.class);
 
@@ -171,34 +183,27 @@ public class GETSTATIC extends gov.nasa.jpf.jvm.bytecode.GETSTATIC {
 		}
 		else if (currentChoice == numSymRefs) { //existing (null)
 			pcHeap._addDet(Comparator.EQ, (SymbolicInteger) attr, new IntegerConstant(-1));
-			daIndex = -1;
+			daIndex = MJIEnv.NULL;
 		} else if (currentChoice == (numSymRefs + 1) && !abstractClass) {
 			  // creates a new object with all fields symbolic and adds the object to SymbolicHeap
-			  daIndex = Helper.addNewHeapNode(typeClassInfo, ti, daIndex, attr, ks, pcHeap,
-					  		symInputHeap, numSymRefs, prevSymRefs);
+			  daIndex = Helper.addNewHeapNode(typeClassInfo, ti, attr, pcHeap,
+					  		symInputHeap, numSymRefs, prevSymRefs, ei.isShared());
 		  } else {
 			  //TODO: fix
 			  System.err.println("subtyping not handled");
-//			  int counter;
-//			  if(abstractClass) {
-//					counter = currentChoice - (numSymRefs+1) ; //index to the sub-class
-//			  } else {
-//					counter = currentChoice - (numSymRefs+1) - 1;
-//			  }
-//			  ClassInfo subClassInfo = TypeHierarchy.getClassInfo(typeClassInfo.getName(), counter);
-//			  daIndex = Helper.addNewHeapNode(subClassInfo, ti, daIndex, attr, ks, pcHeap,
-//					  		symInputHeap, numSymRefs, prevSymRefs);
 		  }
 
 
 		ei.setReferenceField(fi,daIndex );
-		ei.setFieldAttr(fi, Helper.SymbolicNull); // was null
-		ti.push( ei.getReferenceField(fi), fi.isReference());
+		ei.setFieldAttr(fi, null);//Helper.SymbolicNull); // was null
+		StackFrame frame = ti.getModifiableTopFrame();
+		frame.pushRef(daIndex);
 		((HeapChoiceGenerator)heapCG).setCurrentPCheap(pcHeap);
 		((HeapChoiceGenerator)heapCG).setCurrentSymInputHeap(symInputHeap);
 		if (SymbolicInstructionFactory.debugMode)
 			System.out.println("GETSTATIC pcHeap: " + pcHeap);
 		return getNext(ti);
+
 	}
 
 

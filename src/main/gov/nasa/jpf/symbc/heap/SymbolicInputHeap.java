@@ -1,3 +1,21 @@
+/*
+ * Copyright (C) 2014, United States Government, as represented by the
+ * Administrator of the National Aeronautics and Space Administration.
+ * All rights reserved.
+ *
+ * Symbolic Pathfinder (jpf-symbc) is licensed under the Apache License, 
+ * Version 2.0 (the "License"); you may not use this file except
+ * in compliance with the License. You may obtain a copy of the License at
+ * 
+ *        http://www.apache.org/licenses/LICENSE-2.0. 
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and 
+ * limitations under the License.
+ */
+
 //
 //Copyright (C) 2006 United States Government as represented by the
 //Administrator of the National Aeronautics and Space Administration
@@ -19,7 +37,10 @@
 
 package gov.nasa.jpf.symbc.heap;
 
-import gov.nasa.jpf.jvm.ClassInfo;
+import gov.nasa.jpf.symbc.arrays.ArrayHeapNode;
+import gov.nasa.jpf.symbc.numeric.SymbolicInteger;
+import gov.nasa.jpf.vm.ClassInfo;
+
 
 public class SymbolicInputHeap {
 
@@ -69,6 +90,16 @@ public class SymbolicInputHeap {
 		return false;
 	}
 	
+	public SymbolicInteger getNode(int daIndex) {
+	    HeapNode n = header;
+        while (n != null){
+            if (n.getIndex() == daIndex)
+                return n.getSymbolic();
+            n = n.getNext();
+        }
+        return null;
+	}
+	
 	public HeapNode[] getNodesOfType(ClassInfo type) {
 		  
 		  int numSymRefs = 0;
@@ -102,6 +133,39 @@ public class SymbolicInputHeap {
 		  }
 		  return nodes;
 	}
+
+    public ArrayHeapNode[] getArrayNodesOfType(ClassInfo type, int ref) {
+        int numSymRefs = 0;
+        HeapNode n = header;
+        while (null != n) {
+            if (n instanceof ArrayHeapNode) {
+                ClassInfo tClassInfo = n.getType();
+                if (tClassInfo.isInstanceOf(type)) {
+                    if (((ArrayHeapNode)n).arrayRef == ref) {
+                        numSymRefs++;
+                    }
+                }
+            }
+            n = n.getNext();
+        }
+        n = header;
+        ArrayHeapNode[] nodes = new ArrayHeapNode[numSymRefs]; 
+        int i = 0;
+        while (null != n) {
+            if (n instanceof ArrayHeapNode) {
+                ClassInfo tClassInfo = n.getType();
+                if (tClassInfo.isInstanceOf(type)) {
+                    if (((ArrayHeapNode)n).arrayRef == ref) {
+                        nodes[i] = (ArrayHeapNode)n;
+                        i++;
+                    }
+                }
+            }
+            n = n.getNext();
+        }
+        return nodes;
+    }
+
 	
 	public String toString() {
 		return "SymbolicInputHeap = " + count + ((header == null) ? "" : "\n" + header.toString());

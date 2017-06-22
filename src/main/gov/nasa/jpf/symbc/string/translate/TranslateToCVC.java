@@ -1,3 +1,21 @@
+/*
+ * Copyright (C) 2014, United States Government, as represented by the
+ * Administrator of the National Aeronautics and Space Administration.
+ * All rights reserved.
+ *
+ * Symbolic Pathfinder (jpf-symbc) is licensed under the Apache License, 
+ * Version 2.0 (the "License"); you may not use this file except
+ * in compliance with the License. You may obtain a copy of the License at
+ * 
+ *        http://www.apache.org/licenses/LICENSE-2.0. 
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and 
+ * limitations under the License.
+ */
+
 package gov.nasa.jpf.symbc.string.translate;
 
 import gov.nasa.jpf.symbc.numeric.Comparator;
@@ -623,8 +641,8 @@ public class TranslateToCVC {
 	public static void handleEdgeCharAt (EdgeCharAt e) {
 		if (!e.getSource().isConstant()) {
 			ExprMut source = getExprMut(e.getSource());
-			char c = (char) e.getValue().solution();
-			int index = e.getIndex().solution();
+			char c = e.getValue().solutionChar();
+			int index = e.getIndex().solutionInt();
 			Expr temp = vc.newBVExtractExpr(source, (e.getSource().getLength() - index) * 8 - 1, (e.getSource().getLength() - index) * 8 - 8);
 			Expr cons = vc.newBVConstExpr(toBits(c));
 			post (vc.eqExpr(temp, cons));
@@ -632,7 +650,7 @@ public class TranslateToCVC {
 		else {
 			String constant = e.getSource().getSolution();
 			char c = (char) e.getValue().solution();
-			int index = e.getIndex().solution();
+			int index = e.getIndex().solutionInt();
 			if (index > -1) {
 				ExprMut temp1 = vc.newBVConstExpr(toBits(constant.charAt(index)));
 				ExprMut temp2 = vc.newBVConstExpr(toBits(c));
@@ -822,7 +840,7 @@ public class TranslateToCVC {
 		if (!e.getSource().isConstant() && !e.getDest().isConstant()) {
 			ExprMut source = getExprMut (e.getSource());
 			ExprMut dest = getExprMut (e.getDest());
-			int index = e.getIndex().solution();
+			int index = e.getIndex().solutionInt();
 			if (index > -1) {
 				Expr lit = null;
 				for (int i = index; i < index + e.getDest().getLength(); i++) {
@@ -848,7 +866,7 @@ public class TranslateToCVC {
 		else if (!e.getSource().isConstant()) {
 			ExprMut source = getExprMut (e.getSource());
 			String destCons = e.getDest().getSolution();
-			int index = e.getIndex().solution();
+			int index = e.getIndex().solutionInt();
 			if (index > -1) {
 				Expr lit = null;
 				for (int i = index; i < index + e.getDest().getLength(); i++) {
@@ -875,7 +893,7 @@ public class TranslateToCVC {
 			String sourceCons = e.getSource().getSolution();
 			
 			ExprMut dest = getExprMut(e.getDest());
-			int index = e.getIndex().solution();
+			int index = e.getIndex().solutionInt();
 			
 			if (index > -1) {
 				String realSolution = sourceCons.substring(index, index + e.getDest().getLength());
@@ -906,7 +924,7 @@ public class TranslateToCVC {
 		if (!e.getSource().isConstant() && !e.getDest().isConstant()) {
 			ExprMut source = getExprMut (e.getSource());
 			ExprMut dest = getExprMut (e.getDest());
-			int index = e.getIndex().solution();
+			int index = e.getIndex().solutionInt();
 			if (index > -1) {
 				Expr lit = null;
 				for (int i = index; i < index + e.getDest().getLength(); i++) {
@@ -932,7 +950,7 @@ public class TranslateToCVC {
 		else if (!e.getSource().isConstant()) {
 			ExprMut source = getExprMut (e.getSource());
 			String destCons = e.getDest().getSolution();
-			int index = e.getIndex().solution();
+			int index = e.getIndex().solutionInt();
 			if (index > -1) {
 				Expr lit = null;
 				for (int i = index; i < index + e.getDest().getLength(); i++) {
@@ -959,7 +977,7 @@ public class TranslateToCVC {
 			String sourceCons = e.getSource().getSolution();
 			
 			ExprMut dest = getExprMut(e.getDest());
-			int index = e.getIndex().solution();
+			int index = e.getIndex().solutionInt();
 			
 			if (index > -1) {
 				String realSolution = sourceCons.substring(index, index + e.getDest().getLength());
@@ -989,7 +1007,7 @@ public class TranslateToCVC {
 	private static void handleEdgeIndexOfChar (EdgeIndexOfChar e) {
 		if (!e.getSource().isConstant()) {
 			ExprMut source = getExprMut(e.getSource());
-			int index = e.getIndex().solution();
+			int index = e.getIndex().solutionInt();
 			char character = (char) e.getIndex().getExpression().solution();
 			if (index > -1) {
 				Expr lit = null;
@@ -1017,7 +1035,7 @@ public class TranslateToCVC {
 		}
 		else {
 			String source = e.getSource().getSolution();
-			int index = e.getIndex().solution();
+			int index = e.getIndex().solutionInt();
 			char character = (char) e.getIndex().getExpression().solution();
 			int actualAns = source.indexOf(character);
 			post (vc.eqExpr(vc.ratExpr(actualAns), vc.ratExpr(index)));
@@ -1027,7 +1045,7 @@ public class TranslateToCVC {
 	private static void handleEdgeLastIndexOfChar (EdgeLastIndexOfChar e) {
 		if (!e.getSource().isConstant()) {
 			ExprMut source = getExprMut(e.getSource());
-			int index = e.getIndex().solution();
+			int index = e.getIndex().solutionInt();
 			char character = (char) e.getIndex().getExpression().solution();
 			if (index > -1) {
 				Expr lit = null;
@@ -1055,7 +1073,7 @@ public class TranslateToCVC {
 		}
 		else {
 			String source = e.getSource().getSolution();
-			int index = e.getIndex().solution();
+			int index = e.getIndex().solutionInt();
 			char character = (char) e.getIndex().getExpression().solution();
 			int actualAns = source.indexOf(character);
 			post (vc.eqExpr(vc.ratExpr(actualAns), vc.ratExpr(index)));
@@ -1065,7 +1083,7 @@ public class TranslateToCVC {
 	private static void handleEdgeLastIndexOfChar2 (EdgeLastIndexOfChar2 e) {
 		if (!e.getSource().isConstant()) {
 			ExprMut source = getExprMut(e.getSource());
-			int index = e.getIndex().solution();
+			int index = e.getIndex().solutionInt();
 			char character = (char) e.getIndex().getExpression().solution();
 			if (index > -1) {
 				Expr lit = null;
@@ -1094,9 +1112,9 @@ public class TranslateToCVC {
 		}
 		else {
 			String source = e.getSource().getSolution();
-			int index = e.getIndex().solution();
+			int index = e.getIndex().solutionInt();
 			char character = (char) e.getIndex().getExpression().solution();
-			int actualAns = source.lastIndexOf(character, e.getIndex().getMinDist().solution());
+			int actualAns = source.lastIndexOf(character, e.getIndex().getMinDist().solutionInt());
 			post (vc.eqExpr(vc.ratExpr(actualAns), vc.ratExpr(index)));
 		}
 	}
@@ -1104,14 +1122,14 @@ public class TranslateToCVC {
 	private static void handleEdgeIndexOfChar2 (EdgeIndexOfChar2 e) {
 		if (!e.getSource().isConstant()) {
 			ExprMut source = getExprMut(e.getSource());
-			int index = e.getIndex().solution();
+			int index = e.getIndex().solutionInt();
 			char character = (char) e.getIndex().getExpression().solution();
 			if (index > -1) {
 				//println ("[handleEdgeIndexOfChar2] branch 1");
 				Expr lit = null;
 				/* no other occurences of the character may come before */
 				//println ("[handleEdgeIndexOfChar2] e.getIndex().getMinDist().solution() = " + e.getIndex().getMinDist().solution());
-				int i = e.getIndex().getMinDist().solution();
+				int i = e.getIndex().getMinDist().solutionInt();
 				if (e.getIndex().getMinDist().solution() < 0) {
 					i = 0;
 				}
@@ -1137,9 +1155,9 @@ public class TranslateToCVC {
 		}
 		else {
 			String source = e.getSource().getSolution();
-			int index = e.getIndex().solution();
+			int index = e.getIndex().solutionInt();
 			char character = (char) e.getIndex().getExpression().solution();
-			int actualAns = source.indexOf(character, e.getIndex().getMinDist().solution());
+			int actualAns = source.indexOf(character, e.getIndex().getMinDist().solutionInt());
 			post (vc.eqExpr(vc.ratExpr(actualAns), vc.ratExpr(index)));
 		}
 	}
@@ -1218,7 +1236,7 @@ public class TranslateToCVC {
 				ExprMut source = getExprMut(e.getSource());
 				ExprMut dest = getExprMut(e.getDest());
 				int arg1 = e.getArgument1();
-				int arg2 = e.getSymbolicArgument2().solution();
+				int arg2 = e.getSymbolicArgument2().solutionInt();
 				Expr lit = null;
 				for (int i = 0; i < arg2 - arg1; i++) {
 					Expr sourceTemp = vc.newBVExtractExpr(source, (e.getSource().getLength() - (i + arg1)) * 8 - 1, (e.getSource().getLength() - (i + arg1)) * 8 - 8);
@@ -1231,7 +1249,7 @@ public class TranslateToCVC {
 				ExprMut source = getExprMut(e.getSource());
 				String destCons = e.getDest().getSolution();
 				int arg1 = e.getArgument1();
-				int arg2 = e.getSymbolicArgument2().solution();
+				int arg2 = e.getSymbolicArgument2().solutionInt();
 				if (arg2 - arg1 != destCons.length()) {
 					//TODO: Can definitly improve here
 					//global_pc._addDet(Comparator.EQ, e.getSymbolicArgument2(), destCons.length() + arg1);
@@ -1324,8 +1342,4 @@ public class TranslateToCVC {
 		return result;
 	}
 	
-	private static void println (String msg) {
-		System.out.println("[TranslateToCVC] " + msg);
-	}
-
 }

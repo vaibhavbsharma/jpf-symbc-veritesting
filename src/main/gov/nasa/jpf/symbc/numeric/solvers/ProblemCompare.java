@@ -1,3 +1,21 @@
+/*
+ * Copyright (C) 2014, United States Government, as represented by the
+ * Administrator of the National Aeronautics and Space Administration.
+ * All rights reserved.
+ *
+ * Symbolic Pathfinder (jpf-symbc) is licensed under the Apache License, 
+ * Version 2.0 (the "License"); you may not use this file except
+ * in compliance with the License. You may obtain a copy of the License at
+ * 
+ *        http://www.apache.org/licenses/LICENSE-2.0. 
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and 
+ * limitations under the License.
+ */
+
 //
 //Copyright (C) 2006 United States Government as represented by the
 //Administrator of the National Aeronautics and Space Administration
@@ -20,6 +38,7 @@
 package gov.nasa.jpf.symbc.numeric.solvers;
 
 import gov.nasa.jpf.search.Search;
+import gov.nasa.jpf.symbc.numeric.PCParser;
 import gov.nasa.jpf.symbc.numeric.PathCondition;
 import gov.nasa.jpf.symbc.numeric.SymbolicConstraintsGeneral;
 import gov.nasa.jpf.symbc.numeric.SymbolicReal;
@@ -115,7 +134,7 @@ public class ProblemCompare extends ProblemGeneral {
 	}
 
 	@Override
-	public Object and(int value, Object exp) {
+	public Object and(long value, Object exp) {
 		SolverObjects so = new SolverObjects();
 		for (int i = 0; i < numSolvers; i++) {
 			try {
@@ -129,7 +148,7 @@ public class ProblemCompare extends ProblemGeneral {
 	}
 
 	@Override
-	public Object and(Object exp, int value) {
+	public Object and(Object exp, long value) {
 		SolverObjects so = new SolverObjects();
 		for (int i = 0; i < numSolvers; i++) {
 			try {
@@ -158,7 +177,7 @@ public class ProblemCompare extends ProblemGeneral {
 	}
 
 	@Override
-	public Object div(int value, Object exp) {
+	public Object div(long value, Object exp) {
 		SolverObjects so = new SolverObjects();
 		for (int i = 0; i < numSolvers; i++) {
 			try {
@@ -172,7 +191,7 @@ public class ProblemCompare extends ProblemGeneral {
 	}
 
 	@Override
-	public Object div(Object exp, int value) {
+	public Object div(Object exp, long value) {
 		SolverObjects so = new SolverObjects();
 		for (int i = 0; i < numSolvers; i++) {
 			try {
@@ -229,7 +248,7 @@ public class ProblemCompare extends ProblemGeneral {
 	}
 
 	@Override
-	public Object eq(int value, Object exp) {
+	public Object eq(long value, Object exp) {
 		SolverObjects so = new SolverObjects();
 		for (int i = 0; i < numSolvers; i++) {
 			try {
@@ -243,7 +262,7 @@ public class ProblemCompare extends ProblemGeneral {
 	}
 
 	@Override
-	public Object eq(Object exp, int value) {
+	public Object eq(Object exp, long value) {
 		SolverObjects so = new SolverObjects();
 		for (int i = 0; i < numSolvers; i++) {
 			try {
@@ -300,7 +319,7 @@ public class ProblemCompare extends ProblemGeneral {
 	}
 
 	@Override
-	public Object geq(int value, Object exp) {
+	public Object geq(long value, Object exp) {
 		SolverObjects so = new SolverObjects();
 		for (int i = 0; i < numSolvers; i++) {
 			try {
@@ -314,7 +333,7 @@ public class ProblemCompare extends ProblemGeneral {
 	}
 
 	@Override
-	public Object geq(Object exp, int value) {
+	public Object geq(Object exp, long value) {
 		SolverObjects so = new SolverObjects();
 		for (int i = 0; i < numSolvers; i++) {
 			try {
@@ -371,7 +390,7 @@ public class ProblemCompare extends ProblemGeneral {
 	}
 
 	@Override
-	public int getIntValue(Object dpVar) {
+	public long getIntValue(Object dpVar) {
 		return probs[selected].getIntValue(((SolverObjects) dpVar).getConstraint(selected));
 	}
 
@@ -393,7 +412,7 @@ public class ProblemCompare extends ProblemGeneral {
 	}
 
 	@Override
-	public Object gt(int value, Object exp) {
+	public Object gt(long value, Object exp) {
 		SolverObjects so = new SolverObjects();
 		for (int i = 0; i < numSolvers; i++) {
 			try {
@@ -407,7 +426,7 @@ public class ProblemCompare extends ProblemGeneral {
 	}
 
 	@Override
-	public Object gt(Object exp, int value) {
+	public Object gt(Object exp, long value) {
 		SolverObjects so = new SolverObjects();
 		for (int i = 0; i < numSolvers; i++) {
 			try {
@@ -464,7 +483,7 @@ public class ProblemCompare extends ProblemGeneral {
 	}
 
 	@Override
-	public Object leq(int value, Object exp) {
+	public Object leq(long value, Object exp) {
 		SolverObjects so = new SolverObjects();
 		for (int i = 0; i < numSolvers; i++) {
 			try {
@@ -478,7 +497,7 @@ public class ProblemCompare extends ProblemGeneral {
 	}
 
 	@Override
-	public Object leq(Object exp, int value) {
+	public Object leq(Object exp, long value) {
 		SolverObjects so = new SolverObjects();
 		for (int i = 0; i < numSolvers; i++) {
 			try {
@@ -534,7 +553,7 @@ public class ProblemCompare extends ProblemGeneral {
 	}
 
 	@Override
-	public Object lt(int value, Object exp) {
+	public Object lt(long value, Object exp) {
 		SolverObjects so = new SolverObjects();
 		for (int i = 0; i < numSolvers; i++) {
 			try {
@@ -548,7 +567,7 @@ public class ProblemCompare extends ProblemGeneral {
 	}
 
 	@Override
-	public Object lt(Object exp, int value) {
+	public Object lt(Object exp, long value) {
 		SolverObjects so = new SolverObjects();
 		for (int i = 0; i < numSolvers; i++) {
 			try {
@@ -605,7 +624,7 @@ public class ProblemCompare extends ProblemGeneral {
 	}
 
 	@Override
-	public Object makeIntVar(String name, int min, int max) {
+	public Object makeIntVar(String name, long min, long max) {
 		SolverObjects so = new SolverObjects();
 		for (int i = 0; i < numSolvers; i++) {
 			so.setConstraint(i, probs[i].makeIntVar(name, min, max));
@@ -627,7 +646,7 @@ public class ProblemCompare extends ProblemGeneral {
 	}
 
 	@Override
-	public Object minus(int value, Object exp) {
+	public Object minus(long value, Object exp) {
 		SolverObjects so = new SolverObjects();
 		for (int i = 0; i < numSolvers; i++) {
 		    try {
@@ -641,7 +660,7 @@ public class ProblemCompare extends ProblemGeneral {
 	}
 
 	@Override
-	public Object minus(Object exp, int value) {
+	public Object minus(Object exp, long value) {
 		SolverObjects so = new SolverObjects();
 		for (int i = 0; i < numSolvers; i++) {
 		    try {
@@ -706,7 +725,7 @@ public class ProblemCompare extends ProblemGeneral {
 			so.setConstraint(i, probs[i].mixed(((SolverObjects) exp1)
 					.getConstraint(i), ((SolverObjects) exp2)
 					.getConstraint(i)));
-		    } catch(Exception _){
+		    } catch(Exception e){
 					ignoredSolvers[i] = true;
 		    }
 		}
@@ -714,7 +733,7 @@ public class ProblemCompare extends ProblemGeneral {
 	}
 
 	@Override
-	public Object mult(int value, Object exp) {
+	public Object mult(long value, Object exp) {
 		SolverObjects so = new SolverObjects();
 		for (int i = 0; i < numSolvers; i++) {
 			try {
@@ -728,7 +747,7 @@ public class ProblemCompare extends ProblemGeneral {
 	}
 
 	@Override
-	public Object mult(Object exp, int value) {
+	public Object mult(Object exp, long value) {
 		SolverObjects so = new SolverObjects();
 		for (int i = 0; i < numSolvers; i++) {
 			try {
@@ -785,7 +804,7 @@ public class ProblemCompare extends ProblemGeneral {
 	}
 
 	@Override
-	public Object neq(int value, Object exp) {
+	public Object neq(long value, Object exp) {
 		SolverObjects so = new SolverObjects();
 		for (int i = 0; i < numSolvers; i++) {
 			try {
@@ -799,7 +818,7 @@ public class ProblemCompare extends ProblemGeneral {
 	}
 
 	@Override
-	public Object neq(Object exp, int value) {
+	public Object neq(Object exp, long value) {
 		SolverObjects so = new SolverObjects();
 		for (int i = 0; i < numSolvers; i++) {
 			try {
@@ -856,7 +875,7 @@ public class ProblemCompare extends ProblemGeneral {
 	}
 
 	@Override
-	public Object or(int value, Object exp) {
+	public Object or(long value, Object exp) {
 		SolverObjects so = new SolverObjects();
 		for (int i = 0; i < numSolvers; i++) {
 			try {
@@ -870,7 +889,7 @@ public class ProblemCompare extends ProblemGeneral {
 	}
 
 	@Override
-	public Object or(Object exp, int value) {
+	public Object or(Object exp, long value) {
 		SolverObjects so = new SolverObjects();
 		for (int i = 0; i < numSolvers; i++) {
 			try {
@@ -899,7 +918,7 @@ public class ProblemCompare extends ProblemGeneral {
 	}
 
 	@Override
-	public Object plus(int value, Object exp) {
+	public Object plus(long value, Object exp) {
 		SolverObjects so = new SolverObjects();
 		for (int i = 0; i < numSolvers; i++) {
 			try {
@@ -913,7 +932,7 @@ public class ProblemCompare extends ProblemGeneral {
 	}
 
 	@Override
-	public Object plus(Object exp, int value) {
+	public Object plus(Object exp, long value) {
 		SolverObjects so = new SolverObjects();
 		for (int i = 0; i < numSolvers; i++) {
 			try {
@@ -981,7 +1000,7 @@ public class ProblemCompare extends ProblemGeneral {
 	}
 
 	@Override
-	public Object shiftL(int value, Object exp) {
+	public Object shiftL(long value, Object exp) {
 		SolverObjects so = new SolverObjects();
 		for (int i = 0; i < numSolvers; i++) {
 			try {
@@ -995,7 +1014,7 @@ public class ProblemCompare extends ProblemGeneral {
 	}
 
 	@Override
-	public Object shiftL(Object exp, int value) {
+	public Object shiftL(Object exp, long value) {
 		SolverObjects so = new SolverObjects();
 		for (int i = 0; i < numSolvers; i++) {
 			try {
@@ -1024,7 +1043,7 @@ public class ProblemCompare extends ProblemGeneral {
 	}
 
 	@Override
-	public Object shiftR(int value, Object exp) {
+	public Object shiftR(long value, Object exp) {
 		SolverObjects so = new SolverObjects();
 		for (int i = 0; i < numSolvers; i++) {
 			try {
@@ -1038,7 +1057,7 @@ public class ProblemCompare extends ProblemGeneral {
 	}
 
 	@Override
-	public Object shiftR(Object exp, int value) {
+	public Object shiftR(Object exp, long value) {
 		SolverObjects so = new SolverObjects();
 		for (int i = 0; i < numSolvers; i++) {
 			try {
@@ -1067,7 +1086,7 @@ public class ProblemCompare extends ProblemGeneral {
 	}
 
 	@Override
-	public Object shiftUR(int value, Object exp) {
+	public Object shiftUR(long value, Object exp) {
 		SolverObjects so = new SolverObjects();
 		for (int i = 0; i < numSolvers; i++) {
 			try {
@@ -1081,7 +1100,7 @@ public class ProblemCompare extends ProblemGeneral {
 	}
 
 	@Override
-	public Object shiftUR(Object exp, int value) {
+	public Object shiftUR(Object exp, long value) {
 		SolverObjects so = new SolverObjects();
 		for (int i = 0; i < numSolvers; i++) {
 			try {
@@ -1110,7 +1129,7 @@ public class ProblemCompare extends ProblemGeneral {
 	}
 
 	@Override
-	public Object xor(int value, Object exp) {
+	public Object xor(long value, Object exp) {
 		SolverObjects so = new SolverObjects();
 		for (int i = 0; i < numSolvers; i++) {
 			try {
@@ -1124,7 +1143,7 @@ public class ProblemCompare extends ProblemGeneral {
 	}
 
 	@Override
-	public Object xor(Object exp, int value) {
+	public Object xor(Object exp, long value) {
 		SolverObjects so = new SolverObjects();
 		for (int i = 0; i < numSolvers; i++) {
 			try {
@@ -1380,7 +1399,7 @@ public class ProblemCompare extends ProblemGeneral {
 			SolverObjects valueList = entry.getValue();
 			Object coralLiteral = valueList.getConstraint(0);
 			Object otherLiteral = valueList.getConstraint(pbToCheck);
-			int val = pb.getIntValue(otherLiteral);
+			long val = pb.getIntValue(otherLiteral);
 			coralMap.put((SymLiteral) coralLiteral, Util.createConstant(val));
 			//System.out.println(literal + " : " + val);
 		}
@@ -1398,7 +1417,7 @@ public class ProblemCompare extends ProblemGeneral {
 		} catch(Exception exp) { //reproducing hack to get the value of undefined variables in choco (and possibly others)
 			//if constraint contains real variables, use choco hack to find them
 			if(realVars.size() > 0) {
-				Map<SymbolicReal,Object> realVarsChoco = extractProblemVars(scg.getSymRealVar(),pbToCheck);
+				Map<SymbolicReal,Object> realVarsChoco = extractProblemVars(PCParser.symRealVar,pbToCheck);
 				Map<SymbolicReal,Object> reprocessedRealVarsChoco = scg.catchBody(realVarsChoco,pb,p);
 
 				if(reprocessedRealVarsChoco != null) {
@@ -1480,10 +1499,10 @@ public class ProblemCompare extends ProblemGeneral {
 					// }
 				}
 			}
-			catch(Exception _){
+			catch(Exception e){
 				solutions[i] = false;
 				System.out.println("Solver " + i + " threw an exception");
-				_.printStackTrace();
+				e.printStackTrace();
 			}
 
 			if (alwaysPrint) {
@@ -1529,7 +1548,7 @@ public class ProblemCompare extends ProblemGeneral {
 			String solverName = ProblemCompare.class.getSimpleName();
 			String fileName = TablePrinter.TABLE_DIR + targetName + "." + solverName + ".ser";
 			SolvingDiff.writeToFile(fileName, solvingDiff);
-		} catch (IOException _) {
+		} catch (IOException e) {
 			throw new RuntimeException(TablePrinter.ERR_MSG);
 		}
 	}
@@ -1539,5 +1558,23 @@ public class ProblemCompare extends ProblemGeneral {
 		// TODO Auto-generated method stub
 		throw new RuntimeException("## Error Choco2 does not support LogicalOR");
 
+	}
+
+	@Override
+	public Object rem(Object exp1, Object exp2) {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public Object rem(long exp1, Object exp2) {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public Object rem(Object exp1, long exp2) {
+		// TODO Auto-generated method stub
+		return null;
 	}
 }

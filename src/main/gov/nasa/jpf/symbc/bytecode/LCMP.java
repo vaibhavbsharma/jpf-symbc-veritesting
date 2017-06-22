@@ -1,33 +1,31 @@
-//
-// Copyright (C) 2006 United States Government as represented by the
-// Administrator of the National Aeronautics and Space Administration
-// (NASA).  All Rights Reserved.
-//
-// This software is distributed under the NASA Open Source Agreement
-// (NOSA), version 1.3.  The NOSA has been approved by the Open Source
-// Initiative.  See the file NOSA-1.3-JPF at the top of the distribution
-// directory tree for the complete NOSA document.
-//
-// THE SUBJECT SOFTWARE IS PROVIDED "AS IS" WITHOUT ANY WARRANTY OF ANY
-// KIND, EITHER EXPRESSED, IMPLIED, OR STATUTORY, INCLUDING, BUT NOT
-// LIMITED TO, ANY WARRANTY THAT THE SUBJECT SOFTWARE WILL CONFORM TO
-// SPECIFICATIONS, ANY IMPLIED WARRANTIES OF MERCHANTABILITY, FITNESS FOR
-// A PARTICULAR PURPOSE, OR FREEDOM FROM INFRINGEMENT, ANY WARRANTY THAT
-// THE SUBJECT SOFTWARE WILL BE ERROR FREE, OR ANY WARRANTY THAT
-// DOCUMENTATION, IF PROVIDED, WILL CONFORM TO THE SUBJECT SOFTWARE.
-//
+/*
+ * Copyright (C) 2014, United States Government, as represented by the
+ * Administrator of the National Aeronautics and Space Administration.
+ * All rights reserved.
+ *
+ * Symbolic Pathfinder (jpf-symbc) is licensed under the Apache License, 
+ * Version 2.0 (the "License"); you may not use this file except
+ * in compliance with the License. You may obtain a copy of the License at
+ * 
+ *        http://www.apache.org/licenses/LICENSE-2.0. 
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and 
+ * limitations under the License.
+ */
 package gov.nasa.jpf.symbc.bytecode;
 
-import gov.nasa.jpf.jvm.ChoiceGenerator;
-import gov.nasa.jpf.jvm.KernelState;
-import gov.nasa.jpf.jvm.StackFrame;
-import gov.nasa.jpf.jvm.SystemState;
-import gov.nasa.jpf.jvm.ThreadInfo;
-import gov.nasa.jpf.jvm.bytecode.Instruction;
+
 import gov.nasa.jpf.symbc.numeric.Comparator;
 import gov.nasa.jpf.symbc.numeric.IntegerExpression;
 import gov.nasa.jpf.symbc.numeric.PCChoiceGenerator;
 import gov.nasa.jpf.symbc.numeric.PathCondition;
+import gov.nasa.jpf.vm.ChoiceGenerator;
+import gov.nasa.jpf.vm.Instruction;
+import gov.nasa.jpf.vm.StackFrame;
+import gov.nasa.jpf.vm.ThreadInfo;
 
 
 /**
@@ -37,14 +35,14 @@ import gov.nasa.jpf.symbc.numeric.PathCondition;
 public class LCMP extends gov.nasa.jpf.jvm.bytecode.LCMP {
 
   @Override
-  public Instruction execute (SystemState ss, KernelState ks, ThreadInfo th) {
-    StackFrame sf = th.getTopFrame();
+  public Instruction execute (ThreadInfo th) {
+    StackFrame sf = th.getModifiableTopFrame();
 
     IntegerExpression sym_v1 = (IntegerExpression) sf.getOperandAttr(1);
     IntegerExpression sym_v2 = (IntegerExpression) sf.getOperandAttr(3);
 
 	if (sym_v1 == null && sym_v2 == null)  // both conditions are concrete
-		return super.execute(ss, ks, th);
+		return super.execute(th);
 	else { // at least one condition is symbolic
 
 		ChoiceGenerator<?> cg;
@@ -53,17 +51,17 @@ public class LCMP extends gov.nasa.jpf.jvm.bytecode.LCMP {
 		if (!th.isFirstStepInsn()) { // first time around
 			cg = new PCChoiceGenerator(3);
 			((PCChoiceGenerator)cg).setOffset(this.position);
-			((PCChoiceGenerator)cg).setMethodName(this.getMethodInfo().getCompleteName());
-			ss.setNextChoiceGenerator(cg);
+			((PCChoiceGenerator)cg).setMethodName(this.getMethodInfo().getFullName());
+			th.getVM().getSystemState().setNextChoiceGenerator(cg);
 			return this;
 		} else { // this is what really returns results
-			cg = ss.getChoiceGenerator();
+			cg = th.getVM().getSystemState().getChoiceGenerator();
 			assert (cg instanceof PCChoiceGenerator) : "expected PCChoiceGenerator, got: " + cg;
 			conditionValue = ((PCChoiceGenerator) cg).getNextChoice() -1;
 		}
 
-		long v1 = th.longPop();
-		long v2 = th.longPop();
+		long v1 = sf.popLong();
+		long v2 = sf.popLong();
 
 		// System.out.println("Execute LCMP: "+ conditionValue);
 		PathCondition pc;
@@ -92,7 +90,7 @@ public class LCMP extends gov.nasa.jpf.jvm.bytecode.LCMP {
 				pc._addDet(Comparator.LT, sym_v2, v1);
 
 			if (!pc.simplify()) {// not satisfiable
-				ss.setIgnored(true);
+				th.getVM().getSystemState().setIgnored(true);
 			} else {
 				// pc.solve();
 				((PCChoiceGenerator) cg).setCurrentPC(pc);
@@ -107,7 +105,7 @@ public class LCMP extends gov.nasa.jpf.jvm.bytecode.LCMP {
 			} else
 				pc._addDet(Comparator.EQ, v1, sym_v2);
 			if (!pc.simplify()) {// not satisfiable
-				ss.setIgnored(true);
+				th.getVM().getSystemState().setIgnored(true);
 			} else {
 				// pc.solve();
 				((PCChoiceGenerator) cg).setCurrentPC(pc);
@@ -122,7 +120,7 @@ public class LCMP extends gov.nasa.jpf.jvm.bytecode.LCMP {
 			} else
 				pc._addDet(Comparator.GT, sym_v2, (int)v1);
 			if (!pc.simplify()) {// not satisfiable
-				ss.setIgnored(true);
+				th.getVM().getSystemState().setIgnored(true);
 			} else {
 				// pc.solve();
 				((PCChoiceGenerator) cg).setCurrentPC(pc);
@@ -130,7 +128,7 @@ public class LCMP extends gov.nasa.jpf.jvm.bytecode.LCMP {
 			}
 		}
 
-		th.push(conditionValue, false);
+		sf.push(conditionValue, false);
 		//System.out.println("Execute LCMP: " + ((PCChoiceGenerator) cg).getCurrentPC());
 		return getNext(th);
 	}

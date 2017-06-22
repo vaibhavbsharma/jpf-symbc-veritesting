@@ -1,3 +1,21 @@
+/*
+ * Copyright (C) 2014, United States Government, as represented by the
+ * Administrator of the National Aeronautics and Space Administration.
+ * All rights reserved.
+ *
+ * Symbolic Pathfinder (jpf-symbc) is licensed under the Apache License, 
+ * Version 2.0 (the "License"); you may not use this file except
+ * in compliance with the License. You may obtain a copy of the License at
+ * 
+ *        http://www.apache.org/licenses/LICENSE-2.0. 
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and 
+ * limitations under the License.
+ */
+
 //
 // Copyright (C) 2007 United States Government as represented by the
 // Administrator of the National Aeronautics and Space Administration
@@ -18,30 +36,29 @@
 //
 package gov.nasa.jpf.symbc.bytecode;
 
-import gov.nasa.jpf.jvm.KernelState;
-import gov.nasa.jpf.jvm.StackFrame;
-import gov.nasa.jpf.jvm.SystemState;
-import gov.nasa.jpf.jvm.ThreadInfo;
-import gov.nasa.jpf.jvm.bytecode.Instruction;
+
 import gov.nasa.jpf.symbc.numeric.*;
+import gov.nasa.jpf.vm.Instruction;
+import gov.nasa.jpf.vm.StackFrame;
+import gov.nasa.jpf.vm.ThreadInfo;
 
 public class INEG extends gov.nasa.jpf.jvm.bytecode.INEG{
 	
 	@Override
-	public Instruction execute (SystemState ss, KernelState ks, ThreadInfo th) {
+	public Instruction execute (ThreadInfo th) {
 		//return super.execute(ss, ks, th);
 		
-		StackFrame sf = th.getTopFrame();
+		StackFrame sf = th.getModifiableTopFrame();
 
 		IntegerExpression sym_v1 = (IntegerExpression) sf.getOperandAttr(); 
-		int v1 = th.pop();
+		int v1 = sf.pop();
 		
 		//System.out.println("Execute INEG: "+Helper.get(index));
 		
 		if(sym_v1==null)
-			th.push(-v1, false); // we'll still do the concrete execution
+			sf.push(-v1, false); // we'll still do the concrete execution
 		else
-			th.push(0, false);
+			sf.push(0, false);
 		
 		IntegerExpression result = null;
 		if(sym_v1!=null) {

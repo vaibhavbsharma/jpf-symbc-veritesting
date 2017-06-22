@@ -1,3 +1,21 @@
+/*
+ * Copyright (C) 2014, United States Government, as represented by the
+ * Administrator of the National Aeronautics and Space Administration.
+ * All rights reserved.
+ *
+ * Symbolic Pathfinder (jpf-symbc) is licensed under the Apache License, 
+ * Version 2.0 (the "License"); you may not use this file except
+ * in compliance with the License. You may obtain a copy of the License at
+ * 
+ *        http://www.apache.org/licenses/LICENSE-2.0. 
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and 
+ * limitations under the License.
+ */
+
 //Copyright (C) 2007 United States Government as represented by the
 //Administrator of the National Aeronautics and Space Administration
 //(NASA).  All Rights Reserved.
@@ -16,36 +34,35 @@
 //DOCUMENTATION, IF PROVIDED, WILL CONFORM TO THE SUBJECT SOFTWARE.
 package gov.nasa.jpf.symbc.bytecode;
 
-import gov.nasa.jpf.jvm.ChoiceGenerator;
-import gov.nasa.jpf.jvm.KernelState;
-import gov.nasa.jpf.jvm.SystemState;
-import gov.nasa.jpf.jvm.ThreadInfo;
-import gov.nasa.jpf.jvm.bytecode.Instruction;
-import gov.nasa.jpf.jvm.StackFrame;
+
 
 import gov.nasa.jpf.symbc.numeric.*;
+import gov.nasa.jpf.vm.ChoiceGenerator;
+import gov.nasa.jpf.vm.Instruction;
+import gov.nasa.jpf.vm.StackFrame;
+import gov.nasa.jpf.vm.ThreadInfo;
 
 public class IDIV extends gov.nasa.jpf.jvm.bytecode.IDIV {
 
 	@Override
-	public Instruction execute (SystemState ss, KernelState ks, ThreadInfo th) {
-		StackFrame sf = th.getTopFrame();
+	public Instruction execute (ThreadInfo th) {
+		StackFrame sf = th.getModifiableTopFrame();
 		IntegerExpression sym_v1 = (IntegerExpression) sf.getOperandAttr(0);
 		IntegerExpression sym_v2 = (IntegerExpression) sf.getOperandAttr(1);
 		int v1, v2;
 
 
 		if(sym_v1==null && sym_v2==null)
-			return super.execute(ss, ks, th); // we'll still do the concrete execution
+			return super.execute(th); // we'll still do the concrete execution
 
 		// result is symbolic
 
 		if(sym_v1==null && sym_v2!=null) {
-	    	v1 = th.pop();
-	    	v2 = th.pop();
+	    	v1 = sf.pop();
+	    	v2 = sf.pop();
 	    	if(v1==0)
 				return th.createAndThrowException("java.lang.ArithmeticException","div by 0");
-	    	th.push(0, false);
+	    	sf.push(0, false);
 	    	IntegerExpression result = sym_v2._div(v1);
 			sf.setOperandAttr(result);
 		    return getNext(th);
@@ -60,26 +77,24 @@ public class IDIV extends gov.nasa.jpf.jvm.bytecode.IDIV {
 		if (!th.isFirstStepInsn()) { // first time around
 			cg = new PCChoiceGenerator(2);
 			((PCChoiceGenerator)cg).setOffset(this.position);
-			((PCChoiceGenerator)cg).setMethodName(this.getMethodInfo().getCompleteName());
-			ss.setNextChoiceGenerator(cg);
+			((PCChoiceGenerator)cg).setMethodName(this.getMethodInfo().getFullName());
+			th.getVM().setNextChoiceGenerator(cg);
 			return this;
 		} else {  // this is what really returns results
-			cg = ss.getChoiceGenerator();
+			cg = th.getVM().getChoiceGenerator();
 			assert (cg instanceof PCChoiceGenerator) : "expected PCChoiceGenerator, got: " + cg;
 			condition = (Integer)cg.getNextChoice()==0 ? false: true;
 		}
 
 
-		v1 = th.pop();
-		v2 = th.pop();
-		th.push(0, false);
+		v1 = sf.pop();
+		v2 = sf.pop();
+		sf.push(0, false);
 
 		PathCondition pc;
-		ChoiceGenerator<?> prev_cg = cg.getPreviousChoiceGenerator();
+		ChoiceGenerator<?> prev_cg = cg.getPreviousChoiceGeneratorOfType(PCChoiceGenerator.class);
 
-		while (!((prev_cg == null) || (prev_cg instanceof PCChoiceGenerator))) {
-			prev_cg = prev_cg.getPreviousChoiceGenerator();
-		}
+		
 		if (prev_cg == null)
 			pc = new PathCondition();
 		else
@@ -95,7 +110,7 @@ public class IDIV extends gov.nasa.jpf.jvm.bytecode.IDIV {
 				return th.createAndThrowException("java.lang.ArithmeticException","div by 0");
 			}
 			else {
-				ss.setIgnored(true);
+				th.getVM().getSystemState().setIgnored(true);
 				return getNext(th);
 			}
 		}
@@ -111,13 +126,13 @@ public class IDIV extends gov.nasa.jpf.jvm.bytecode.IDIV {
 				else
 					result = sym_v1._div_reverse(v2);
 
-				sf = th.getTopFrame();
+				sf = th.getModifiableTopFrame();
 				sf.setOperandAttr(result);
 			    return getNext(th);
 
 			}
 			else {
-				ss.setIgnored(true);
+				th.getVM().getSystemState().setIgnored(true);
 				return getNext(th);
 			}
 		}

@@ -1,3 +1,21 @@
+/*
+ * Copyright (C) 2014, United States Government, as represented by the
+ * Administrator of the National Aeronautics and Space Administration.
+ * All rights reserved.
+ *
+ * Symbolic Pathfinder (jpf-symbc) is licensed under the Apache License, 
+ * Version 2.0 (the "License"); you may not use this file except
+ * in compliance with the License. You may obtain a copy of the License at
+ * 
+ *        http://www.apache.org/licenses/LICENSE-2.0. 
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and 
+ * limitations under the License.
+ */
+
 /*  Copyright (C) 2005 United States Government as represented by the
 Administrator of the National Aeronautics and Space Administration
 (NASA).  All Rights Reserved.
@@ -32,6 +50,7 @@ package gov.nasa.jpf.symbc.string;
 
 //import gov.nasa.jpf.symbc.numeric.Expression;
 import gov.nasa.jpf.symbc.numeric.IntegerConstant;
+import gov.nasa.jpf.util.LogManager;
 import java.util.*;
 
 
@@ -40,6 +59,7 @@ import hampi.constraints.Constraint;
 import hampi.constraints.Regexp;
 import hampi.constraints.Expression;
 import hampi.Solution;
+import java.util.logging.Logger;
 
 
 /*
@@ -48,6 +68,7 @@ import hampi.Solution;
  * Then we need to add this directory to the java.library.path on the command line as in: -Djava.library.path=<jpf-root>extensions/symbc/lib
  */
 public class SymbolicStringConstraintsHAMPI {
+  static Logger logger = LogManager.getLogger("stringsolver");
   StringPathCondition pc = null;
   Hampi hampi;
 
@@ -89,7 +110,7 @@ public class SymbolicStringConstraintsHAMPI {
 			}
 		}
 		else {
-			System.out.println("Exiting after unhandled type " + expr);
+			logger.severe("Exiting after unhandled type " + expr);
 			System.exit(0);
 		}
 		return result;
@@ -104,12 +125,12 @@ public class SymbolicStringConstraintsHAMPI {
 		while (len < 256) {
 			s = hampi.solve(all,len);
 			if (s.isSatisfiable()) {
-				System.out.println("Found solution!");
+				logger.info("Found solution!");
 				return true;
 			}
 			len++;
 		}
-		System.out.println("No solution for " + all.toJavaCode(""));
+		logger.warning("No solution for " + all.toJavaCode(""));
 		return false;
 	}
 
@@ -124,7 +145,7 @@ public class SymbolicStringConstraintsHAMPI {
 			left = getStringExpression(c.left);
 			right = getStringExpression(c.right);
 			if (!(c.left instanceof StringConstant) && !(c.right instanceof StringConstant)) {
-				System.out.println("EQ: One side must be non symbolic for HAMPI to work!");
+				logger.severe("EQ: One side must be non symbolic for HAMPI to work!");
 				System.exit(0);
 			}
 			if ((c.left instanceof StringConstant) && (c.right instanceof StringConstant))  {
@@ -154,7 +175,7 @@ public class SymbolicStringConstraintsHAMPI {
 			left = getStringExpression(c.left);
 			right = getStringExpression(c.right);
 			if (!(c.left instanceof StringConstant) && !(c.right instanceof StringConstant)) {
-				System.out.println("NE: One side must be non symbolic for HAMPI to work!");
+				logger.severe("NE: One side must be non symbolic for HAMPI to work!");
 				System.exit(0);
 			}
 			if ((c.left instanceof StringConstant) && (c.right instanceof StringConstant))  {

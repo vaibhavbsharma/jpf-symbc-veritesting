@@ -1,3 +1,21 @@
+/*
+ * Copyright (C) 2014, United States Government, as represented by the
+ * Administrator of the National Aeronautics and Space Administration.
+ * All rights reserved.
+ *
+ * Symbolic Pathfinder (jpf-symbc) is licensed under the Apache License, 
+ * Version 2.0 (the "License"); you may not use this file except
+ * in compliance with the License. You may obtain a copy of the License at
+ * 
+ *        http://www.apache.org/licenses/LICENSE-2.0. 
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and 
+ * limitations under the License.
+ */
+
 
 //Copyright (C) 2005 United States Government as represented by the
 //Administrator of the National Aeronautics and Space Administration
@@ -27,12 +45,12 @@ public abstract class IntegerExpression extends Expression {
     //returns -1 if (this < i), 0 if equal and 1 otherwise
     public IntegerExpression _cmp (long i)
     {
-        return new BinaryNonLinearIntegerExpression(this, CMP, new IntegerConstant((int)i));
+        return new BinaryNonLinearIntegerExpression(this, CMP, new IntegerConstant(i));
     }
 
     public IntegerExpression _cmp_reverse (long i)
     {
-        return new BinaryNonLinearIntegerExpression(new IntegerConstant((int)i), CMP, this);
+        return new BinaryNonLinearIntegerExpression(new IntegerConstant(i), CMP, this);
     }
 
     public IntegerExpression _cmp (IntegerExpression e)
@@ -42,12 +60,12 @@ public abstract class IntegerExpression extends Expression {
 
 //------------------------------------------------------
 
-	public IntegerExpression _minus_reverse (int i)
+	public IntegerExpression _minus_reverse (long i)
 	{
 		return new BinaryNonLinearIntegerExpression(new IntegerConstant(i), MINUS, this);
 	}
 
-	public IntegerExpression _minus (int i)
+	public IntegerExpression _minus (long i)
 	{
 		//simplify
 		if (i == 0)
@@ -69,7 +87,7 @@ public abstract class IntegerExpression extends Expression {
 		return new BinaryNonLinearIntegerExpression(this, MINUS, e);
 	}
 
-	public IntegerExpression _mul (int i)
+	public IntegerExpression _mul (long i)
 	{
 		//simplify
 		if (i == 1)
@@ -94,7 +112,7 @@ public abstract class IntegerExpression extends Expression {
 		return new BinaryNonLinearIntegerExpression(this, MUL, e);
 	}
 
-	public IntegerExpression _plus (int i)
+	public IntegerExpression _plus (long i)
 	{
 		//simplify
 		if (i == 0)
@@ -171,61 +189,62 @@ public abstract class IntegerExpression extends Expression {
 		return new BinaryNonLinearIntegerExpression(this, XOR, e);
 	}
 
-	public IntegerExpression _shiftR(int i)
+	public IntegerExpression _shiftR(long i)
 	{
 		if(i == 0)
 			return this;
 		return new BinaryNonLinearIntegerExpression(this, SHIFTR,
-											new IntegerConstant((int) i));
+											new IntegerConstant( i));
 
 	}
 
-	public IntegerExpression _shiftL(int i) {
+	public IntegerExpression _shiftL(long i) {
 		if(i == 0)
 			return this;
 		return new BinaryNonLinearIntegerExpression(this, SHIFTL,
-											new IntegerConstant((int) i));
+											new IntegerConstant( i));
 	}
 
-	public IntegerExpression _shiftUR(int i) {
+	public IntegerExpression _shiftUR(long i) {
 		if(i == 0)
 			return this;
 		return new BinaryNonLinearIntegerExpression(this, SHIFTUR,
-											new IntegerConstant((int) i));
+											new IntegerConstant( i));
 	}
 
-	public IntegerExpression _and(int i)
+	public IntegerExpression _and(long i)
 	{
 		if(i == 0)
 			return new IntegerConstant(0);
-		return new BinaryNonLinearIntegerExpression(this, AND, new IntegerConstant((int)i));
+		return new BinaryNonLinearIntegerExpression(this, AND, new IntegerConstant(i));
 	}
 
-	public IntegerExpression _or(int i)
+	public IntegerExpression _or(long i)
 	{
 		if(i == 0)
 			return this;
-		return new BinaryNonLinearIntegerExpression(this, OR, new IntegerConstant((int) i));
+		return new BinaryNonLinearIntegerExpression(this, OR, new IntegerConstant( i));
 	}
 
-	public IntegerExpression _xor(int i)
+	public IntegerExpression _xor(long i)
 	{
-		return new BinaryNonLinearIntegerExpression(this, XOR, new IntegerConstant((int) i));
+		return new BinaryNonLinearIntegerExpression(this, XOR, new IntegerConstant( i));
 	}
 
-	public IntegerExpression _rem(int i)
+	public IntegerExpression _rem(long i)
 	{
-		throw new RuntimeException( "## Error: Operation not supported!" );
+		return new BinaryNonLinearIntegerExpression(this, REM, new IntegerConstant( i));
 	}
 	
-	public IntegerExpression _rem_reverse(int i)
+	public IntegerExpression _rem_reverse(long i)
 	{
-		throw new RuntimeException( "## Error: Operation not supported!" );
+		//throw new RuntimeException( "## Error: Operation not supported!" );
+		return new BinaryNonLinearIntegerExpression(new IntegerConstant( i), REM, this);
 	}
 	
 	public IntegerExpression _rem(IntegerExpression i)
 	{
-		throw new RuntimeException( "## Error: Operation not supported!" );
+		return new BinaryNonLinearIntegerExpression(this, REM, i);
 	}
 
 	public IntegerExpression _neg()
@@ -233,45 +252,7 @@ public abstract class IntegerExpression extends Expression {
 		return new BinaryNonLinearIntegerExpression(new IntegerConstant(0), MINUS, this);
 	}
 
-	/*
-	 * Additional support for longs so that we are not downcasting in the
-	 * individual bytecodes
-	 */
-	public IntegerExpression _minus_reverse (long i)
-	{
-		return new BinaryNonLinearIntegerExpression(new IntegerConstant((int)i), MINUS, this);
-	}
-
-	public IntegerExpression _minus (long i)
-	{
-		//simplify
-		if (i == 0)
-			return this;
-		return new BinaryNonLinearIntegerExpression(this, MINUS, new IntegerConstant((int)i));
-	}
-
-	public IntegerExpression _mul (long i)
-	{
-		//simplify
-		if (i == 1)
-			return this;
-		if (i == 0)
-			return new IntegerConstant(0);
-
-		return new BinaryNonLinearIntegerExpression(this, MUL, new IntegerConstant((int)i));
-	}
-
-	public IntegerExpression _plus (long i)
-	{
-		//simplify
-		if (i == 0)
-			return this;
-		return new BinaryNonLinearIntegerExpression(this, PLUS, new IntegerConstant((int)i));
-	}
-
-
-
-	public IntegerExpression _div (int i)
+	public IntegerExpression _div (long i)
 	{
 		// simplify
 		assert (i != 0);
@@ -295,84 +276,25 @@ public abstract class IntegerExpression extends Expression {
 		return new BinaryNonLinearIntegerExpression(this, DIV, e);
 	}
 
-	public IntegerExpression _div_reverse (int i)
+	public IntegerExpression _div_reverse (long i)
 	{
 		if (i == 0)
 			return new IntegerConstant(0);
 		return new BinaryNonLinearIntegerExpression(new IntegerConstant(i), DIV, this);
 	}
 
-	public IntegerExpression _div (long i)
-	{
-		// simplify
-		assert (i != 0);
-		if (i == 1)
-			return this;
-		return new BinaryNonLinearIntegerExpression(this, DIV, new IntegerConstant((int)i));
-	}
-
-	public IntegerExpression _div_reverse (long i)
-	{
-		if (i == 0)
-			return new IntegerConstant(0);
-		return new BinaryNonLinearIntegerExpression(new IntegerConstant((int)i), DIV, this);
-	}
-
-	public IntegerExpression _and(long i) {
-		if (i == 0)
-			return new IntegerConstant(0);
-
-		return new BinaryNonLinearIntegerExpression(this, AND, new IntegerConstant((int)i));
-	}
-
-	public IntegerExpression _or(long i) {
-		if (i == 0)
-			return this;
-
-		return new BinaryNonLinearIntegerExpression(this, OR, new IntegerConstant((int)i));
-	}
-
-	public IntegerExpression _xor(long i) {
-		return new BinaryNonLinearIntegerExpression(this, XOR, new IntegerConstant((int)i));
-	}
-
-	public IntegerExpression _shiftR(long i) {
-		if (i == 0)
-			return this;
-
-		return new BinaryNonLinearIntegerExpression(this, SHIFTR,
-										new IntegerConstant((int)i));
-	}
-
-	public IntegerExpression _shiftL(long i) {
-		if (i == 0)
-			return this;
-
-		return new BinaryNonLinearIntegerExpression(this, SHIFTL,
-										new IntegerConstant((int)i));
-	}
-
-	public IntegerExpression _shiftUR(long i)	{
-		if (i == 0)
-			return this;
-
-		return new BinaryNonLinearIntegerExpression(this, SHIFTUR,
-										new IntegerConstant((int)i));
-
-	}
-
-	public IntegerExpression _rem(long i)
-	{
-		throw new RuntimeException( "## Error: Operation not supported!" );
-	}
-
 	//TODO test this
-	public int solution() {
+	public long solution() {
 		throw new RuntimeException( "## Error: Expression Solution request Error: " + this);
 		//System.out.println("Expression Solution request Error: " + this);
 		//return -666;
 	}
-
+	public int solutionInt() {
+		throw new RuntimeException( "## Error: Expression Solution request Error: " + this);
+	}
+	public char solutionChar() {
+		throw new RuntimeException( "## Error: Expression Solution request Error: " + this);
+	}
 
 
 	//protected void finalize() throws Throwable {

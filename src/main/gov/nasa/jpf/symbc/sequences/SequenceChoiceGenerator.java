@@ -1,3 +1,21 @@
+/*
+ * Copyright (C) 2014, United States Government, as represented by the
+ * Administrator of the National Aeronautics and Space Administration.
+ * All rights reserved.
+ *
+ * Symbolic Pathfinder (jpf-symbc) is licensed under the Apache License, 
+ * Version 2.0 (the "License"); you may not use this file except
+ * in compliance with the License. You may obtain a copy of the License at
+ * 
+ *        http://www.apache.org/licenses/LICENSE-2.0. 
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and 
+ * limitations under the License.
+ */
+
 // Copyright (C) 2007 United States Government as represented by the
 // Administrator of the National Aeronautics and Space Administration
 // (NASA).  All Rights Reserved.
@@ -16,7 +34,9 @@
 // DOCUMENTATION, IF PROVIDED, WILL CONFORM TO THE SUBJECT SOFTWARE.
 //
 package gov.nasa.jpf.symbc.sequences;
-import gov.nasa.jpf.jvm.choice.IntIntervalGenerator;
+
+import gov.nasa.jpf.vm.ChoiceGenerator;
+
 
 
 /**
@@ -31,12 +51,19 @@ import gov.nasa.jpf.jvm.choice.IntIntervalGenerator;
 // it will not make any choices, but it will force JPF to remember this info on the current path
 // so that it is easy to reconstruct and print it
 // then we will not really need any more maps to print the information
-public class SequenceChoiceGenerator extends IntIntervalGenerator {
+public class SequenceChoiceGenerator extends gov.nasa.jpf.vm.choice.IntIntervalGenerator {
 
   private String methodShortName;
   private Object [] argValues;
   private Object [] attributes;
-
+  private String[] argTypes;
+  
+  @Override
+  public ChoiceGenerator randomize() {
+      // This doesn't make choices anyway, no need to change.
+      return this;
+  }
+  
   // will always make only one choice
 @SuppressWarnings("deprecation")
 public SequenceChoiceGenerator(String _methodShortName) {
@@ -49,8 +76,16 @@ public SequenceChoiceGenerator(String _methodShortName) {
       return argValues;
   }
 
+  public String [] getArgTypes() {
+      return argTypes;
+  }
+
   public void setArgValues(Object [] _argValues) {
       argValues = _argValues;;
+  }
+
+  public void setArgTypes(String [] _argTypes) {
+      argTypes = _argTypes;;
   }
 
   public Object [] getArgAttributes() {

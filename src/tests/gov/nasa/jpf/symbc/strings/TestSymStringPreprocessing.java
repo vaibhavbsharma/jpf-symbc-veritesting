@@ -1,9 +1,27 @@
+/*
+ * Copyright (C) 2014, United States Government, as represented by the
+ * Administrator of the National Aeronautics and Space Administration.
+ * All rights reserved.
+ *
+ * Symbolic Pathfinder (jpf-symbc) is licensed under the Apache License, 
+ * Version 2.0 (the "License"); you may not use this file except
+ * in compliance with the License. You may obtain a copy of the License at
+ * 
+ *        http://www.apache.org/licenses/LICENSE-2.0. 
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and 
+ * limitations under the License.
+ */
+
 package gov.nasa.jpf.symbc.strings;
 
 import javax.print.attribute.IntegerSyntax;
 
-import junit.framework.Assert;
 import gov.nasa.jpf.Config;
+import gov.nasa.jpf.util.test.TestJPF;
 import gov.nasa.jpf.symbc.SymbolicInstructionFactory;
 import gov.nasa.jpf.symbc.numeric.Comparator;
 import gov.nasa.jpf.symbc.numeric.Constraint;
@@ -23,7 +41,7 @@ import gov.nasa.jpf.symbc.string.SymbolicStringConstraintsGeneral;
 import org.junit.Test;
 
 
-public class TestSymStringPreprocessing {
+public class TestSymStringPreprocessing extends TestJPF {
 
 	String[] solvers = new String[]{"automata", "z3_inc"};
 	
@@ -42,7 +60,7 @@ public class TestSymStringPreprocessing {
 			stringCurrentPC._addDet(StringComparator.STARTSWITH, new StringConstant("a"), var1);
 			stringCurrentPC._addDet(StringComparator.NOTSTARTSWITH, new StringConstant("a"), var1);
 			boolean result = stringCurrentPC.simplify();
-			Assert.assertTrue(!result);
+			assertTrue(!result);
 		}
 	}
 	
@@ -61,7 +79,7 @@ public class TestSymStringPreprocessing {
 			stringCurrentPC._addDet(StringComparator.STARTSWITH, new StringConstant("b"), var1);
 			stringCurrentPC._addDet(StringComparator.NOTSTARTSWITH, new StringConstant("a"), var1);
 			boolean result = stringCurrentPC.simplify();
-			Assert.assertTrue(result);
+			assertTrue(result);
 		}
 	}
 	
@@ -81,7 +99,7 @@ public class TestSymStringPreprocessing {
 			stringCurrentPC._addDet(StringComparator.STARTSWITH, var2, var1);
 			stringCurrentPC._addDet(StringComparator.NOTSTARTSWITH, var2, var1);
 			boolean result = stringCurrentPC.simplify();
-			Assert.assertTrue(!result);
+			assertTrue(!result);
 		}
 	}
 	
@@ -102,7 +120,7 @@ public class TestSymStringPreprocessing {
 			stringCurrentPC._addDet(StringComparator.STARTSWITH, var2, var1);
 			stringCurrentPC._addDet(StringComparator.NOTSTARTSWITH, var3, var1);
 			boolean result = stringCurrentPC.simplify();
-			Assert.assertTrue(result);
+			assertTrue(result);
 		}
 	}
 	
@@ -121,7 +139,7 @@ public class TestSymStringPreprocessing {
 			stringCurrentPC._addDet(StringComparator.ENDSWITH, new StringConstant("a"), var1);
 			stringCurrentPC._addDet(StringComparator.NOTENDSWITH, new StringConstant("a"), var1);
 			boolean result = stringCurrentPC.simplify();
-			Assert.assertTrue(!result);
+			assertTrue(!result);
 		}
 	}
 	
@@ -140,7 +158,7 @@ public class TestSymStringPreprocessing {
 			stringCurrentPC._addDet(StringComparator.ENDSWITH, new StringConstant("a"), var1);
 			stringCurrentPC._addDet(StringComparator.NOTENDSWITH, new StringConstant("b"), var1);
 			boolean result = stringCurrentPC.simplify();
-			Assert.assertTrue(result);
+			assertTrue(result);
 		}
 	}
 	
@@ -160,7 +178,7 @@ public class TestSymStringPreprocessing {
 			stringCurrentPC._addDet(StringComparator.ENDSWITH, var2, var1);
 			stringCurrentPC._addDet(StringComparator.NOTENDSWITH, var2, var1);
 			boolean result = stringCurrentPC.simplify();
-			Assert.assertTrue(!result);
+			assertTrue(!result);
 		}
 	}
 	
@@ -181,7 +199,7 @@ public class TestSymStringPreprocessing {
 			stringCurrentPC._addDet(StringComparator.ENDSWITH, var2, var1);
 			stringCurrentPC._addDet(StringComparator.NOTENDSWITH, var3, var1);
 			boolean result = stringCurrentPC.simplify();
-			Assert.assertTrue(result);
+			assertTrue(result);
 		}
 	}
 	
@@ -200,7 +218,7 @@ public class TestSymStringPreprocessing {
 			stringCurrentPC._addDet(StringComparator.CONTAINS, new StringConstant("a"), var1);
 			stringCurrentPC._addDet(StringComparator.NOTCONTAINS, new StringConstant("a"), var1);
 			boolean result = stringCurrentPC.simplify();
-			Assert.assertTrue(!result);
+			assertTrue(!result);
 		}
 	}
 	
@@ -219,7 +237,7 @@ public class TestSymStringPreprocessing {
 			stringCurrentPC._addDet(StringComparator.CONTAINS, new StringConstant("b"), var1);
 			stringCurrentPC._addDet(StringComparator.NOTCONTAINS, new StringConstant("a"), var1);
 			boolean result = stringCurrentPC.simplify();
-			Assert.assertTrue(result);
+			assertTrue(result);
 		}
 	}
 	
@@ -239,7 +257,7 @@ public class TestSymStringPreprocessing {
 			stringCurrentPC._addDet(StringComparator.CONTAINS, var2, var1);
 			stringCurrentPC._addDet(StringComparator.NOTCONTAINS, var2, var1);
 			boolean result = stringCurrentPC.simplify();
-			Assert.assertTrue(!result);
+			assertTrue(!result);
 		}
 	}
 	
@@ -260,7 +278,7 @@ public class TestSymStringPreprocessing {
 			stringCurrentPC._addDet(StringComparator.CONTAINS, var2, var1);
 			stringCurrentPC._addDet(StringComparator.NOTCONTAINS, var3, var1);
 			boolean result = stringCurrentPC.simplify();
-			Assert.assertTrue(result);
+			assertTrue(result);
 		}
 	}
 	
@@ -280,7 +298,7 @@ public class TestSymStringPreprocessing {
 			stringCurrentPC._addDet(StringComparator.EQUALS, se1, new StringConstant("ab"));
 			System.out.println(stringCurrentPC);
 			boolean result = stringCurrentPC.simplify();
-			Assert.assertTrue(result);
+			assertTrue(result);
 		}
 	}
 	
@@ -300,7 +318,7 @@ public class TestSymStringPreprocessing {
 			stringCurrentPC._addDet(StringComparator.EQUALS, se1, new StringConstant("cd"));
 			System.out.println(stringCurrentPC);
 			boolean result = stringCurrentPC.simplify();
-			Assert.assertTrue(!result);
+			assertTrue(!result);
 		}
 	}
 	
@@ -320,7 +338,7 @@ public class TestSymStringPreprocessing {
 			stringCurrentPC._addDet(StringComparator.EQUALS, se1, new StringConstant("ab"));
 			System.out.println(stringCurrentPC);
 			boolean result = stringCurrentPC.simplify();
-			Assert.assertTrue(result);
+			assertTrue(result);
 		}
 	}
 	
@@ -340,7 +358,7 @@ public class TestSymStringPreprocessing {
 			stringCurrentPC._addDet(StringComparator.EQUALS, se1, new StringConstant("dc"));
 			System.out.println(stringCurrentPC);
 			boolean result = stringCurrentPC.simplify();
-			Assert.assertTrue(!result);
+			assertTrue(!result);
 		}
 	}
 	
@@ -359,7 +377,7 @@ public class TestSymStringPreprocessing {
 			stringCurrentPC._addDet(StringComparator.STARTSWITH, new StringConstant("a"), var1);
 			stringCurrentPC._addDet(StringComparator.NOTCONTAINS, new StringConstant("a"), var1);
 			boolean result = stringCurrentPC.simplify();
-			Assert.assertTrue(!result);
+			assertTrue(!result);
 		}
 	}
 	
@@ -378,7 +396,7 @@ public class TestSymStringPreprocessing {
 			stringCurrentPC._addDet(StringComparator.STARTSWITH, new StringConstant("b"), var1);
 			stringCurrentPC._addDet(StringComparator.NOTCONTAINS, new StringConstant("a"), var1);
 			boolean result = stringCurrentPC.simplify();
-			Assert.assertTrue(result);
+			assertTrue(result);
 		}
 	}
 	
@@ -398,7 +416,7 @@ public class TestSymStringPreprocessing {
 			stringCurrentPC._addDet(StringComparator.STARTSWITH, var2, var1);
 			stringCurrentPC._addDet(StringComparator.NOTCONTAINS, var2, var1);
 			boolean result = stringCurrentPC.simplify();
-			Assert.assertTrue(!result);
+			assertTrue(!result);
 		}
 	}
 	
@@ -419,7 +437,7 @@ public class TestSymStringPreprocessing {
 			stringCurrentPC._addDet(StringComparator.STARTSWITH, var2, var1);
 			stringCurrentPC._addDet(StringComparator.NOTCONTAINS, var3, var1);
 			boolean result = stringCurrentPC.simplify();
-			Assert.assertTrue(result);
+			assertTrue(result);
 		}
 	}
 	
@@ -438,7 +456,7 @@ public class TestSymStringPreprocessing {
 			stringCurrentPC._addDet(StringComparator.CONTAINS, new StringConstant("a"), var1);
 			stringCurrentPC._addDet(StringComparator.NOTSTARTSWITH, new StringConstant("a"), var1);
 			boolean result = stringCurrentPC.simplify();
-			Assert.assertTrue(!result);
+			assertTrue(!result);
 		}
 	}
 	
@@ -457,7 +475,7 @@ public class TestSymStringPreprocessing {
 			stringCurrentPC._addDet(StringComparator.CONTAINS, new StringConstant("b"), var1);
 			stringCurrentPC._addDet(StringComparator.NOTSTARTSWITH, new StringConstant("a"), var1);
 			boolean result = stringCurrentPC.simplify();
-			Assert.assertTrue(result);
+			assertTrue(result);
 		}
 	}
 	
@@ -477,7 +495,7 @@ public class TestSymStringPreprocessing {
 			stringCurrentPC._addDet(StringComparator.CONTAINS, var2, var1);
 			stringCurrentPC._addDet(StringComparator.NOTSTARTSWITH, var2, var1);
 			boolean result = stringCurrentPC.simplify();
-			Assert.assertTrue(!result);
+			assertTrue(!result);
 		}
 	}
 	
@@ -498,7 +516,7 @@ public class TestSymStringPreprocessing {
 			stringCurrentPC._addDet(StringComparator.CONTAINS, var2, var1);
 			stringCurrentPC._addDet(StringComparator.NOTSTARTSWITH, var3, var1);
 			boolean result = stringCurrentPC.simplify();
-			Assert.assertTrue(result);
+			assertTrue(result);
 		}
 	}
 	
@@ -517,7 +535,7 @@ public class TestSymStringPreprocessing {
 			stringCurrentPC._addDet(StringComparator.ENDSWITH, new StringConstant("a"), var1);
 			stringCurrentPC._addDet(StringComparator.NOTCONTAINS, new StringConstant("a"), var1);
 			boolean result = stringCurrentPC.simplify();
-			Assert.assertTrue(!result);
+			assertTrue(!result);
 		}
 	}
 	
@@ -536,7 +554,7 @@ public class TestSymStringPreprocessing {
 			stringCurrentPC._addDet(StringComparator.ENDSWITH, new StringConstant("b"), var1);
 			stringCurrentPC._addDet(StringComparator.NOTCONTAINS, new StringConstant("a"), var1);
 			boolean result = stringCurrentPC.simplify();
-			Assert.assertTrue(result);
+			assertTrue(result);
 		}
 	}
 	
@@ -556,7 +574,7 @@ public class TestSymStringPreprocessing {
 			stringCurrentPC._addDet(StringComparator.ENDSWITH, var2, var1);
 			stringCurrentPC._addDet(StringComparator.NOTCONTAINS, var2, var1);
 			boolean result = stringCurrentPC.simplify();
-			Assert.assertTrue(!result);
+			assertTrue(!result);
 		}
 	}
 	
@@ -577,7 +595,7 @@ public class TestSymStringPreprocessing {
 			stringCurrentPC._addDet(StringComparator.ENDSWITH, var2, var1);
 			stringCurrentPC._addDet(StringComparator.NOTCONTAINS, var3, var1);
 			boolean result = stringCurrentPC.simplify();
-			Assert.assertTrue(result);
+			assertTrue(result);
 		}
 	}
 	
@@ -596,7 +614,7 @@ public class TestSymStringPreprocessing {
 			stringCurrentPC._addDet(StringComparator.CONTAINS, new StringConstant("a"), var1);
 			stringCurrentPC._addDet(StringComparator.NOTENDSWITH, new StringConstant("a"), var1);
 			boolean result = stringCurrentPC.simplify();
-			Assert.assertTrue(!result);
+			assertTrue(!result);
 		}
 	}
 	
@@ -615,7 +633,7 @@ public class TestSymStringPreprocessing {
 			stringCurrentPC._addDet(StringComparator.CONTAINS, new StringConstant("b"), var1);
 			stringCurrentPC._addDet(StringComparator.NOTENDSWITH, new StringConstant("a"), var1);
 			boolean result = stringCurrentPC.simplify();
-			Assert.assertTrue(result);
+			assertTrue(result);
 		}
 	}
 	
@@ -635,7 +653,7 @@ public class TestSymStringPreprocessing {
 			stringCurrentPC._addDet(StringComparator.CONTAINS, var2, var1);
 			stringCurrentPC._addDet(StringComparator.NOTENDSWITH, var2, var1);
 			boolean result = stringCurrentPC.simplify();
-			Assert.assertTrue(!result);
+			assertTrue(!result);
 		}
 	}
 	
@@ -656,7 +674,7 @@ public class TestSymStringPreprocessing {
 			stringCurrentPC._addDet(StringComparator.CONTAINS, var2, var1);
 			stringCurrentPC._addDet(StringComparator.NOTENDSWITH, var3, var1);
 			boolean result = stringCurrentPC.simplify();
-			Assert.assertTrue(result);
+			assertTrue(result);
 		}
 	}
 	
@@ -671,7 +689,7 @@ public class TestSymStringPreprocessing {
 		StringPathCondition stringCurrentPC = new StringPathCondition(new PathCondition());
 		stringCurrentPC._addDet(StringComparator.NOTEQUALS, new StringConstant("a"), new StringConstant("b"));
 		boolean result = stringCurrentPC.simplify();
-		Assert.assertTrue(result);
+		assertTrue(result);
 	}
 	
 	@Test
@@ -685,7 +703,7 @@ public class TestSymStringPreprocessing {
 		StringPathCondition stringCurrentPC = new StringPathCondition(new PathCondition());
 		stringCurrentPC._addDet(StringComparator.NOTEQUALS, new StringConstant("a"), new StringConstant("a"));
 		boolean result = stringCurrentPC.simplify();
-		Assert.assertTrue(!result);
+		assertTrue(!result);
 	}
 	
 	@Test
@@ -699,7 +717,7 @@ public class TestSymStringPreprocessing {
 		StringPathCondition stringCurrentPC = new StringPathCondition(new PathCondition());
 		stringCurrentPC._addDet(StringComparator.NOTSTARTSWITH, new StringConstant("b"), new StringConstant("abc"));
 		boolean result = stringCurrentPC.simplify();
-		Assert.assertTrue(result);
+		assertTrue(result);
 	}
 	
 	@Test
@@ -713,7 +731,7 @@ public class TestSymStringPreprocessing {
 		StringPathCondition stringCurrentPC = new StringPathCondition(new PathCondition());
 		stringCurrentPC._addDet(StringComparator.NOTSTARTSWITH, new StringConstant("a"), new StringConstant("abc"));
 		boolean result = stringCurrentPC.simplify();
-		Assert.assertTrue(!result);
+		assertTrue(!result);
 	}
 	
 	@Test
@@ -727,7 +745,7 @@ public class TestSymStringPreprocessing {
 		StringPathCondition stringCurrentPC = new StringPathCondition(new PathCondition());
 		stringCurrentPC._addDet(StringComparator.STARTSWITH, new StringConstant("b"), new StringConstant("abc"));
 		boolean result = stringCurrentPC.simplify();
-		Assert.assertTrue(!result);
+		assertTrue(!result);
 	}
 	
 	@Test
@@ -741,7 +759,7 @@ public class TestSymStringPreprocessing {
 		StringPathCondition stringCurrentPC = new StringPathCondition(new PathCondition());
 		stringCurrentPC._addDet(StringComparator.STARTSWITH, new StringConstant("a"), new StringConstant("abc"));
 		boolean result = stringCurrentPC.simplify();
-		Assert.assertTrue(result);
+		assertTrue(result);
 	}
 	
 	@Test
@@ -755,7 +773,7 @@ public class TestSymStringPreprocessing {
 		StringPathCondition stringCurrentPC = new StringPathCondition(new PathCondition());
 		stringCurrentPC._addDet(StringComparator.NOTENDSWITH, new StringConstant("b"), new StringConstant("abc"));
 		boolean result = stringCurrentPC.simplify();
-		Assert.assertTrue(result);
+		assertTrue(result);
 	}
 	
 	@Test
@@ -769,7 +787,7 @@ public class TestSymStringPreprocessing {
 		StringPathCondition stringCurrentPC = new StringPathCondition(new PathCondition());
 		stringCurrentPC._addDet(StringComparator.NOTENDSWITH, new StringConstant("c"), new StringConstant("abc"));
 		boolean result = stringCurrentPC.simplify();
-		Assert.assertTrue(!result);
+		assertTrue(!result);
 	}
 	
 	@Test
@@ -783,7 +801,7 @@ public class TestSymStringPreprocessing {
 		StringPathCondition stringCurrentPC = new StringPathCondition(new PathCondition());
 		stringCurrentPC._addDet(StringComparator.ENDSWITH, new StringConstant("b"), new StringConstant("abc"));
 		boolean result = stringCurrentPC.simplify();
-		Assert.assertTrue(!result);
+		assertTrue(!result);
 	}
 	
 	@Test
@@ -797,7 +815,7 @@ public class TestSymStringPreprocessing {
 		StringPathCondition stringCurrentPC = new StringPathCondition(new PathCondition());
 		stringCurrentPC._addDet(StringComparator.ENDSWITH, new StringConstant("c"), new StringConstant("abc"));
 		boolean result = stringCurrentPC.simplify();
-		Assert.assertTrue(result);
+		assertTrue(result);
 	}
 	
 	@Test
@@ -811,7 +829,7 @@ public class TestSymStringPreprocessing {
 		StringPathCondition stringCurrentPC = new StringPathCondition(new PathCondition());
 		stringCurrentPC._addDet(StringComparator.NOTCONTAINS, new StringConstant("d"), new StringConstant("abc"));
 		boolean result = stringCurrentPC.simplify();
-		Assert.assertTrue(result);
+		assertTrue(result);
 	}
 	
 	@Test
@@ -825,7 +843,7 @@ public class TestSymStringPreprocessing {
 		StringPathCondition stringCurrentPC = new StringPathCondition(new PathCondition());
 		stringCurrentPC._addDet(StringComparator.NOTCONTAINS, new StringConstant("c"), new StringConstant("abc"));
 		boolean result = stringCurrentPC.simplify();
-		Assert.assertTrue(!result);
+		assertTrue(!result);
 	}
 	
 	@Test
@@ -839,7 +857,7 @@ public class TestSymStringPreprocessing {
 		StringPathCondition stringCurrentPC = new StringPathCondition(new PathCondition());
 		stringCurrentPC._addDet(StringComparator.CONTAINS, new StringConstant("d"), new StringConstant("abc"));
 		boolean result = stringCurrentPC.simplify();
-		Assert.assertTrue(!result);
+		assertTrue(!result);
 	}
 	
 	@Test
@@ -853,7 +871,7 @@ public class TestSymStringPreprocessing {
 		StringPathCondition stringCurrentPC = new StringPathCondition(new PathCondition());
 		stringCurrentPC._addDet(StringComparator.CONTAINS, new StringConstant("c"), new StringConstant("abc"));
 		boolean result = stringCurrentPC.simplify();
-		Assert.assertTrue(result);
+		assertTrue(result);
 	}
 	
 	@Test
@@ -870,7 +888,7 @@ public class TestSymStringPreprocessing {
 		pc._addDet(Comparator.EQ, var1._charAt(new IntegerConstant(1)), new IntegerConstant('a'));
 		pc._addDet(Comparator.EQ, var1._charAt(new IntegerConstant(1)), new IntegerConstant('a'));
 		boolean result = stringCurrentPC.simplify();
-		Assert.assertTrue(result);
+		assertTrue(result);
 	}
 	
 	@Test
@@ -887,7 +905,7 @@ public class TestSymStringPreprocessing {
 		pc._addDet(Comparator.EQ, var1._charAt(new IntegerConstant(1)), new IntegerConstant('a'));
 		pc._addDet(Comparator.EQ, var1._charAt(new IntegerConstant(1)), new IntegerConstant('b'));
 		boolean result = stringCurrentPC.simplify();
-		Assert.assertTrue(!result);
+		assertTrue(!result);
 	}
 	
 	@Test
@@ -904,7 +922,7 @@ public class TestSymStringPreprocessing {
 		pc._addDet(Comparator.EQ, var1._charAt(new IntegerConstant(1)), new IntegerConstant('a'));
 		stringCurrentPC._addDet(StringComparator.STARTSWITH, new StringConstant("abc"), var1);
 		boolean result = stringCurrentPC.simplify();
-		Assert.assertTrue(!result);
+		assertTrue(!result);
 	}
 	
 	@Test
@@ -921,9 +939,9 @@ public class TestSymStringPreprocessing {
 		pc._addDet(Comparator.EQ, var1._charAt(new IntegerConstant(1)), new IntegerConstant('b'));
 		stringCurrentPC._addDet(StringComparator.STARTSWITH, new StringConstant("abc"), var1);
 		boolean result = stringCurrentPC.simplify();
-		Assert.assertTrue(result);
+		assertTrue(result);
 		SymbolicConstraintsGeneral scg = new SymbolicConstraintsGeneral();
-		Assert.assertTrue(scg.isSatisfiable(pc));
+		assertTrue(scg.isSatisfiable(pc));
 	}
 	
 	@Test
@@ -941,10 +959,10 @@ public class TestSymStringPreprocessing {
 		stringCurrentPC._addDet(StringComparator.STARTSWITH, new StringConstant("abc"), var1);
 		System.out.println(stringCurrentPC);
 		boolean result = stringCurrentPC.simplify();
-		Assert.assertTrue(result);
+		assertTrue(result);
 		SymbolicConstraintsGeneral scg = new SymbolicConstraintsGeneral();
 		System.out.println(pc);
-		Assert.assertTrue(scg.isSatisfiable(pc));
+		assertTrue(scg.isSatisfiable(pc));
 	}
 	
 	@Test
@@ -964,7 +982,7 @@ public class TestSymStringPreprocessing {
 		stringCurrentPC._addDet(StringComparator.STARTSWITH, new StringConstant("abc"), var1);
 		System.out.println(stringCurrentPC);
 		boolean result = stringCurrentPC.simplify();
-		Assert.assertTrue(!result);
+		assertTrue(!result);
 	}
 	
 	@Test
@@ -981,9 +999,9 @@ public class TestSymStringPreprocessing {
 		pc._addDet(Comparator.EQ, var1._charAt(new IntegerConstant(1)), new IntegerConstant('a'));
 		stringCurrentPC._addDet(StringComparator.ENDSWITH, new StringConstant("abc"), var1);
 		boolean result = stringCurrentPC.simplify();
-		Assert.assertTrue(result);
+		assertTrue(result);
 		SymbolicConstraintsGeneral scg = new SymbolicConstraintsGeneral();
-		Assert.assertTrue(scg.isSatisfiable(pc));
+		assertTrue(scg.isSatisfiable(pc));
 	}
 	
 	@Test
@@ -1000,9 +1018,9 @@ public class TestSymStringPreprocessing {
 		pc._addDet(Comparator.EQ, var1._charAt(new IntegerConstant(1)), new IntegerConstant('b'));
 		stringCurrentPC._addDet(StringComparator.ENDSWITH, new StringConstant("abc"), var1);
 		boolean result = stringCurrentPC.simplify();
-		Assert.assertTrue(result);
+		assertTrue(result);
 		SymbolicConstraintsGeneral scg = new SymbolicConstraintsGeneral();
-		Assert.assertTrue(scg.isSatisfiable(pc));
+		assertTrue(scg.isSatisfiable(pc));
 	}
 	
 	@Test
@@ -1020,10 +1038,10 @@ public class TestSymStringPreprocessing {
 		stringCurrentPC._addDet(StringComparator.ENDSWITH, new StringConstant("abc"), var1);
 		System.out.println(stringCurrentPC);
 		boolean result = stringCurrentPC.simplify();
-		Assert.assertTrue(result);
+		assertTrue(result);
 		SymbolicConstraintsGeneral scg = new SymbolicConstraintsGeneral();
 		System.out.println(pc);
-		Assert.assertTrue(scg.isSatisfiable(pc));
+		assertTrue(scg.isSatisfiable(pc));
 	}
 	
 	@Test
@@ -1042,7 +1060,7 @@ public class TestSymStringPreprocessing {
 		pc._addDet(Comparator.EQ, var1._charAt(var1._length()._minus(1)), new IntegerConstant('d'));
 		System.out.println(stringCurrentPC);
 		boolean result = stringCurrentPC.simplify();
-		Assert.assertTrue(!result);
+		assertTrue(!result);
 	}
 	
 	@Test
@@ -1061,10 +1079,10 @@ public class TestSymStringPreprocessing {
 		pc._addDet(Comparator.EQ, var1._charAt(new IntegerConstant(1)), new IntegerConstant('a'));
 		System.out.println(stringCurrentPC);
 		boolean result = stringCurrentPC.simplify();
-		Assert.assertTrue(result);
+		assertTrue(result);
 		SymbolicConstraintsGeneral scg = new SymbolicConstraintsGeneral();
 		System.out.println(pc);
-		Assert.assertTrue(scg.isSatisfiable(pc));
+		assertTrue(scg.isSatisfiable(pc));
 	}
 	
 	@Test
@@ -1083,7 +1101,7 @@ public class TestSymStringPreprocessing {
 		pc._addDet(Comparator.EQ, var1._charAt(new IntegerConstant(1)), new IntegerConstant('a'));
 		System.out.println(stringCurrentPC);
 		boolean result = stringCurrentPC.simplify();
-		Assert.assertTrue(!result);
+		assertTrue(!result);
 	}
 	
 	@Test
@@ -1102,10 +1120,10 @@ public class TestSymStringPreprocessing {
 		pc._addDet(Comparator.EQ, var1._charAt(new IntegerConstant(1)), new IntegerConstant('a'));
 		System.out.println(stringCurrentPC);
 		boolean result = stringCurrentPC.simplify();
-		Assert.assertTrue(result);
+		assertTrue(result);
 		SymbolicConstraintsGeneral scg = new SymbolicConstraintsGeneral();
 		System.out.println(pc);
-		Assert.assertTrue(scg.isSatisfiable(pc));
+		assertTrue(scg.isSatisfiable(pc));
 	}
 	
 	@Test
@@ -1124,9 +1142,9 @@ public class TestSymStringPreprocessing {
 		pc._addDet(Comparator.EQ, var2._indexOf(new StringConstant("def")), new IntegerConstant(2));
 		System.out.println(stringCurrentPC);
 		boolean result = stringCurrentPC.simplify();
-		Assert.assertTrue(result);
+		assertTrue(result);
 		SymbolicConstraintsGeneral scg = new SymbolicConstraintsGeneral();
-		Assert.assertTrue(scg.isSatisfiable(pc));
+		assertTrue(scg.isSatisfiable(pc));
 	}
 	
 	@Test
@@ -1145,10 +1163,10 @@ public class TestSymStringPreprocessing {
 		pc._addDet(Comparator.EQ, var1._indexOf(new StringConstant("abc")), new IntegerConstant(2));
 		System.out.println(stringCurrentPC);
 		boolean result = stringCurrentPC.simplify();
-		Assert.assertTrue(result);
+		assertTrue(result);
 		SymbolicConstraintsGeneral scg = new SymbolicConstraintsGeneral();
 		System.out.println(pc);
-		Assert.assertTrue(scg.isSatisfiable(pc));
+		assertTrue(scg.isSatisfiable(pc));
 	}
 	
 	@Test
@@ -1166,7 +1184,7 @@ public class TestSymStringPreprocessing {
 		pc._addDet(Comparator.EQ, var1._indexOf(new StringConstant("def")), new IntegerConstant(2));
 		System.out.println(stringCurrentPC);
 		boolean result = stringCurrentPC.simplify();
-		Assert.assertTrue(!result);
+		assertTrue(!result);
 	}
 	
 	@Test
@@ -1184,9 +1202,9 @@ public class TestSymStringPreprocessing {
 		pc._addDet(Comparator.EQ, var1._indexOf(new StringConstant("def")), new IntegerConstant(5));
 		System.out.println(stringCurrentPC);
 		boolean result = stringCurrentPC.simplify();
-		Assert.assertTrue(result);
+		assertTrue(result);
 		SymbolicConstraintsGeneral scg = new SymbolicConstraintsGeneral();
-		Assert.assertTrue(scg.isSatisfiable(pc));
+		assertTrue(scg.isSatisfiable(pc));
 	}
 	
 	@Test
@@ -1206,7 +1224,7 @@ public class TestSymStringPreprocessing {
 		pc._addDet(Comparator.EQ, var1._indexOf(new StringConstant("def")), new IntegerConstant(2));
 		System.out.println(stringCurrentPC);
 		boolean result = stringCurrentPC.simplify();
-		Assert.assertTrue(!result);
+		assertTrue(!result);
 	}
 	
 	@Test
@@ -1224,9 +1242,9 @@ public class TestSymStringPreprocessing {
 		stringCurrentPC._addDet(StringComparator.STARTSWITH, new StringConstant("abc"), var1);
 		System.out.println(stringCurrentPC);
 		boolean result = stringCurrentPC.simplify();
-		Assert.assertTrue(result);
+		assertTrue(result);
 		SymbolicConstraintsGeneral scg = new SymbolicConstraintsGeneral();
-		Assert.assertTrue(scg.isSatisfiable(pc));
+		assertTrue(scg.isSatisfiable(pc));
 	}
 	
 	@Test
@@ -1244,7 +1262,7 @@ public class TestSymStringPreprocessing {
 		stringCurrentPC._addDet(StringComparator.STARTSWITH, new StringConstant("abc"), var1);
 		System.out.println(stringCurrentPC);
 		boolean result = stringCurrentPC.simplify();
-		Assert.assertTrue(!result);
+		assertTrue(!result);
 	}
 	
 	@Test
@@ -1262,9 +1280,9 @@ public class TestSymStringPreprocessing {
 		stringCurrentPC._addDet(StringComparator.STARTSWITH, new StringConstant("abc"), var1);
 		System.out.println(stringCurrentPC);
 		boolean result = stringCurrentPC.simplify();
-		Assert.assertTrue(result);
+		assertTrue(result);
 		SymbolicConstraintsGeneral scg = new SymbolicConstraintsGeneral();
-		Assert.assertTrue(scg.isSatisfiable(pc));
+		assertTrue(scg.isSatisfiable(pc));
 	}
 	
 	@Test
@@ -1282,7 +1300,7 @@ public class TestSymStringPreprocessing {
 		stringCurrentPC._addDet(StringComparator.STARTSWITH, new StringConstant("abc"), var1);
 		System.out.println(stringCurrentPC);
 		boolean result = stringCurrentPC.simplify();
-		Assert.assertTrue(!result);
+		assertTrue(!result);
 	}
 	
 	@Test
@@ -1300,9 +1318,9 @@ public class TestSymStringPreprocessing {
 		stringCurrentPC._addDet(StringComparator.STARTSWITH, new StringConstant("abc"), var1);
 		System.out.println(stringCurrentPC);
 		boolean result = stringCurrentPC.simplify();
-		Assert.assertTrue(result);
+		assertTrue(result);
 		SymbolicConstraintsGeneral scg = new SymbolicConstraintsGeneral();
-		Assert.assertTrue(scg.isSatisfiable(pc));
+		assertTrue(scg.isSatisfiable(pc));
 	}
 	
 	@Test
@@ -1320,7 +1338,7 @@ public class TestSymStringPreprocessing {
 		stringCurrentPC._addDet(StringComparator.STARTSWITH, new StringConstant("abc"), var1);
 		System.out.println(stringCurrentPC);
 		boolean result = stringCurrentPC.simplify();
-		Assert.assertTrue(!result);
+		assertTrue(!result);
 	}
 	
 	@Test
@@ -1338,7 +1356,7 @@ public class TestSymStringPreprocessing {
 		stringCurrentPC._addDet(StringComparator.NOTCONTAINS, new StringConstant("abc"), var1);
 		System.out.println(stringCurrentPC);
 		boolean result = stringCurrentPC.simplify();
-		Assert.assertTrue(!result);
+		assertTrue(!result);
 	}
 	
 	@Test
@@ -1356,7 +1374,7 @@ public class TestSymStringPreprocessing {
 		stringCurrentPC._addDet(StringComparator.NOTCONTAINS, new StringConstant("abc"), var1);
 		System.out.println(stringCurrentPC);
 		boolean result = stringCurrentPC.simplify();
-		Assert.assertTrue(!result);
+		assertTrue(!result);
 	}
 	
 	@Test
@@ -1374,9 +1392,9 @@ public class TestSymStringPreprocessing {
 		stringCurrentPC._addDet(StringComparator.NOTCONTAINS, new StringConstant("abc"), var1);
 		System.out.println(stringCurrentPC);
 		boolean result = stringCurrentPC.simplify();
-		Assert.assertTrue(result);
+		assertTrue(result);
 		SymbolicConstraintsGeneral scg = new SymbolicConstraintsGeneral();
-		Assert.assertTrue(scg.isSatisfiable(pc));
+		assertTrue(scg.isSatisfiable(pc));
 	}
 	
 	@Test
@@ -1394,7 +1412,7 @@ public class TestSymStringPreprocessing {
 		stringCurrentPC._addDet(StringComparator.NOTSTARTSWITH, new StringConstant("abc"), var1);
 		System.out.println(stringCurrentPC);
 		boolean result = stringCurrentPC.simplify();
-		Assert.assertTrue(!result);
+		assertTrue(!result);
 	}
 	
 	@Test
@@ -1412,7 +1430,7 @@ public class TestSymStringPreprocessing {
 		stringCurrentPC._addDet(StringComparator.NOTSTARTSWITH, new StringConstant("abc"), var1);
 		System.out.println(stringCurrentPC);
 		boolean result = stringCurrentPC.simplify();
-		Assert.assertTrue(!result);
+		assertTrue(!result);
 	}
 	
 	@Test
@@ -1430,9 +1448,9 @@ public class TestSymStringPreprocessing {
 		stringCurrentPC._addDet(StringComparator.NOTSTARTSWITH, new StringConstant("abc"), var1);
 		System.out.println(stringCurrentPC);
 		boolean result = stringCurrentPC.simplify();
-		Assert.assertTrue(result);
+		assertTrue(result);
 		SymbolicConstraintsGeneral scg = new SymbolicConstraintsGeneral();
-		Assert.assertTrue(scg.isSatisfiable(pc));
+		assertTrue(scg.isSatisfiable(pc));
 	}
 	
 	@Test
@@ -1450,7 +1468,7 @@ public class TestSymStringPreprocessing {
 		stringCurrentPC._addDet(StringComparator.CONTAINS, new StringConstant("abc"), var1);
 		System.out.println(stringCurrentPC);
 		boolean result = stringCurrentPC.simplify();
-		Assert.assertTrue(!result);
+		assertTrue(!result);
 	}
 	
 	@Test
@@ -1468,7 +1486,7 @@ public class TestSymStringPreprocessing {
 		stringCurrentPC._addDet(StringComparator.CONTAINS, new StringConstant("abc"), var1);
 		System.out.println(stringCurrentPC);
 		boolean result = stringCurrentPC.simplify();
-		Assert.assertTrue(!result);
+		assertTrue(!result);
 	}
 	
 	@Test
@@ -1486,10 +1504,10 @@ public class TestSymStringPreprocessing {
 		pc._addDet(Comparator.EQ, var1._charAt(new IntegerConstant(3)), new IntegerConstant((int) 'b'));
 		System.out.println(stringCurrentPC);
 		boolean result = stringCurrentPC.simplify();
-		Assert.assertTrue(result);
+		assertTrue(result);
 		SymbolicConstraintsGeneral scg = new SymbolicConstraintsGeneral();
 		System.out.println(pc); 
-		Assert.assertTrue(scg.isSatisfiable(pc));
+		assertTrue(scg.isSatisfiable(pc));
 	}
 	
 	@Test
@@ -1507,7 +1525,7 @@ public class TestSymStringPreprocessing {
 		pc._addDet(Comparator.EQ, var1._charAt(new IntegerConstant(2)), new IntegerConstant((int) 'e'));
 		System.out.println(stringCurrentPC);
 		boolean result = stringCurrentPC.simplify();
-		Assert.assertTrue(!result);
+		assertTrue(!result);
 	}
 	
 	@Test
@@ -1525,7 +1543,7 @@ public class TestSymStringPreprocessing {
 		pc._addDet(Comparator.EQ, var1._charAt(new IntegerConstant(4)), new IntegerConstant((int) 'e'));
 		System.out.println(stringCurrentPC);
 		boolean result = stringCurrentPC.simplify();
-		Assert.assertTrue(!result);
+		assertTrue(!result);
 	}
 	
 	@Test
@@ -1548,7 +1566,7 @@ public class TestSymStringPreprocessing {
 		pc._addDet(Comparator.LE, ie2, new IntegerConstant(4));
 		System.out.println(stringCurrentPC);
 		boolean result = stringCurrentPC.simplify();
-		Assert.assertTrue(!result);
+		assertTrue(!result);
 	}
 	
 	@Test
@@ -1571,10 +1589,10 @@ public class TestSymStringPreprocessing {
 		pc._addDet(Comparator.LE, ie2, new IntegerConstant(5));
 		System.out.println(stringCurrentPC);
 		boolean result = stringCurrentPC.simplify();
-		Assert.assertTrue(result);
+		assertTrue(result);
 		SymbolicConstraintsGeneral scg = new SymbolicConstraintsGeneral();
 		System.out.println(pc); 
-		Assert.assertTrue(scg.isSatisfiable(pc));
+		assertTrue(scg.isSatisfiable(pc));
 	}
 	
 	@Test
@@ -1592,7 +1610,7 @@ public class TestSymStringPreprocessing {
 		pc._addDet(Comparator.EQ, var1._indexOf(new IntegerConstant((int) 'b')), new IntegerConstant(2));
 		System.out.println(stringCurrentPC);
 		boolean result = stringCurrentPC.simplify();
-		Assert.assertTrue(!result);
+		assertTrue(!result);
 	}
 	
 	@Test
@@ -1610,10 +1628,10 @@ public class TestSymStringPreprocessing {
 		pc._addDet(Comparator.EQ, var1._indexOf(new IntegerConstant((int) 'b')), new IntegerConstant(3));
 		System.out.println(stringCurrentPC);
 		boolean result = stringCurrentPC.simplify();
-		Assert.assertTrue(result);
+		assertTrue(result);
 		SymbolicConstraintsGeneral scg = new SymbolicConstraintsGeneral();
 		System.out.println(pc); 
-		Assert.assertTrue(scg.isSatisfiable(pc));
+		assertTrue(scg.isSatisfiable(pc));
 	}
 	
 	@Test
@@ -1631,10 +1649,10 @@ public class TestSymStringPreprocessing {
 		stringCurrentPC._addDet(StringComparator.NOTCONTAINS, new StringConstant("a"), var1);
 		System.out.println(stringCurrentPC);
 		boolean result = stringCurrentPC.simplify();
-		Assert.assertTrue(result);
+		assertTrue(result);
 		SymbolicConstraintsGeneral scg = new SymbolicConstraintsGeneral();
 		System.out.println(pc); 
-		Assert.assertTrue(scg.isSatisfiable(pc));
+		assertTrue(scg.isSatisfiable(pc));
 	}
 	
 	@Test
@@ -1652,10 +1670,10 @@ public class TestSymStringPreprocessing {
 		stringCurrentPC._addDet(StringComparator.NOTCONTAINS, new StringConstant("b"), var1);
 		System.out.println(stringCurrentPC);
 		boolean result = stringCurrentPC.simplify();
-		Assert.assertTrue(result);
+		assertTrue(result);
 		SymbolicConstraintsGeneral scg = new SymbolicConstraintsGeneral();
 		System.out.println(pc); 
-		Assert.assertTrue(scg.isSatisfiable(pc));
+		assertTrue(scg.isSatisfiable(pc));
 	}
 	
 	@Test
@@ -1673,10 +1691,10 @@ public class TestSymStringPreprocessing {
 		stringCurrentPC._addDet(StringComparator.NOTCONTAINS, new StringConstant("a"), var1);
 		System.out.println(stringCurrentPC);
 		boolean result = stringCurrentPC.simplify();
-		Assert.assertTrue(result);
+		assertTrue(result);
 		SymbolicConstraintsGeneral scg = new SymbolicConstraintsGeneral();
 		System.out.println(pc); 
-		Assert.assertTrue(scg.isSatisfiable(pc));
+		assertTrue(scg.isSatisfiable(pc));
 	}
 	
 	@Test
@@ -1694,7 +1712,7 @@ public class TestSymStringPreprocessing {
 		stringCurrentPC._addDet(StringComparator.NOTCONTAINS, new StringConstant("a"), var1);
 		System.out.println(stringCurrentPC);
 		boolean result = stringCurrentPC.simplify();
-		Assert.assertTrue(!result);
+		assertTrue(!result);
 	}
 	
 	
@@ -1713,10 +1731,10 @@ public class TestSymStringPreprocessing {
 		stringCurrentPC._addDet(StringComparator.STARTSWITH, new StringConstant("a"), var1);
 		System.out.println(stringCurrentPC);
 		boolean result = stringCurrentPC.simplify();
-		Assert.assertTrue(result);
+		assertTrue(result);
 		SymbolicConstraintsGeneral scg = new SymbolicConstraintsGeneral();
 		System.out.println(pc); 
-		Assert.assertTrue(scg.isSatisfiable(pc));
+		assertTrue(scg.isSatisfiable(pc));
 	}
 	
 	@Test
@@ -1734,7 +1752,7 @@ public class TestSymStringPreprocessing {
 		stringCurrentPC._addDet(StringComparator.STARTSWITH, new StringConstant("a"), var1);
 		System.out.println(stringCurrentPC);
 		boolean result = stringCurrentPC.simplify();
-		Assert.assertTrue(!result);
+		assertTrue(!result);
 	}
 	
 	@Test
@@ -1752,7 +1770,7 @@ public class TestSymStringPreprocessing {
 		stringCurrentPC._addDet(StringComparator.STARTSWITH, new StringConstant("a"), var1);
 		System.out.println(stringCurrentPC);
 		boolean result = stringCurrentPC.simplify();
-		Assert.assertTrue(!result);
+		assertTrue(!result);
 	}
 	
 	@Test
@@ -1770,10 +1788,10 @@ public class TestSymStringPreprocessing {
 		stringCurrentPC._addDet(StringComparator.STARTSWITH, new StringConstant("a"), var1);
 		System.out.println(stringCurrentPC);
 		boolean result = stringCurrentPC.simplify();
-		Assert.assertTrue(result);
+		assertTrue(result);
 		SymbolicConstraintsGeneral scg = new SymbolicConstraintsGeneral();
 		System.out.println(pc); 
-		Assert.assertTrue(scg.isSatisfiable(pc));
+		assertTrue(scg.isSatisfiable(pc));
 	}
 	
 	@Test
@@ -1791,7 +1809,7 @@ public class TestSymStringPreprocessing {
 		stringCurrentPC._addDet(StringComparator.NOTSTARTSWITH, new StringConstant("a"), var1);
 		System.out.println(stringCurrentPC);
 		boolean result = stringCurrentPC.simplify();
-		Assert.assertTrue(!result);
+		assertTrue(!result);
 	}
 	
 	@Test
@@ -1809,10 +1827,10 @@ public class TestSymStringPreprocessing {
 		stringCurrentPC._addDet(StringComparator.NOTSTARTSWITH, new StringConstant("a"), var1);
 		System.out.println(stringCurrentPC);
 		boolean result = stringCurrentPC.simplify();
-		Assert.assertTrue(result);
+		assertTrue(result);
 		SymbolicConstraintsGeneral scg = new SymbolicConstraintsGeneral();
 		System.out.println(pc); 
-		Assert.assertTrue(scg.isSatisfiable(pc));
+		assertTrue(scg.isSatisfiable(pc));
 	}
 	
 	@Test
@@ -1830,10 +1848,10 @@ public class TestSymStringPreprocessing {
 		stringCurrentPC._addDet(StringComparator.NOTSTARTSWITH, new StringConstant("a"), var1);
 		System.out.println(stringCurrentPC);
 		boolean result = stringCurrentPC.simplify();
-		Assert.assertTrue(result);
+		assertTrue(result);
 		SymbolicConstraintsGeneral scg = new SymbolicConstraintsGeneral();
 		System.out.println(pc); 
-		Assert.assertTrue(scg.isSatisfiable(pc));
+		assertTrue(scg.isSatisfiable(pc));
 	}
 	
 	@Test
@@ -1851,10 +1869,10 @@ public class TestSymStringPreprocessing {
 		stringCurrentPC._addDet(StringComparator.CONTAINS, new StringConstant("a"), var1);
 		System.out.println(stringCurrentPC);
 		boolean result = stringCurrentPC.simplify();
-		Assert.assertTrue(result);
+		assertTrue(result);
 		SymbolicConstraintsGeneral scg = new SymbolicConstraintsGeneral();
 		System.out.println(pc); 
-		Assert.assertTrue(scg.isSatisfiable(pc));
+		assertTrue(scg.isSatisfiable(pc));
 	}
 	
 	@Test
@@ -1872,7 +1890,7 @@ public class TestSymStringPreprocessing {
 		stringCurrentPC._addDet(StringComparator.CONTAINS, new StringConstant("a"), var1);
 		System.out.println(stringCurrentPC);
 		boolean result = stringCurrentPC.simplify();
-		Assert.assertTrue(!result);
+		assertTrue(!result);
 	}
 	
 	@Test
@@ -1890,7 +1908,7 @@ public class TestSymStringPreprocessing {
 		stringCurrentPC._addDet(StringComparator.CONTAINS, new StringConstant("abc"), var1);
 		System.out.println(stringCurrentPC);
 		boolean result = stringCurrentPC.simplify();
-		Assert.assertTrue(!result);
+		assertTrue(!result);
 	}
 	
 	@Test
@@ -1908,10 +1926,10 @@ public class TestSymStringPreprocessing {
 		pc._addDet(Comparator.EQ, var1._charAt(new IntegerConstant(1)), new IntegerConstant((int) 'a'));
 		System.out.println(stringCurrentPC);
 		boolean result = stringCurrentPC.simplify();
-		Assert.assertTrue(result);
+		assertTrue(result);
 		SymbolicConstraintsGeneral scg = new SymbolicConstraintsGeneral();
 		System.out.println(pc); 
-		Assert.assertTrue(scg.isSatisfiable(pc));
+		assertTrue(scg.isSatisfiable(pc));
 	}
 	
 	@Test
@@ -1929,7 +1947,7 @@ public class TestSymStringPreprocessing {
 		pc._addDet(Comparator.EQ, var1._charAt(new IntegerConstant(1)), new IntegerConstant((int) 'a'));
 		System.out.println(stringCurrentPC);
 		boolean result = stringCurrentPC.simplify();
-		Assert.assertTrue(!result);
+		assertTrue(!result);
 	}
 	
 	@Test
@@ -1947,10 +1965,10 @@ public class TestSymStringPreprocessing {
 		pc._addDet(Comparator.EQ, var1._charAt(new IntegerConstant(0)), new IntegerConstant((int) 'a'));
 		System.out.println(stringCurrentPC);
 		boolean result = stringCurrentPC.simplify();
-		Assert.assertTrue(result);
+		assertTrue(result);
 		SymbolicConstraintsGeneral scg = new SymbolicConstraintsGeneral();
 		System.out.println(pc); 
-		Assert.assertTrue(scg.isSatisfiable(pc));
+		assertTrue(scg.isSatisfiable(pc));
 	}
 	
 	@Test
@@ -1968,7 +1986,7 @@ public class TestSymStringPreprocessing {
 		pc._addDet(Comparator.EQ, var1._charAt(new IntegerConstant(0)), new IntegerConstant((int) 'a'));
 		System.out.println(stringCurrentPC);
 		boolean result = stringCurrentPC.simplify();
-		Assert.assertTrue(!result);
+		assertTrue(!result);
 	}
 	
 	@Test
@@ -1986,10 +2004,10 @@ public class TestSymStringPreprocessing {
 		pc._addDet(Comparator.EQ, var1._charAt(new IntegerConstant(1)), new IntegerConstant((int) 'a'));
 		System.out.println(stringCurrentPC);
 		boolean result = stringCurrentPC.simplify();
-		Assert.assertTrue(result);
+		assertTrue(result);
 		SymbolicConstraintsGeneral scg = new SymbolicConstraintsGeneral();
 		System.out.println(pc); 
-		Assert.assertTrue(scg.isSatisfiable(pc));
+		assertTrue(scg.isSatisfiable(pc));
 	}
 	
 	@Test
@@ -2007,10 +2025,10 @@ public class TestSymStringPreprocessing {
 		pc._addDet(Comparator.EQ, var1._indexOf(new StringConstant("abc")), new IntegerConstant(0));
 		System.out.println(stringCurrentPC);
 		boolean result = stringCurrentPC.simplify();
-		Assert.assertTrue(result);
+		assertTrue(result);
 		SymbolicConstraintsGeneral scg = new SymbolicConstraintsGeneral();
 		System.out.println(pc); 
-		Assert.assertTrue(scg.isSatisfiable(pc));
+		assertTrue(scg.isSatisfiable(pc));
 	}
 	
 	@Test
@@ -2028,7 +2046,7 @@ public class TestSymStringPreprocessing {
 		pc._addDet(Comparator.EQ, var1._indexOf(new StringConstant("abc")), new IntegerConstant(1));
 		System.out.println(stringCurrentPC);
 		boolean result = stringCurrentPC.simplify();
-		Assert.assertTrue(!result);
+		assertTrue(!result);
 	}
 	
 	@Test
@@ -2046,10 +2064,10 @@ public class TestSymStringPreprocessing {
 		pc._addDet(Comparator.EQ, var1._indexOf(new StringConstant("abc")), new IntegerConstant(1));
 		System.out.println(stringCurrentPC);
 		boolean result = stringCurrentPC.simplify();
-		Assert.assertTrue(result);
+		assertTrue(result);
 		SymbolicConstraintsGeneral scg = new SymbolicConstraintsGeneral();
 		System.out.println(pc); 
-		Assert.assertTrue(scg.isSatisfiable(pc));
+		assertTrue(scg.isSatisfiable(pc));
 	}
 	
 	@Test
@@ -2067,7 +2085,7 @@ public class TestSymStringPreprocessing {
 		pc._addDet(Comparator.EQ, var1._indexOf(new StringConstant("abc")), new IntegerConstant(1));
 		System.out.println(stringCurrentPC);
 		boolean result = stringCurrentPC.simplify();
-		Assert.assertTrue(!result);
+		assertTrue(!result);
 	}
 	
 	@Test
@@ -2085,10 +2103,10 @@ public class TestSymStringPreprocessing {
 		pc._addDet(Comparator.EQ, var1._indexOf(new StringConstant("def"), new IntegerConstant(5)), new SymbolicInteger("ie2"));
 		System.out.println(stringCurrentPC);
 		boolean result = stringCurrentPC.simplify();
-		Assert.assertTrue(result);
+		assertTrue(result);
 		SymbolicConstraintsGeneral scg = new SymbolicConstraintsGeneral();
 		System.out.println(pc); 
-		Assert.assertTrue(scg.isSatisfiable(pc));
+		assertTrue(scg.isSatisfiable(pc));
 	}
 	
 	@Test
@@ -2106,7 +2124,7 @@ public class TestSymStringPreprocessing {
 		pc._addDet(Comparator.EQ, var1._indexOf(new StringConstant("def"), new IntegerConstant(2)), new IntegerConstant(2));
 		System.out.println(stringCurrentPC);
 		boolean result = stringCurrentPC.simplify();
-		Assert.assertTrue(!result);
+		assertTrue(!result);
 	}
 	
 	@Test
@@ -2124,7 +2142,7 @@ public class TestSymStringPreprocessing {
 		stringCurrentPC._addDet(StringComparator.NOTCONTAINS, new StringConstant("abc"), var1);
 		System.out.println(stringCurrentPC);
 		boolean result = stringCurrentPC.simplify();
-		Assert.assertTrue(!result);
+		assertTrue(!result);
 	}
 	
 	@Test
@@ -2142,7 +2160,7 @@ public class TestSymStringPreprocessing {
 		stringCurrentPC._addDet(StringComparator.NOTCONTAINS, new StringConstant("abc"), var1);
 		System.out.println(stringCurrentPC);
 		boolean result = stringCurrentPC.simplify();
-		Assert.assertTrue(!result);
+		assertTrue(!result);
 	}
 	
 	@Test
@@ -2160,9 +2178,9 @@ public class TestSymStringPreprocessing {
 		stringCurrentPC._addDet(StringComparator.NOTCONTAINS, new StringConstant("abc"), var1);
 		System.out.println(stringCurrentPC);
 		boolean result = stringCurrentPC.simplify();
-		Assert.assertTrue(result);
+		assertTrue(result);
 		SymbolicConstraintsGeneral scg = new SymbolicConstraintsGeneral();
-		Assert.assertTrue(scg.isSatisfiable(pc));
+		assertTrue(scg.isSatisfiable(pc));
 	}
 	
 	@Test
@@ -2180,7 +2198,7 @@ public class TestSymStringPreprocessing {
 		stringCurrentPC._addDet(StringComparator.NOTSTARTSWITH, new StringConstant("abc"), var1);
 		System.out.println(stringCurrentPC);
 		boolean result = stringCurrentPC.simplify();
-		Assert.assertTrue(!result);
+		assertTrue(!result);
 	}
 	
 	@Test
@@ -2198,7 +2216,7 @@ public class TestSymStringPreprocessing {
 		stringCurrentPC._addDet(StringComparator.NOTSTARTSWITH, new StringConstant("abc"), var1);
 		System.out.println(stringCurrentPC);
 		boolean result = stringCurrentPC.simplify();
-		Assert.assertTrue(!result);
+		assertTrue(!result);
 	}
 	
 	@Test
@@ -2216,9 +2234,9 @@ public class TestSymStringPreprocessing {
 		stringCurrentPC._addDet(StringComparator.NOTSTARTSWITH, new StringConstant("abc"), var1);
 		System.out.println(stringCurrentPC);
 		boolean result = stringCurrentPC.simplify();
-		Assert.assertTrue(result);
+		assertTrue(result);
 		SymbolicConstraintsGeneral scg = new SymbolicConstraintsGeneral();
-		Assert.assertTrue(scg.isSatisfiable(pc));
+		assertTrue(scg.isSatisfiable(pc));
 	}
 	
 	@Test
@@ -2236,9 +2254,9 @@ public class TestSymStringPreprocessing {
 		stringCurrentPC._addDet(StringComparator.NOTSTARTSWITH, new StringConstant("abc"), var1);
 		System.out.println(stringCurrentPC);
 		boolean result = stringCurrentPC.simplify();
-		Assert.assertTrue(result);
+		assertTrue(result);
 		SymbolicConstraintsGeneral scg = new SymbolicConstraintsGeneral();
-		Assert.assertTrue(scg.isSatisfiable(pc));
+		assertTrue(scg.isSatisfiable(pc));
 	}
 	
 	@Test
@@ -2256,9 +2274,9 @@ public class TestSymStringPreprocessing {
 		stringCurrentPC._addDet(StringComparator.NOTSTARTSWITH, new StringConstant("abc"), var1);
 		System.out.println(stringCurrentPC);
 		boolean result = stringCurrentPC.simplify();
-		Assert.assertTrue(result);
+		assertTrue(result);
 		SymbolicConstraintsGeneral scg = new SymbolicConstraintsGeneral();
-		Assert.assertTrue(scg.isSatisfiable(pc));
+		assertTrue(scg.isSatisfiable(pc));
 	}
 	
 	@Test
@@ -2276,9 +2294,9 @@ public class TestSymStringPreprocessing {
 		stringCurrentPC._addDet(StringComparator.NOTSTARTSWITH, new StringConstant("abc"), var1);
 		System.out.println(stringCurrentPC);
 		boolean result = stringCurrentPC.simplify();
-		Assert.assertTrue(result);
+		assertTrue(result);
 		SymbolicConstraintsGeneral scg = new SymbolicConstraintsGeneral();
-		Assert.assertTrue(scg.isSatisfiable(pc));
+		assertTrue(scg.isSatisfiable(pc));
 	}
 	
 	@Test
@@ -2296,9 +2314,9 @@ public class TestSymStringPreprocessing {
 		stringCurrentPC._addDet(StringComparator.STARTSWITH, new StringConstant("abc"), var1);
 		System.out.println(stringCurrentPC);
 		boolean result = stringCurrentPC.simplify();
-		Assert.assertTrue(result);
+		assertTrue(result);
 		SymbolicConstraintsGeneral scg = new SymbolicConstraintsGeneral();
-		Assert.assertTrue(scg.isSatisfiable(pc));
+		assertTrue(scg.isSatisfiable(pc));
 	}
 	
 	@Test
@@ -2316,7 +2334,7 @@ public class TestSymStringPreprocessing {
 		stringCurrentPC._addDet(StringComparator.STARTSWITH, new StringConstant("abc"), var1);
 		System.out.println(stringCurrentPC);
 		boolean result = stringCurrentPC.simplify();
-		Assert.assertTrue(!result);
+		assertTrue(!result);
 	}
 	
 	@Test
@@ -2334,9 +2352,9 @@ public class TestSymStringPreprocessing {
 		stringCurrentPC._addDet(StringComparator.STARTSWITH, new StringConstant("abc"), var1);
 		System.out.println(stringCurrentPC);
 		boolean result = stringCurrentPC.simplify();
-		Assert.assertTrue(result);
+		assertTrue(result);
 		SymbolicConstraintsGeneral scg = new SymbolicConstraintsGeneral();
-		Assert.assertTrue(scg.isSatisfiable(pc));
+		assertTrue(scg.isSatisfiable(pc));
 	}
 	
 	@Test
@@ -2354,7 +2372,7 @@ public class TestSymStringPreprocessing {
 		stringCurrentPC._addDet(StringComparator.STARTSWITH, new StringConstant("abc"), var1);
 		System.out.println(stringCurrentPC);
 		boolean result = stringCurrentPC.simplify();
-		Assert.assertTrue(!result);
+		assertTrue(!result);
 	}
 	
 	@Test
@@ -2372,9 +2390,9 @@ public class TestSymStringPreprocessing {
 		stringCurrentPC._addDet(StringComparator.STARTSWITH, new StringConstant("abc"), var1);
 		System.out.println(stringCurrentPC);
 		boolean result = stringCurrentPC.simplify();
-		Assert.assertTrue(result);
+		assertTrue(result);
 		SymbolicConstraintsGeneral scg = new SymbolicConstraintsGeneral();
-		Assert.assertTrue(scg.isSatisfiable(pc));
+		assertTrue(scg.isSatisfiable(pc));
 	}
 	
 	@Test
@@ -2392,7 +2410,7 @@ public class TestSymStringPreprocessing {
 		stringCurrentPC._addDet(StringComparator.STARTSWITH, new StringConstant("abc"), var1);
 		System.out.println(stringCurrentPC);
 		boolean result = stringCurrentPC.simplify();
-		Assert.assertTrue(!result);
+		assertTrue(!result);
 	}
 	
 	@Test
@@ -2410,9 +2428,9 @@ public class TestSymStringPreprocessing {
 		stringCurrentPC._addDet(StringComparator.STARTSWITH, new StringConstant("abc"), var1);
 		System.out.println(stringCurrentPC);
 		boolean result = stringCurrentPC.simplify();
-		Assert.assertTrue(result);
+		assertTrue(result);
 		SymbolicConstraintsGeneral scg = new SymbolicConstraintsGeneral();
-		Assert.assertTrue(scg.isSatisfiable(pc));
+		assertTrue(scg.isSatisfiable(pc));
 	}
 	
 	@Test
@@ -2430,9 +2448,9 @@ public class TestSymStringPreprocessing {
 		stringCurrentPC._addDet(StringComparator.STARTSWITH, new StringConstant("abc"), var1);
 		System.out.println(stringCurrentPC);
 		boolean result = stringCurrentPC.simplify();
-		Assert.assertTrue(result);
+		assertTrue(result);
 		SymbolicConstraintsGeneral scg = new SymbolicConstraintsGeneral();
-		Assert.assertTrue(scg.isSatisfiable(pc));
+		assertTrue(scg.isSatisfiable(pc));
 	}
 	
 	@Test
@@ -2450,9 +2468,9 @@ public class TestSymStringPreprocessing {
 		stringCurrentPC._addDet(StringComparator.STARTSWITH, new StringConstant("abc"), var1);
 		System.out.println(stringCurrentPC);
 		boolean result = stringCurrentPC.simplify();
-		Assert.assertTrue(result);
+		assertTrue(result);
 		SymbolicConstraintsGeneral scg = new SymbolicConstraintsGeneral();
-		Assert.assertTrue(scg.isSatisfiable(pc));
+		assertTrue(scg.isSatisfiable(pc));
 	}
 	
 	@Test
@@ -2470,10 +2488,10 @@ public class TestSymStringPreprocessing {
 		stringCurrentPC._addDet(StringComparator.STARTSWITH, new StringConstant("abc"), var1);
 		System.out.println(stringCurrentPC);
 		boolean result = stringCurrentPC.simplify();
-		Assert.assertTrue(result);
+		assertTrue(result);
 		SymbolicConstraintsGeneral scg = new SymbolicConstraintsGeneral();
 		System.out.println(pc);
-		Assert.assertTrue(scg.isSatisfiable(pc));
+		assertTrue(scg.isSatisfiable(pc));
 	}
 	
 	@Test
@@ -2491,9 +2509,9 @@ public class TestSymStringPreprocessing {
 		stringCurrentPC._addDet(StringComparator.STARTSWITH, new StringConstant("abc"), var1);
 		System.out.println(stringCurrentPC);
 		boolean result = stringCurrentPC.simplify();
-		Assert.assertTrue(result);
+		assertTrue(result);
 		SymbolicConstraintsGeneral scg = new SymbolicConstraintsGeneral();
-		Assert.assertTrue(scg.isSatisfiable(pc));
+		assertTrue(scg.isSatisfiable(pc));
 	}
 	
 	@Test
@@ -2511,9 +2529,9 @@ public class TestSymStringPreprocessing {
 		stringCurrentPC._addDet(StringComparator.STARTSWITH, new StringConstant("abc"), var1);
 		System.out.println(stringCurrentPC);
 		boolean result = stringCurrentPC.simplify();
-		Assert.assertTrue(result);
+		assertTrue(result);
 		SymbolicConstraintsGeneral scg = new SymbolicConstraintsGeneral();
-		Assert.assertTrue(scg.isSatisfiable(pc));
+		assertTrue(scg.isSatisfiable(pc));
 	}
 	
 	/*@Test
@@ -2531,10 +2549,10 @@ public class TestSymStringPreprocessing {
 		stringCurrentPC._addDet(StringComparator.STARTSWITH, new StringConstant("abcde"), var1);
 		System.out.println(stringCurrentPC);
 		boolean result = stringCurrentPC.simplify();
-		Assert.assertTrue(result);
+		assertTrue(result);
 		SymbolicConstraintsGeneral scg = new SymbolicConstraintsGeneral();
 		System.out.println(pc);
-		Assert.assertTrue(!scg.isSatisfiable(pc));
+		assertTrue(!scg.isSatisfiable(pc));
 	}*/
 	
 	@Test
@@ -2552,10 +2570,10 @@ public class TestSymStringPreprocessing {
 		pc._addDet(Comparator.EQ, var1._charAt(new IntegerConstant(3)), new IntegerConstant((int) 'b'));
 		System.out.println(stringCurrentPC);
 		boolean result = stringCurrentPC.simplify();
-		Assert.assertTrue(result);
+		assertTrue(result);
 		SymbolicConstraintsGeneral scg = new SymbolicConstraintsGeneral();
 		System.out.println(pc); 
-		Assert.assertTrue(scg.isSatisfiable(pc));
+		assertTrue(scg.isSatisfiable(pc));
 	}
 	
 	@Test
@@ -2573,7 +2591,7 @@ public class TestSymStringPreprocessing {
 		pc._addDet(Comparator.EQ, var1._charAt(new IntegerConstant(2)), new IntegerConstant((int) 'e'));
 		System.out.println(stringCurrentPC);
 		boolean result = stringCurrentPC.simplify();
-		Assert.assertTrue(!result);
+		assertTrue(!result);
 	}
 	
 	@Test
@@ -2596,10 +2614,10 @@ public class TestSymStringPreprocessing {
 		pc._addDet(Comparator.LE, ie2, new IntegerConstant(5));
 		System.out.println(stringCurrentPC);
 		boolean result = stringCurrentPC.simplify();
-		Assert.assertTrue(result);
+		assertTrue(result);
 		SymbolicConstraintsGeneral scg = new SymbolicConstraintsGeneral();
 		System.out.println(pc); 
-		Assert.assertTrue(scg.isSatisfiable(pc));
+		assertTrue(scg.isSatisfiable(pc));
 	}
 	
 	@Test
@@ -2617,7 +2635,7 @@ public class TestSymStringPreprocessing {
 		pc._addDet(Comparator.EQ, var1._indexOf(new IntegerConstant((char)'a'), new IntegerConstant(2)),  new IntegerConstant(4));
 		System.out.println(stringCurrentPC);
 		boolean result = stringCurrentPC.simplify();
-		Assert.assertTrue(!result);
+		assertTrue(!result);
 	}
 	
 	@Test
@@ -2635,10 +2653,10 @@ public class TestSymStringPreprocessing {
 		pc._addDet(Comparator.EQ, var1._indexOf(new IntegerConstant((char)'b'), new IntegerConstant(2)),  new IntegerConstant(3));
 		System.out.println(stringCurrentPC);
 		boolean result = stringCurrentPC.simplify();
-		Assert.assertTrue(result);
+		assertTrue(result);
 		SymbolicConstraintsGeneral scg = new SymbolicConstraintsGeneral();
 		System.out.println(pc); 
-		Assert.assertTrue(scg.isSatisfiable(pc));
+		assertTrue(scg.isSatisfiable(pc));
 	}
 	
 	@Test
@@ -2656,7 +2674,7 @@ public class TestSymStringPreprocessing {
 		pc._addDet(Comparator.EQ, var1._indexOf(new IntegerConstant((char)'b'), new IntegerConstant(2)),  new IntegerConstant(3));
 		System.out.println(stringCurrentPC);
 		boolean result = stringCurrentPC.simplify();
-		Assert.assertTrue(!result);
+		assertTrue(!result);
 	}
 	
 	@Test
@@ -2674,7 +2692,7 @@ public class TestSymStringPreprocessing {
 		stringCurrentPC._addDet(StringComparator.NOTCONTAINS, new StringConstant("a"), var1);
 		System.out.println(stringCurrentPC);
 		boolean result = stringCurrentPC.simplify();
-		Assert.assertTrue(!result);
+		assertTrue(!result);
 	}
 	
 	@Test
@@ -2692,10 +2710,10 @@ public class TestSymStringPreprocessing {
 		stringCurrentPC._addDet(StringComparator.NOTCONTAINS, new StringConstant("a"), var1);
 		System.out.println(stringCurrentPC);
 		boolean result = stringCurrentPC.simplify();
-		Assert.assertTrue(result);
+		assertTrue(result);
 		SymbolicConstraintsGeneral scg = new SymbolicConstraintsGeneral();
 		System.out.println(pc); 
-		Assert.assertTrue(scg.isSatisfiable(pc));
+		assertTrue(scg.isSatisfiable(pc));
 	}
 	
 	@Test
@@ -2713,7 +2731,7 @@ public class TestSymStringPreprocessing {
 		stringCurrentPC._addDet(StringComparator.NOTCONTAINS, new StringConstant("a"), var1);
 		System.out.println(stringCurrentPC);
 		boolean result = stringCurrentPC.simplify();
-		Assert.assertTrue(!result);
+		assertTrue(!result);
 	}
 	
 	@Test
@@ -2731,10 +2749,10 @@ public class TestSymStringPreprocessing {
 		stringCurrentPC._addDet(StringComparator.NOTSTARTSWITH, new StringConstant("a"), var1);
 		System.out.println(stringCurrentPC);
 		boolean result = stringCurrentPC.simplify();
-		Assert.assertTrue(result);
+		assertTrue(result);
 		SymbolicConstraintsGeneral scg = new SymbolicConstraintsGeneral();
 		System.out.println(pc); 
-		Assert.assertTrue(scg.isSatisfiable(pc));
+		assertTrue(scg.isSatisfiable(pc));
 	}
 	
 	@Test
@@ -2752,7 +2770,7 @@ public class TestSymStringPreprocessing {
 		stringCurrentPC._addDet(StringComparator.NOTSTARTSWITH, new StringConstant("a"), var1);
 		System.out.println(stringCurrentPC);
 		boolean result = stringCurrentPC.simplify();
-		Assert.assertTrue(!result);
+		assertTrue(!result);
 		
 	}
 	
@@ -2771,10 +2789,10 @@ public class TestSymStringPreprocessing {
 		stringCurrentPC._addDet(StringComparator.NOTSTARTSWITH, new StringConstant("a"), var1);
 		System.out.println(stringCurrentPC);
 		boolean result = stringCurrentPC.simplify();
-		Assert.assertTrue(result);
+		assertTrue(result);
 		SymbolicConstraintsGeneral scg = new SymbolicConstraintsGeneral();
 		
-		Assert.assertTrue(scg.isSatisfiable(pc));
+		assertTrue(scg.isSatisfiable(pc));
 		
 	}
 	
@@ -2793,7 +2811,7 @@ public class TestSymStringPreprocessing {
 		stringCurrentPC._addDet(StringComparator.STARTSWITH, new StringConstant("a"), var1);
 		System.out.println(stringCurrentPC);
 		boolean result = stringCurrentPC.simplify();
-		Assert.assertTrue(!result);
+		assertTrue(!result);
 		
 	}
 	
@@ -2812,10 +2830,10 @@ public class TestSymStringPreprocessing {
 		stringCurrentPC._addDet(StringComparator.STARTSWITH, new StringConstant("a"), var1);
 		System.out.println(stringCurrentPC);
 		boolean result = stringCurrentPC.simplify();
-		Assert.assertTrue(result);
+		assertTrue(result);
 		SymbolicConstraintsGeneral scg = new SymbolicConstraintsGeneral();
 		
-		Assert.assertTrue(scg.isSatisfiable(pc));
+		assertTrue(scg.isSatisfiable(pc));
 		
 	}
 	
@@ -2834,10 +2852,10 @@ public class TestSymStringPreprocessing {
 		pc._addDet(Comparator.EQ, var1._charAt(new IntegerConstant(1)), new IntegerConstant((int) 'a'));
 		System.out.println(stringCurrentPC);
 		boolean result = stringCurrentPC.simplify();
-		Assert.assertTrue(result);
+		assertTrue(result);
 		SymbolicConstraintsGeneral scg = new SymbolicConstraintsGeneral();
 		System.out.println(pc); 
-		Assert.assertTrue(scg.isSatisfiable(pc));
+		assertTrue(scg.isSatisfiable(pc));
 	}
 	
 	@Test
@@ -2855,7 +2873,7 @@ public class TestSymStringPreprocessing {
 		pc._addDet(Comparator.EQ, var1._charAt(new IntegerConstant(1)), new IntegerConstant((int) 'a'));
 		System.out.println(stringCurrentPC);
 		boolean result = stringCurrentPC.simplify();
-		Assert.assertTrue(!result);
+		assertTrue(!result);
 	}
 	
 	@Test
@@ -2873,10 +2891,10 @@ public class TestSymStringPreprocessing {
 		pc._addDet(Comparator.EQ, var1._charAt(new IntegerConstant(0)), new IntegerConstant((int) 'a'));
 		System.out.println(stringCurrentPC);
 		boolean result = stringCurrentPC.simplify();
-		Assert.assertTrue(result);
+		assertTrue(result);
 		SymbolicConstraintsGeneral scg = new SymbolicConstraintsGeneral();
 		System.out.println(pc); 
-		Assert.assertTrue(scg.isSatisfiable(pc));
+		assertTrue(scg.isSatisfiable(pc));
 	}
 	
 	@Test
@@ -2894,10 +2912,10 @@ public class TestSymStringPreprocessing {
 		pc._addDet(Comparator.EQ, var1._charAt(new IntegerConstant(1)), new IntegerConstant((int) 'a'));
 		System.out.println(stringCurrentPC);
 		boolean result = stringCurrentPC.simplify();
-		Assert.assertTrue(result);
+		assertTrue(result);
 		SymbolicConstraintsGeneral scg = new SymbolicConstraintsGeneral();
 		System.out.println(pc); 
-		Assert.assertTrue(scg.isSatisfiable(pc));
+		assertTrue(scg.isSatisfiable(pc));
 	}
 	
 	@Test
@@ -2914,7 +2932,7 @@ public class TestSymStringPreprocessing {
 		pc._addDet(Comparator.EQ, var1._indexOf(new IntegerConstant((int) 'a'), new IntegerConstant(2)), new IntegerConstant(0));
 		System.out.println(stringCurrentPC);
 		boolean result = stringCurrentPC.simplify();
-		Assert.assertTrue(!result);
+		assertTrue(!result);
 	}
 	
 	@Test
@@ -2932,9 +2950,9 @@ public class TestSymStringPreprocessing {
 		pc._addDet(Comparator.EQ, var1._indexOf(new StringConstant("abc")), new IntegerConstant(0));
 		System.out.println(stringCurrentPC);
 		boolean result = stringCurrentPC.simplify();
-		Assert.assertTrue(result);
+		assertTrue(result);
 		SymbolicConstraintsGeneral scg = new SymbolicConstraintsGeneral();
-		Assert.assertTrue(scg.isSatisfiable(pc));
+		assertTrue(scg.isSatisfiable(pc));
 	}
 	
 	@Test
@@ -2952,9 +2970,9 @@ public class TestSymStringPreprocessing {
 		pc._addDet(Comparator.EQ, var1._indexOf(new StringConstant("abc")), new IntegerConstant(3));
 		System.out.println(stringCurrentPC);
 		boolean result = stringCurrentPC.simplify();
-		Assert.assertTrue(result);
+		assertTrue(result);
 		SymbolicConstraintsGeneral scg = new SymbolicConstraintsGeneral();
-		Assert.assertTrue(scg.isSatisfiable(pc));
+		assertTrue(scg.isSatisfiable(pc));
 		
 	}
 	
@@ -2973,7 +2991,7 @@ public class TestSymStringPreprocessing {
 		pc._addDet(Comparator.EQ, var1._indexOf(new StringConstant("abc")), new IntegerConstant(3));
 		System.out.println(stringCurrentPC);
 		boolean result = stringCurrentPC.simplify();
-		Assert.assertTrue(!result);
+		assertTrue(!result);
 		
 	}
 	
@@ -2992,9 +3010,9 @@ public class TestSymStringPreprocessing {
 		pc._addDet(Comparator.EQ, var1._indexOf(new StringConstant("abc")), new IntegerConstant(3));
 		System.out.println(stringCurrentPC);
 		boolean result = stringCurrentPC.simplify();
-		Assert.assertTrue(result);
+		assertTrue(result);
 		SymbolicConstraintsGeneral scg = new SymbolicConstraintsGeneral();
-		Assert.assertTrue(scg.isSatisfiable(pc));	
+		assertTrue(scg.isSatisfiable(pc));	
 	}
 	
 	@Test
@@ -3012,9 +3030,9 @@ public class TestSymStringPreprocessing {
 		pc._addDet(Comparator.EQ, var1._indexOf(new StringConstant("abc")), new IntegerConstant(0));
 		System.out.println(stringCurrentPC);
 		boolean result = stringCurrentPC.simplify();
-		Assert.assertTrue(result);
+		assertTrue(result);
 		SymbolicConstraintsGeneral scg = new SymbolicConstraintsGeneral();
-		Assert.assertTrue(scg.isSatisfiable(pc));
+		assertTrue(scg.isSatisfiable(pc));
 		
 	}
 	
@@ -3033,9 +3051,9 @@ public class TestSymStringPreprocessing {
 		pc._addDet(Comparator.EQ, var1._indexOf(new StringConstant("abc")), new IntegerConstant(3));
 		System.out.println(stringCurrentPC);
 		boolean result = stringCurrentPC.simplify();
-		Assert.assertTrue(result);
+		assertTrue(result);
 		SymbolicConstraintsGeneral scg = new SymbolicConstraintsGeneral();
-		Assert.assertTrue(scg.isSatisfiable(pc));
+		assertTrue(scg.isSatisfiable(pc));
 		
 	}
 	
@@ -3054,7 +3072,7 @@ public class TestSymStringPreprocessing {
 		pc._addDet(Comparator.EQ, var1._indexOf(new StringConstant("abc")), new IntegerConstant(4));
 		System.out.println(stringCurrentPC);
 		boolean result = stringCurrentPC.simplify();
-		Assert.assertTrue(!result);
+		assertTrue(!result);
 		
 	}
 	
@@ -3073,7 +3091,7 @@ public class TestSymStringPreprocessing {
 		pc._addDet(Comparator.EQ, var1._indexOf(new StringConstant("abc")), new IntegerConstant(4));
 		System.out.println(stringCurrentPC);
 		boolean result = stringCurrentPC.simplify();
-		Assert.assertTrue(!result);
+		assertTrue(!result);
 	}
 	
 	@Test
@@ -3091,9 +3109,9 @@ public class TestSymStringPreprocessing {
 		pc._addDet(Comparator.EQ, var1._indexOf(new IntegerConstant((int) 'a')), new IntegerConstant(4));
 		System.out.println(stringCurrentPC);
 		boolean result = stringCurrentPC.simplify();
-		Assert.assertTrue(result);
+		assertTrue(result);
 		SymbolicConstraintsGeneral scg = new SymbolicConstraintsGeneral();
-		Assert.assertTrue(scg.isSatisfiable(pc));
+		assertTrue(scg.isSatisfiable(pc));
 	}
 	
 	@Test
@@ -3111,9 +3129,9 @@ public class TestSymStringPreprocessing {
 		pc._addDet(Comparator.EQ, var1._indexOf(new IntegerConstant((int) 'a')), new IntegerConstant(6));
 		System.out.println(stringCurrentPC);
 		boolean result = stringCurrentPC.simplify();
-		Assert.assertTrue(result);
+		assertTrue(result);
 		SymbolicConstraintsGeneral scg = new SymbolicConstraintsGeneral();
-		Assert.assertTrue(scg.isSatisfiable(pc));
+		assertTrue(scg.isSatisfiable(pc));
 	}
 	
 	@Test
@@ -3131,7 +3149,7 @@ public class TestSymStringPreprocessing {
 		pc._addDet(Comparator.EQ, var1._indexOf(new IntegerConstant((int) 'b')), new IntegerConstant(6));
 		System.out.println(stringCurrentPC);
 		boolean result = stringCurrentPC.simplify();
-		Assert.assertTrue(!result);
+		assertTrue(!result);
 	}
 	
 	@Test
@@ -3149,7 +3167,7 @@ public class TestSymStringPreprocessing {
 		pc._addDet(Comparator.EQ, var1._indexOf(new IntegerConstant((int) 'b'), new IntegerConstant(2)), new IntegerConstant(6));
 		System.out.println(stringCurrentPC);
 		boolean result = stringCurrentPC.simplify();
-		Assert.assertTrue(!result);
+		assertTrue(!result);
 	}
 	
 	@Test
@@ -3167,9 +3185,9 @@ public class TestSymStringPreprocessing {
 		pc._addDet(Comparator.EQ, var1._indexOf(new IntegerConstant((int) 'a'), new IntegerConstant(2)), new IntegerConstant(2));
 		System.out.println(stringCurrentPC);
 		boolean result = stringCurrentPC.simplify();
-		Assert.assertTrue(result);
+		assertTrue(result);
 		SymbolicConstraintsGeneral scg = new SymbolicConstraintsGeneral();
-		Assert.assertTrue(scg.isSatisfiable(pc));
+		assertTrue(scg.isSatisfiable(pc));
 	}
 	
 	@Test
@@ -3187,9 +3205,9 @@ public class TestSymStringPreprocessing {
 		pc._addDet(Comparator.EQ, var1._indexOf(new IntegerConstant((int) 'a'), new IntegerConstant(2)), new IntegerConstant(2));
 		System.out.println(stringCurrentPC);
 		boolean result = stringCurrentPC.simplify();
-		Assert.assertTrue(result);
+		assertTrue(result);
 		SymbolicConstraintsGeneral scg = new SymbolicConstraintsGeneral();
-		Assert.assertTrue(scg.isSatisfiable(pc));
+		assertTrue(scg.isSatisfiable(pc));
 	}
 	
 	@Test
@@ -3207,9 +3225,9 @@ public class TestSymStringPreprocessing {
 		pc._addDet(Comparator.NE, var1._charAt(new IntegerConstant(5)), new IntegerConstant('b'));
 		System.out.println(stringCurrentPC);
 		boolean result = stringCurrentPC.simplify();
-		Assert.assertTrue(result);
+		assertTrue(result);
 		SymbolicConstraintsGeneral scg = new SymbolicConstraintsGeneral();
-		Assert.assertTrue(scg.isSatisfiable(pc));
+		assertTrue(scg.isSatisfiable(pc));
 	}
 	
 	@Test
@@ -3227,7 +3245,7 @@ public class TestSymStringPreprocessing {
 		pc._addDet(Comparator.EQ, var1._indexOf(new IntegerConstant((int) 'b'), new IntegerConstant(2)), new IntegerConstant(6));
 		System.out.println(stringCurrentPC);
 		boolean result = stringCurrentPC.simplify();
-		Assert.assertTrue(!result);
+		assertTrue(!result);
 	}
 	
 	@Test
@@ -3245,9 +3263,9 @@ public class TestSymStringPreprocessing {
 		pc._addDet(Comparator.EQ, var1._indexOf(new IntegerConstant((int) 'a'), new IntegerConstant(2)), new IntegerConstant(6));
 		System.out.println(stringCurrentPC);
 		boolean result = stringCurrentPC.simplify();
-		Assert.assertTrue(result);
+		assertTrue(result);
 		SymbolicConstraintsGeneral scg = new SymbolicConstraintsGeneral();
-		Assert.assertTrue(scg.isSatisfiable(pc));
+		assertTrue(scg.isSatisfiable(pc));
 	}
 	
 	@Test
@@ -3264,7 +3282,7 @@ public class TestSymStringPreprocessing {
 		stringCurrentPC._addDet(StringComparator.EQUALS, new StringConstant("abc"), var1._subString(2));
 		System.out.println(stringCurrentPC);
 		boolean result = stringCurrentPC.simplify();
-		Assert.assertTrue(result);
+		assertTrue(result);
 	}
 	
 	@Test
@@ -3282,7 +3300,7 @@ public class TestSymStringPreprocessing {
 		pc._addDet(Comparator.LT, var1._length(), new IntegerConstant(3));
 		System.out.println(stringCurrentPC);
 		boolean result = stringCurrentPC.simplify();
-		Assert.assertTrue(!result);
+		assertTrue(!result);
 	}
 	
 	@Test
@@ -3300,7 +3318,7 @@ public class TestSymStringPreprocessing {
 		pc._addDet(Comparator.LT, var1._length(), new IntegerConstant(3));
 		System.out.println(stringCurrentPC);
 		boolean result = stringCurrentPC.simplify();
-		Assert.assertTrue(!result);
+		assertTrue(!result);
 	}
 	
 	@Test
@@ -3318,7 +3336,7 @@ public class TestSymStringPreprocessing {
 		pc._addDet(Comparator.LT, var1._length(), new IntegerConstant(4));
 		System.out.println(stringCurrentPC);
 		boolean result = stringCurrentPC.simplify();
-		Assert.assertTrue(!result);
+		assertTrue(!result);
 	}
 	
 	@Test
@@ -3336,7 +3354,7 @@ public class TestSymStringPreprocessing {
 		pc._addDet(Comparator.EQ, var1._indexOf(new StringConstant("abc")), new IntegerConstant(2));
 		System.out.println(stringCurrentPC);
 		boolean result = stringCurrentPC.simplify();
-		Assert.assertTrue(result);
+		assertTrue(result);
 	}
 	
 	@Test
@@ -3354,7 +3372,7 @@ public class TestSymStringPreprocessing {
 		pc._addDet(Comparator.EQ, var1._indexOf(new StringConstant("ab")), new IntegerConstant(3));
 		System.out.println(stringCurrentPC);
 		boolean result = stringCurrentPC.simplify();
-		Assert.assertTrue(!result);
+		assertTrue(!result);
 	}
 	
 	@Test
@@ -3372,7 +3390,7 @@ public class TestSymStringPreprocessing {
 		pc._addDet(Comparator.EQ, var1._indexOf(new StringConstant("bc")), new IntegerConstant(3));
 		System.out.println(stringCurrentPC);
 		boolean result = stringCurrentPC.simplify();
-		Assert.assertTrue(result);
+		assertTrue(result);
 	}
 	
 	@Test
@@ -3390,7 +3408,7 @@ public class TestSymStringPreprocessing {
 		pc._addDet(Comparator.EQ, var1._indexOf(new StringConstant("bc")), new IntegerConstant(6));
 		System.out.println(stringCurrentPC);
 		boolean result = stringCurrentPC.simplify();
-		Assert.assertTrue(!result);
+		assertTrue(!result);
 	}
 	
 	@Test
@@ -3408,7 +3426,7 @@ public class TestSymStringPreprocessing {
 		pc._addDet(Comparator.EQ, var1._indexOf(new StringConstant("def")), new IntegerConstant(6));
 		System.out.println(stringCurrentPC);
 		boolean result = stringCurrentPC.simplify();
-		Assert.assertTrue(!result);
+		assertTrue(!result);
 	}
 	
 	@Test
@@ -3426,7 +3444,7 @@ public class TestSymStringPreprocessing {
 		pc._addDet(Comparator.EQ, var1._charAt(new IntegerConstant(2)), new IntegerConstant('a'));
 		System.out.println(stringCurrentPC);
 		boolean result = stringCurrentPC.simplify();
-		Assert.assertTrue(result);
+		assertTrue(result);
 	}
 	
 	@Test
@@ -3444,7 +3462,7 @@ public class TestSymStringPreprocessing {
 		pc._addDet(Comparator.EQ, var1._charAt(new IntegerConstant(3)), new IntegerConstant('a'));
 		System.out.println(stringCurrentPC);
 		boolean result = stringCurrentPC.simplify();
-		Assert.assertTrue(!result);
+		assertTrue(!result);
 	}
 	
 	@Test
@@ -3462,7 +3480,7 @@ public class TestSymStringPreprocessing {
 		pc._addDet(Comparator.EQ, var1._charAt(new IntegerConstant(2)), new IntegerConstant('b'));
 		System.out.println(stringCurrentPC);
 		boolean result = stringCurrentPC.simplify();
-		Assert.assertTrue(!result);
+		assertTrue(!result);
 	}
 	
 	@Test
@@ -3480,7 +3498,7 @@ public class TestSymStringPreprocessing {
 		pc._addDet(Comparator.EQ, var1._length(), new IntegerConstant(2));
 		System.out.println(stringCurrentPC);
 		boolean result = stringCurrentPC.simplify();
-		Assert.assertTrue(!result);
+		assertTrue(!result);
 	}
 	
 	@Test
@@ -3498,7 +3516,7 @@ public class TestSymStringPreprocessing {
 		pc._addDet(Comparator.EQ, var1._length(), new IntegerConstant(4));
 		System.out.println(stringCurrentPC);
 		boolean result = stringCurrentPC.simplify();
-		Assert.assertTrue(result);
+		assertTrue(result);
 	}
 	
 	@Test
@@ -3516,7 +3534,7 @@ public class TestSymStringPreprocessing {
 		pc._addDet(Comparator.EQ, var1._length(), new IntegerConstant(4));
 		System.out.println(stringCurrentPC);
 		boolean result = stringCurrentPC.simplify();
-		Assert.assertTrue(!result);
+		assertTrue(!result);
 	}
 	
 	@Test
@@ -3534,7 +3552,7 @@ public class TestSymStringPreprocessing {
 		pc._addDet(Comparator.EQ, var1._charAt(new IntegerConstant(2)), new IntegerConstant((int) 'a'));
 		System.out.println(stringCurrentPC);
 		boolean result = stringCurrentPC.simplify();
-		Assert.assertTrue(result);
+		assertTrue(result);
 	}
 	
 	@Test
@@ -3552,7 +3570,7 @@ public class TestSymStringPreprocessing {
 		pc._addDet(Comparator.EQ, var1._charAt(new IntegerConstant(2)), new IntegerConstant((int) 'b'));
 		System.out.println(stringCurrentPC);
 		boolean result = stringCurrentPC.simplify();
-		Assert.assertTrue(!result);
+		assertTrue(!result);
 	}
 	
 	@Test
@@ -3570,7 +3588,7 @@ public class TestSymStringPreprocessing {
 		pc._addDet(Comparator.EQ, var1._charAt(new IntegerConstant(3)), new IntegerConstant((int) 'a'));
 		System.out.println(stringCurrentPC);
 		boolean result = stringCurrentPC.simplify();
-		Assert.assertTrue(!result);
+		assertTrue(!result);
 	}
 	
 	@Test
@@ -3588,7 +3606,7 @@ public class TestSymStringPreprocessing {
 		pc._addDet(Comparator.EQ, var1._indexOf(new StringConstant("abc")), new IntegerConstant(2));
 		System.out.println(stringCurrentPC);
 		boolean result = stringCurrentPC.simplify();
-		Assert.assertTrue(result);
+		assertTrue(result);
 	}
 	
 	@Test
@@ -3606,7 +3624,7 @@ public class TestSymStringPreprocessing {
 		pc._addDet(Comparator.EQ, var1._indexOf(new StringConstant("ab")), new IntegerConstant(3));
 		System.out.println(stringCurrentPC);
 		boolean result = stringCurrentPC.simplify();
-		Assert.assertTrue(!result);
+		assertTrue(!result);
 	}
 	
 	@Test
@@ -3624,7 +3642,7 @@ public class TestSymStringPreprocessing {
 		pc._addDet(Comparator.EQ, var1._indexOf(new StringConstant("bc")), new IntegerConstant(3));
 		System.out.println(stringCurrentPC);
 		boolean result = stringCurrentPC.simplify();
-		Assert.assertTrue(result);
+		assertTrue(result);
 	}
 	
 	@Test
@@ -3643,7 +3661,7 @@ public class TestSymStringPreprocessing {
 		pc._addDet(Comparator.EQ, var1._indexOf(new StringConstant("bc")), new IntegerConstant(6));
 		System.out.println(stringCurrentPC);
 		boolean result = stringCurrentPC.simplify();
-		Assert.assertTrue(result);
+		assertTrue(result);
 	}
 	
 	@Test
@@ -3661,7 +3679,7 @@ public class TestSymStringPreprocessing {
 		pc._addDet(Comparator.EQ, var1._indexOf(new StringConstant("def")), new IntegerConstant(6));
 		System.out.println(stringCurrentPC);
 		boolean result = stringCurrentPC.simplify();
-		Assert.assertTrue(result);
+		assertTrue(result);
 	}
 	
 	@Test
@@ -3683,7 +3701,7 @@ public class TestSymStringPreprocessing {
 		stringCurrentPC._addDet(StringComparator.STARTSWITH, new StringConstant("8"), var0);
 		System.out.println(stringCurrentPC);
 		boolean result = stringCurrentPC.simplify();
-		Assert.assertTrue(!result);
+		assertTrue(!result);
 	}
 	
 	@Test
@@ -3703,7 +3721,7 @@ public class TestSymStringPreprocessing {
 		stringCurrentPC._addDet(StringComparator.ENDSWITH, new StringConstant("8"), var0);
 		System.out.println(stringCurrentPC);
 		boolean result = stringCurrentPC.simplify();
-		Assert.assertTrue(!result);
+		assertTrue(!result);
 	}
 	
 	@Test
@@ -3724,6 +3742,6 @@ public class TestSymStringPreprocessing {
 		stringCurrentPC._addDet(StringComparator.NOTEQUALS, var0, new StringConstant("nu"));
 		System.out.println(stringCurrentPC);
 		boolean result = stringCurrentPC.simplify();
-		Assert.assertTrue(!result);
+		assertTrue(!result);
 	}
 }

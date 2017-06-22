@@ -1,3 +1,21 @@
+/*
+ * Copyright (C) 2014, United States Government, as represented by the
+ * Administrator of the National Aeronautics and Space Administration.
+ * All rights reserved.
+ *
+ * Symbolic Pathfinder (jpf-symbc) is licensed under the Apache License, 
+ * Version 2.0 (the "License"); you may not use this file except
+ * in compliance with the License. You may obtain a copy of the License at
+ * 
+ *        http://www.apache.org/licenses/LICENSE-2.0. 
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and 
+ * limitations under the License.
+ */
+
  package gov.nasa.jpf.symbc.string;
 
 import java.util.ArrayList;
@@ -12,10 +30,13 @@ import dk.brics.automaton.Automaton;
 import dk.brics.automaton.State;
 import dk.brics.automaton.StatePair;
 import dk.brics.automaton.Transition;
+import gov.nasa.jpf.util.LogManager;
+import java.util.logging.Logger;
 
 public class AutomatonExtra {
 	
-	public static boolean logging = false;
+	//public static boolean logging = false;
+  static Logger logger = LogManager.getLogger("stringsolver");
 	
 	/*
 	 * Automaton.makeAnyString() produces a language that accepts words
@@ -356,7 +377,7 @@ public class AutomatonExtra {
 				else {
 					if (stateWhereSplitOccurs != null && stateWhereSplitOccurs == s) {
 						/* Ignore the rest of this states transitions */
-						println("[splitByCharacter] Investigate");
+						logger.info("[splitByCharacter] Investigate");
 						continue;
 					}
 					Transition t1 = new Transition(t.getMin(), t.getMax(), stateMapA1.get(t.getDest()));
@@ -390,7 +411,7 @@ public class AutomatonExtra {
 			for (Transition t: s.getTransitions()) {
 				if (t.getMin() <= c && c <= t.getMax()) {
 					//System.out.println("[Automatan Extra, insertSingleChar] character already inserted");
-					println ("[insertSingleChar] character already inserted");
+					logger.info ("[insertSingleChar] character already inserted");
 					return a.clone();
 				}
 			}
@@ -471,7 +492,7 @@ public class AutomatonExtra {
 		}
 		
 		//System.out.println("[AutomatanExtra, intersection] Specail chars in A: " + specialCharsInA);
-		println ("[intersection] Specail chars in A: " + specialCharsInA);
+		logger.info ("[intersection] Specail chars in A: " + specialCharsInA);
 		
 		
 		for (State s: b.getStates()) {
@@ -487,7 +508,7 @@ public class AutomatonExtra {
 			throw new RuntimeException("[AutomatanExtra, intersection] This was not considered");
 		}
 		//System.out.println("[AutomatanExtra, intersection] Specail chars in B: " + specialCharsInB);
-		println ("[intersection] Specail chars in B: " + specialCharsInB);
+		logger.info ("[intersection] Specail chars in B: " + specialCharsInB);
 		
 		for (Integer i: specialCharsInB) {
 			if (!specialCharsInA.contains(i) && !missingCharsInA.contains(i)) {
@@ -496,7 +517,7 @@ public class AutomatonExtra {
 		}
 		
 		//System.out.println("[AutomatanExtra, intersection] Missing chars in A: " + missingCharsInA);
-		println("[intersection] Missing chars in A: " + missingCharsInA);
+		logger.info("[intersection] Missing chars in A: " + missingCharsInA);
 
 		
 		for (Integer i: specialCharsInA) {
@@ -506,7 +527,7 @@ public class AutomatonExtra {
 		}
 
 		//System.out.println("[AutomatanExtra, intersection] Missing chars in B: " + missingCharsInB);
-		println ("[intersection] Missing chars in B: " + missingCharsInB);
+		logger.info ("[intersection] Missing chars in B: " + missingCharsInB);
 
 		/* TODO: Improve performance */
 		
@@ -602,12 +623,6 @@ public class AutomatonExtra {
 	
 	public static Automaton minus (Automaton a1, Automaton a2) {
 		return AutomatonExtra.intersection(a1, a2.complement().intersection(AutomatonExtra.makeAnyStringFixed()));
-	}
-	
-	private static void println (String s) {
-		if (logging) {
-			System.out.println("[AutomatanExtra] " + s);
-		}
 	}
 	
 	public static Automaton lengthAutomaton (int length) {

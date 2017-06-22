@@ -1,3 +1,21 @@
+/*
+ * Copyright (C) 2014, United States Government, as represented by the
+ * Administrator of the National Aeronautics and Space Administration.
+ * All rights reserved.
+ *
+ * Symbolic Pathfinder (jpf-symbc) is licensed under the Apache License, 
+ * Version 2.0 (the "License"); you may not use this file except
+ * in compliance with the License. You may obtain a copy of the License at
+ * 
+ *        http://www.apache.org/licenses/LICENSE-2.0. 
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and 
+ * limitations under the License.
+ */
+
 package gov.nasa.jpf.symbc.string.graph;
 
 import java.util.ArrayList;
@@ -16,12 +34,14 @@ import gov.nasa.jpf.symbc.string.StringExpression;
 import gov.nasa.jpf.symbc.string.StringUtility;
 import gov.nasa.jpf.symbc.string.SymbolicIndexOfInteger;
 import gov.nasa.jpf.symbc.string.SymbolicStringConstraintsGeneral;
+import gov.nasa.jpf.util.LogManager;
+import java.util.logging.Logger;
 
 /**
  * This class does the preprocessing of the StringGraph
  */
 public class PreProcessGraph {
-	private static boolean logging = true;
+  static Logger logger = LogManager.getLogger("stringsolver");
 	public static final int MAXIMUM_LENGTH = 30;
 	private static SymbolicConstraintsGeneral scg;
 	
@@ -40,7 +60,7 @@ public class PreProcessGraph {
 		
 		scg = new SymbolicConstraintsGeneral();
 		
-		if(!scg.isSatisfiable(pathCondition)) {println("unsat here");};
+		if(!scg.isSatisfiable(pathCondition)) {logger.info("unsat here");};
 		
 		if (!handleEquality(stringGraph, pathCondition)) {
 			//println ("handleEquality returned false");
@@ -2261,32 +2281,32 @@ public class PreProcessGraph {
 	
 	private static boolean handleBooleanConstraints (StringGraph g, PathCondition pc) {
 		 if (!handleBasicBooleanConstraints(g, pc)) {
-			 println ("handleBasicBooleanConstraints returned false");
+			 logger.info ("handleBasicBooleanConstraints returned false");
 			 return false;
 		 }
 		 if (!handleStartsWith (g, pc)) {
-			 println ("handleStartsWith returned false");
+			 logger.info ("handleStartsWith returned false");
 			 return false;
 		 }
 		 if (!handleEndsWith (g, pc)) {
-			 println ("handleStartsWith returned false");
+			 logger.info ("handleStartsWith returned false");
 			 return false;
 		 }
 		 if (!handleContains (g, pc)) {
-			 println ("handleContains returned false");
+			 logger.info ("handleContains returned false");
 			 return false;
 		 }
 		 if (!handleStartsWithContains (g, pc)) {
-			 println ("handleStartsWithContains returned false");
+			 logger.info ("handleStartsWithContains returned false");
 			 return false;
 		 }
 		 if (!handleEndsWithContains (g, pc)) {
-			 println ("handleEndsWithContains returned false");
+			 logger.info ("handleEndsWithContains returned false");
 			 return false;
 		 }
 		 //TODO: Test
 		 if (!handleEndsWithCharAt(g, pc)) {
-			 println ("handleEndsWithContains returned false");
+			 logger.info ("handleEndsWithContains returned false");
 			 return false;
 		 }
 		 return true;
@@ -2325,15 +2345,15 @@ public class PreProcessGraph {
 	
 	private static boolean handleBasicBooleanConstraints (StringGraph g, PathCondition pc) {
 		 if (!handleBasicStartsWith (g, pc)) {
-			 println ("handleBasicStartsWith returned false");
+			 logger.info ("handleBasicStartsWith returned false");
 			 return false;
 		 }
 		 if (!handleBasicEndsWith (g, pc)) {
-			 println ("handleBasicEndsWith returned false");
+			 logger.info ("handleBasicEndsWith returned false");
 			 return false;
 		 }
 		 if (!handleBasicContains (g, pc)) {
-			 println ("handleBasicContains returned false");
+			 logger.info ("handleBasicContains returned false");
 			 return false;
 		 }
 		 return true;
@@ -2643,7 +2663,7 @@ public class PreProcessGraph {
 				if (!esw.getDest().isConstant()) {continue;}
 				String constantString = esw.getDest().getSolution();
 				if (eca.index instanceof IntegerConstant) {
-					int index = eca.index.solution();
+					int index = (int) eca.index.solution();
 					LogicalORLinearIntegerConstraints loic = new LogicalORLinearIntegerConstraints();
 					loic.addToList(new LinearIntegerConstraint(eca.index, Comparator.LT, eca.getSource().getSymbolicLength()._minus(constantString.length())));
 					loic.addToList(new LinearIntegerConstraint(eca.value, Comparator.EQ, new IntegerConstant(constantString.charAt(index))));
@@ -2685,7 +2705,7 @@ public class PreProcessGraph {
 				if (!esw.getDest().isConstant()) {continue;}
 				String constantString = esw.getDest().getSolution();
 				if (eca.index instanceof IntegerConstant) {
-					int index = eca.index.solution();
+					int index = (int) eca.index.solution();
 					if (index < constantString.length()) {
 						pc._addDet(Comparator.EQ, eca.value, new IntegerConstant(constantString.charAt(index)));
 					}
@@ -2747,8 +2767,8 @@ public class PreProcessGraph {
 				EdgeCharAt eca2 = (EdgeCharAt) e2;
 				if (eca1.index instanceof IntegerConstant && eca2.index instanceof IntegerConstant) {
 					
-					int index1 = ((IntegerConstant) eca1.index).solution();
-					int index2 = ((IntegerConstant) eca2.index).solution();
+					int index1 = (int) ((IntegerConstant) eca1.index).solution();
+					int index2 = (int) ((IntegerConstant) eca2.index).solution();
 					if (index1 != index2) continue;
 					pc._addDet(Comparator.EQ, eca1.value, eca2.value);
 				}
@@ -2924,8 +2944,4 @@ public class PreProcessGraph {
 		return e1.getSource().equals(e2.getSource());
 	}
 	
-	private static void println (String msg) {
-		if (logging)
-			System.out.println("[PreProcessGraph] " + msg);
-	}
 }

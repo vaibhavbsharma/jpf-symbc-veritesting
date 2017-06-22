@@ -1,3 +1,21 @@
+/*
+ * Copyright (C) 2014, United States Government, as represented by the
+ * Administrator of the National Aeronautics and Space Administration.
+ * All rights reserved.
+ *
+ * Symbolic Pathfinder (jpf-symbc) is licensed under the Apache License, 
+ * Version 2.0 (the "License"); you may not use this file except
+ * in compliance with the License. You may obtain a copy of the License at
+ * 
+ *        http://www.apache.org/licenses/LICENSE-2.0. 
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and 
+ * limitations under the License.
+ */
+
 /*  Copyright (C) 2005 United States Government as represented by the
 Administrator of the National Aeronautics and Space Administration
 (NASA).  All Rights Reserved.
@@ -38,14 +56,20 @@ import java.util.Map;
 
 public class StringConstant extends StringExpression {
 	  public String value;
+	  public boolean reg = false; //Added flag to determine if the constant is used in a regular expression
 
 	  public StringConstant(String s) {
 	    value = s;
 	  }
 
+	  public StringConstant(String s, boolean reg) {
+ 		  value = s;
+ 		  this.reg = reg;
+ 	  }
+
 	   public StringConstant clone() {
 		  String newVal = new String(this.value);
-		  return new StringConstant(newVal);
+		  return new StringConstant(newVal, this.reg);
 	  }
 
 	  public StringExpression _concat(String s) {

@@ -1,51 +1,44 @@
-//TODO: needs to be simplified;
+/*
+ * Copyright (C) 2014, United States Government, as represented by the
+ * Administrator of the National Aeronautics and Space Administration.
+ * All rights reserved.
+ *
+ * Symbolic Pathfinder (jpf-symbc) is licensed under the Apache License, 
+ * Version 2.0 (the "License"); you may not use this file except
+ * in compliance with the License. You may obtain a copy of the License at
+ * 
+ *        http://www.apache.org/licenses/LICENSE-2.0. 
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and 
+ * limitations under the License.
+ */
 
-
-//
-//Copyright (C) 2007 United States Government as represented by the
-// Administrator of the National Aeronautics and Space Administration
-// (NASA).  All Rights Reserved.
-//
-// This software is distributed under the NASA Open Source Agreement
-// (NOSA), version 1.3.  The NOSA has been approved by the Open Source
-// Initiative.  See the file NOSA-1.3-JPF at the top of the distribution
-// directory tree for the complete NOSA document.
-//
-// THE SUBJECT SOFTWARE IS PROVIDED "AS IS" WITHOUT ANY WARRANTY OF ANY
-// KIND, EITHER EXPRESSED, IMPLIED, OR STATUTORY, INCLUDING, BUT NOT
-// LIMITED TO, ANY WARRANTY THAT THE SUBJECT SOFTWARE WILL CONFORM TO
-// SPECIFICATIONS, ANY IMPLIED WARRANTIES OF MERCHANTABILITY, FITNESS FOR
-// A PARTICULAR PURPOSE, OR FREEDOM FROM INFRINGEMENT, ANY WARRANTY THAT
-// THE SUBJECT SOFTWARE WILL BE ERROR FREE, OR ANY WARRANTY THAT
-// DOCUMENTATION, IF PROVIDED, WILL CONFORM TO THE SUBJECT SOFTWARE.
 package gov.nasa.jpf.symbc;
 
 
 import gov.nasa.jpf.Config;
 import gov.nasa.jpf.JPF;
 import gov.nasa.jpf.PropertyListenerAdapter;
-import gov.nasa.jpf.jvm.ChoiceGenerator;
-import gov.nasa.jpf.jvm.ClassInfo;
-
-
-import gov.nasa.jpf.jvm.JVM;
-
-import gov.nasa.jpf.jvm.MethodInfo;
-
-import gov.nasa.jpf.jvm.DynamicElementInfo;
-import gov.nasa.jpf.jvm.LocalVarInfo;
-import gov.nasa.jpf.jvm.StackFrame;
-import gov.nasa.jpf.jvm.SystemState;
-import gov.nasa.jpf.jvm.ThreadInfo;
-import gov.nasa.jpf.jvm.Types;
+import gov.nasa.jpf.vm.ChoiceGenerator;
+import gov.nasa.jpf.vm.ClassInfo;
+import gov.nasa.jpf.vm.DynamicElementInfo;
+import gov.nasa.jpf.vm.Instruction;
+import gov.nasa.jpf.vm.LocalVarInfo;
+import gov.nasa.jpf.vm.MethodInfo;
+import gov.nasa.jpf.vm.StackFrame;
+import gov.nasa.jpf.vm.ThreadInfo;
+import gov.nasa.jpf.vm.Types;
+import gov.nasa.jpf.vm.VM;
 import gov.nasa.jpf.jvm.bytecode.ARETURN;
 import gov.nasa.jpf.jvm.bytecode.DRETURN;
 import gov.nasa.jpf.jvm.bytecode.FRETURN;
 import gov.nasa.jpf.jvm.bytecode.IRETURN;
-import gov.nasa.jpf.jvm.bytecode.Instruction;
-import gov.nasa.jpf.jvm.bytecode.InvokeInstruction;
+import gov.nasa.jpf.jvm.bytecode.JVMInvokeInstruction;
 import gov.nasa.jpf.jvm.bytecode.LRETURN;
-import gov.nasa.jpf.jvm.bytecode.ReturnInstruction;
+import gov.nasa.jpf.jvm.bytecode.JVMReturnInstruction;
 import gov.nasa.jpf.report.ConsolePublisher;
 import gov.nasa.jpf.report.Publisher;
 import gov.nasa.jpf.report.PublisherExtension;
@@ -53,8 +46,6 @@ import gov.nasa.jpf.search.Search;
 import gov.nasa.jpf.symbc.bytecode.BytecodeUtils;
 import gov.nasa.jpf.symbc.bytecode.INVOKESTATIC;
 import gov.nasa.jpf.symbc.concolic.PCAnalyzer;
-
-
 import gov.nasa.jpf.symbc.numeric.Comparator;
 import gov.nasa.jpf.symbc.numeric.Expression;
 import gov.nasa.jpf.symbc.numeric.IntegerConstant;
@@ -65,12 +56,10 @@ import gov.nasa.jpf.symbc.numeric.RealConstant;
 import gov.nasa.jpf.symbc.numeric.RealExpression;
 import gov.nasa.jpf.symbc.numeric.SymbolicInteger;
 import gov.nasa.jpf.symbc.numeric.SymbolicReal;
-
 import gov.nasa.jpf.symbc.numeric.SymbolicConstraintsGeneral;
 //import gov.nasa.jpf.symbc.numeric.SymbolicInteger;
 
 import gov.nasa.jpf.util.Pair;
-
 
 import java.io.PrintWriter;
 import java.util.HashMap;
@@ -85,9 +74,8 @@ public class SymbolicListener extends PropertyListenerAdapter implements Publish
 
 	/* Locals to preserve the value that was held by JPF prior to changing it
 	 * in order to turn off state matching during symbolic execution
-	 */
-	//private boolean retainVal = false;
-	//private boolean forcedVal = false;
+	 * no longer necessary because we run spf stateless */
+	
 
 	private Map<String,MethodSummary> allSummaries;
     private String currentMethodName = "";
@@ -133,26 +121,11 @@ public class SymbolicListener extends PropertyListenerAdapter implements Publish
 //	}
 
 
+	@Override
 	public void propertyViolated (Search search){
-		//System.out.println("--------->property violated");
 
-//		String[] dp = SymbolicInstructionFactory.dp;
-//		if (dp[0].equalsIgnoreCase("no_solver"))
-//			return;
+		VM vm = search.getVM();
 
-		JVM vm = search.getVM();
-		//Config conf = vm.getConfig();
-		//SystemState ss = vm.getSystemState();
-		//ClassInfo ci = vm.getClassInfo();
-		//String className = ci.getName();
-		//ThreadInfo ti = vm.getLastThreadInfo();
-		//MethodInfo mi = ti.getMethod();
-		//String methodName = mi.getName();
-		//int numberOfArgs = mi.getNumberOfArguments();
-		//if ((BytecodeUtils.isClassSymbolic(conf, className, mi, methodName))
-		//		|| BytecodeUtils.isMethodSymbolic(conf, methodName, numberOfArgs, null)){
-		//	ss.retainAttributes(retainVal);
-		//	ss.setForced(forcedVal);
 			ChoiceGenerator <?>cg = vm.getChoiceGenerator();
 			if (!(cg instanceof PCChoiceGenerator)){
 				ChoiceGenerator <?> prev_cg = cg.getPreviousChoiceGenerator();
@@ -180,9 +153,13 @@ public class SymbolicListener extends PropertyListenerAdapter implements Publish
 				}
 				else
 					pc.solve();
-				Pair<String,String> pcPair = new Pair<String,String>(pc.stringPC(),error);//(pc.toString(),error);
+
+				Pair<String,String> pcPair = new Pair<String,String>(pc.toString(),error);//(pc.toString(),error);
+
 				//String methodName = vm.getLastInstruction().getMethodInfo().getName();
 				MethodSummary methodSummary = allSummaries.get(currentMethodName);
+				if (methodSummary==null) 
+					methodSummary = new MethodSummary();
 				methodSummary.addPathCondition(pcPair);
 				allSummaries.put(currentMethodName,methodSummary);
 				System.out.println("Property Violated: PC is "+pc.toString());
@@ -192,46 +169,20 @@ public class SymbolicListener extends PropertyListenerAdapter implements Publish
 		//}
 	}
 	
-	/*
-	public void choiceGeneratorAdvanced(JVM vm) {
-		System.out.println("choice advanced advanced here.");
-		ChoiceGenerator<?> cg = vm.getSystemState().getChoiceGenerator();
-		int n = cg.getTotalNumberOfChoices();
-		if (cg instanceof PCChoiceGenerator) {
-			System.out.println("got a PC choice generator "+ n + " "+
-			((PCChoiceGenerator) cg).getNextChoice());//getCurrentPC());
-		}
-	}
-	*/
 	
-	public void stateAdvanced(Search search) {
-		//super.stateAdvanced(search);
-		//System.out.println("State advanced here.");
-		ChoiceGenerator<?> cg = search.getVM().getSystemState().getChoiceGenerator();
-		int n = cg.getTotalNumberOfChoices();
-		if (cg instanceof PCChoiceGenerator) {
-			//System.out.println("got a PC choice generator "+ n + " "+
-			//((PCChoiceGenerator) cg).getNextChoice() + " "+((PCChoiceGenerator) cg).getCurrentPC());
-		
-		if(((PCChoiceGenerator) cg).getNextChoice()==1) {
-			//System.out.println("backtrack");
-			//search.requestBacktrack(); //;.getVM().getSystemState().setIgnored(true);
-			search.getVM().getSystemState().setIgnored(true);
-		}
-		
-		}
-	}
 	
-	public void instructionExecuted(JVM vm) {
+
+	@Override
+	 public void instructionExecuted(VM vm, ThreadInfo currentThread, Instruction nextInstruction, Instruction executedInstruction) {
 
 		if (!vm.getSystemState().isIgnored()) {
-			Instruction insn = vm.getLastInstruction();
+			Instruction insn = executedInstruction;
 		//	SystemState ss = vm.getSystemState();
-			ThreadInfo ti = vm.getLastThreadInfo();
+			ThreadInfo ti = currentThread;
 			Config conf = vm.getConfig();
 
-			if (insn instanceof InvokeInstruction) {
-				InvokeInstruction md = (InvokeInstruction) insn;
+			if (insn instanceof JVMInvokeInstruction) {
+				JVMInvokeInstruction md = (JVMInvokeInstruction) insn;
 				String methodName = md.getInvokedMethodName();
 				int numberOfArgs = md.getArgumentValues(ti).length;
 
@@ -252,27 +203,11 @@ public class SymbolicListener extends PropertyListenerAdapter implements Publish
 				if ((BytecodeUtils.isClassSymbolic(conf, className, mi, methodName))
 						|| BytecodeUtils.isMethodSymbolic(conf, mi.getFullName(), numberOfArgs, null)){
 
-					//get the original values and save them for restoration after
-					//we are done with symbolic execution
-					//retainVal = ss.getRetainAttributes();
-					//forcedVal = ss.isForced();
-					//turn off state matching
-					//ss.setForced(true);
-					//make sure it stays turned off when a new state is created
-					//ss.retainAttributes(true);
-					//clear the path condition when invoking a new method
-					// interacts with the pre-condition handling
-
-					//					ChoiceGenerator cg = vm.getChoiceGenerator();
-					//					if ((cg instanceof PCChoiceGenerator) &&(
-					//							(PCChoiceGenerator) cg).getCurrentPC() != null){
-					//						PathCondition pc = new PathCondition();
-					//						((PCChoiceGenerator) cg).setCurrentPC(pc);
-					//					}
+							
 
 					MethodSummary methodSummary = new MethodSummary();
 
-					methodSummary.setMethodName(shortName);
+					methodSummary.setMethodName(className + "." + shortName);
 					Object [] argValues = md.getArgumentValues(ti);
 					String argValuesStr = "";
 					for (int i=0; i<argValues.length; i++){
@@ -332,7 +267,7 @@ public class SymbolicListener extends PropertyListenerAdapter implements Publish
 					currentMethodName = longName;
 					allSummaries.put(longName,methodSummary);
 				}
-			}else if (insn instanceof ReturnInstruction){
+			}else if (insn instanceof JVMReturnInstruction){
 				MethodInfo mi = insn.getMethodInfo();
 				ClassInfo ci = mi.getClassInfo();
 				if (null != ci){
@@ -343,10 +278,7 @@ public class SymbolicListener extends PropertyListenerAdapter implements Publish
 					
 					if (((BytecodeUtils.isClassSymbolic(conf, className, mi, methodName))
 							|| BytecodeUtils.isMethodSymbolic(conf, mi.getFullName(), numberOfArgs, null))){
-						//at the end of symbolic execution, set the values back
-						//to their original value
-						//ss.retainAttributes(retainVal);
-						//ss.setForced(forcedVal);
+					
 						ChoiceGenerator <?>cg = vm.getChoiceGenerator();
 						if (!(cg instanceof PCChoiceGenerator)){
 							ChoiceGenerator <?> prev_cg = cg.getPreviousChoiceGenerator();
@@ -367,17 +299,19 @@ public class SymbolicListener extends PropertyListenerAdapter implements Publish
 							else
 								pc.solve();
 
+							if (!PathCondition.flagSolved) {
+							  return;
+							}
 
 							//after the following statement is executed, the pc loses its solution
 
-							String pcString = pc.stringPC();
+							String pcString = pc.toString();//pc.stringPC();
 							Pair<String,String> pcPair = null;
 
 							String returnString = "";
 
 
 							Expression result = null;
-
 
 							if (insn instanceof IRETURN){
 								IRETURN ireturn = (IRETURN)insn;
@@ -437,15 +371,20 @@ public class SymbolicListener extends PropertyListenerAdapter implements Publish
 									result = returnAttr;
 								}
 								else {// concrete
-									Object val = areturn.getReturnValue(ti);
-									returnString = "Return Value: " + String.valueOf(val);
+									DynamicElementInfo val = (DynamicElementInfo)areturn.getReturnValue(ti);
+									
+									//System.out.println("string "+val.asString());
+									returnString = "Return Value: " + val.asString();
 									//DynamicElementInfo val = (DynamicElementInfo)areturn.getReturnValue(ti);
-									String tmp = String.valueOf(val);
+									String tmp = val.asString();
 									tmp = tmp.substring(tmp.lastIndexOf('.')+1);
 									result = new SymbolicInteger(tmp);
 									
 								}
-							}else //other types of return
+								
+							}
+							
+							else //other types of return
 								returnString = "Return Value: --";
 							//pc.solve();
 							// not clear why this part is necessary
@@ -469,13 +408,15 @@ public class SymbolicListener extends PropertyListenerAdapter implements Publish
 							}
 							
 							if(allSummaries.get(longName)!=null) // recursive call
-								longName = longName + methodSummary.hashCode(); // differentiate the key for recursive calls
+								longName = longName;// + methodSummary.hashCode(); // differentiate the key for recursive calls
 							allSummaries.put(longName,methodSummary);
-							System.out.println("*************Summary***************");
-							System.out.println("PC is:"+pc.toString());
-							if(result!=null){
+							if (SymbolicInstructionFactory.debugMode) {
+							    System.out.println("*************Summary***************");
+							    System.out.println("PC is:"+pc.toString());
+							    if(result!=null){
 								System.out.println("Return is:  "+result);
 								System.out.println("***********************************");
+							    }
 							}
 						}
 					}
@@ -484,50 +425,8 @@ public class SymbolicListener extends PropertyListenerAdapter implements Publish
 		}
 	}
 
-	/*
-	  public void stateBacktracked(Search search) {
-
-		  JVM vm = search.getVM();
-		  Config conf = vm.getConfig();
-
-		  Instruction insn = vm.getChoiceGenerator().getInsn();
-		 // SystemState ss = vm.getSystemState();
-		  //ThreadInfo ti = vm.getChoiceGenerator().getThreadInfo();
-		  MethodInfo mi = insn.getMethodInfo();
-		  String className = mi.getClassName();
-		  //neha: changed the method name to full name
-		  String methodName = mi.getFullName();
-		  //this method returns the number of slots for the arguments, including "this"
-		  int numberOfArgs = mi.getNumberOfArguments();
-
-		  if ((BytecodeUtils.isClassSymbolic(conf, className, mi, methodName))
-					|| BytecodeUtils.isMethodSymbolic(conf, methodName, numberOfArgs, null)){
-			//get the original values and save them for restoration after
-			//we are done with symbolic execution
-		//	retainVal = ss.getRetainAttributes();
-		//	forcedVal = ss.isForced();
-			//turn off state matching
-		//	ss.setForced(true);
-			//make sure it stays turned off when a new state is created
-		//	ss.retainAttributes(true);
-		  }
-	  }
-*/
-	  /*
-	   *  todo: needs to be implemented if we are going to support heuristic search with fancy turnoff state matching
-	   */
-	  //public void stateRestored(Search search) {
-		//  System.err.println("Warning: State restored - heuristic search not supported");
-	  //}
-	  /*
-	   * Save the method summaries to a file for use by others
-	   */
-//	  public void searchFinished(Search search) {
-		  //writeTable();
-//		  if (search.getConfig().getStringArray("symbolic.dp")[0].equalsIgnoreCase("compare")) {
-//			  ProblemCompare.dump(search);
-//		  }
-//	  }
+	
+	  
 
 	  /*
 	   * The way this method works is specific to the format of the methodSummary
@@ -555,6 +454,9 @@ public class SymbolicListener extends PropertyListenerAdapter implements Publish
 				  StringTokenizer st = new StringTokenizer(symValues, ",");
 				  StringTokenizer st2 = new StringTokenizer(argValues, ",");
 				  StringTokenizer st3 = new StringTokenizer(argTypes, ",");
+				  if (!argTypes.isEmpty() && argValues.isEmpty()) {
+				      continue;
+				  }
 				  while(st2.hasMoreTokens()){
 					  String token = "";
 					  String actualValue = st2.nextToken();
@@ -563,9 +465,31 @@ public class SymbolicListener extends PropertyListenerAdapter implements Publish
 						  token = st.nextToken();
 					  if (pc.contains(token)){
 						  String temp = pc.substring(pc.indexOf(token));
+						  if (temp.indexOf(']') < 0) {
+							  	continue;
+						  }
+						  
 						  String val = temp.substring(temp.indexOf("[")+1,temp.indexOf("]"));
-						  if(actualType == Types.T_INT || actualType == Types.T_FLOAT || actualType == Types.T_LONG || actualType == Types.T_DOUBLE)
-							  testCase = testCase + val + ",";
+						  
+						  
+						  //if(actualType == Types.T_INT || actualType == Types.T_FLOAT || actualType == Types.T_LONG || actualType == Types.T_DOUBLE)
+							  //testCase = testCase + val + ",";
+						  if(actualType == Types.T_INT || actualType == Types.T_FLOAT || actualType == Types.T_LONG || actualType == Types.T_SHORT || actualType == Types.T_BYTE || actualType == Types.T_CHAR || actualType == Types.T_DOUBLE) {
+							  String suffix = "";
+							  if (actualType == Types.T_LONG) {
+								  suffix = "l";
+							  } else if (actualType == Types.T_FLOAT) {
+								  val = String.valueOf(Double.valueOf(val).floatValue());
+							  	  suffix = "f";
+							  }
+							  if (val.endsWith("Infinity")) {
+								  boolean isNegative = val.startsWith("-");
+								  val = ((actualType == Types.T_DOUBLE) ? "Double" : "Float");
+								  val += isNegative ? ".NEGATIVE_INFINITY" : ".POSITIVE_INFINITY";
+								  suffix = "";
+							  }
+							  testCase = testCase + val + suffix + ",";
+						  }
 						  else if (actualType == Types.T_BOOLEAN){ //translate boolean values represented as ints
 							  //to "true" or "false"
 							  if (val.equalsIgnoreCase("0"))
@@ -574,7 +498,7 @@ public class SymbolicListener extends PropertyListenerAdapter implements Publish
 								  testCase = testCase + "true" + ",";
 						  }
 						  else
-							  throw new RuntimeException("## Error: listener does not support type other than int, long, float, double and boolean");
+							  throw new RuntimeException("## Error: listener does not support type other than int, long, short, byte, float, double and boolean");
 						  // TODO: to extend with arrays
 					  }else{
 						  //need to check if value is concrete
@@ -636,8 +560,12 @@ public class SymbolicListener extends PropertyListenerAdapter implements Publish
 						  token = st.nextToken();
 					  if (pc.contains(token)){
 						  String temp = pc.substring(pc.indexOf(token));
+						  if (temp.indexOf(']') < 0) {
+							  continue;
+						  }
+						  
 						  String val = temp.substring(temp.indexOf("[")+1,temp.indexOf("]"));
-					      if(actualType == Types.T_INT || actualType == Types.T_FLOAT || actualType == Types.T_LONG || actualType == Types.T_DOUBLE)
+					      if(actualType == Types.T_INT || actualType == Types.T_FLOAT || actualType == Types.T_LONG || actualType == Types.T_SHORT || actualType == Types.T_BYTE || actualType == Types.T_DOUBLE)
 							  testCase = testCase + "<td>" + val + "</td>";
 						  else if (actualType == Types.T_BOOLEAN) { //translate boolean values represented as ints
 							  //to "true" or "false"
@@ -647,7 +575,7 @@ public class SymbolicListener extends PropertyListenerAdapter implements Publish
 								  testCase = testCase + "<td>true</td>";
 						  }
 						  else
-							  throw new RuntimeException("## Error: listener does not support type other than int, long, float, double and boolean");
+							  throw new RuntimeException("## Error: listener does not support type other than int, long, short, byte, float, double and boolean");
 
 					  }else{
 						  //need to check if value is concrete
@@ -681,6 +609,7 @@ public class SymbolicListener extends PropertyListenerAdapter implements Publish
 
 
       //	-------- the publisher interface
+	  @Override
 	  public void publishFinished (Publisher publisher) {
 		String[] dp = SymbolicInstructionFactory.dp;
 		if (dp[0].equalsIgnoreCase("no_solver") || dp[0].equalsIgnoreCase("cvc3bitvec"))
@@ -691,6 +620,7 @@ public class SymbolicListener extends PropertyListenerAdapter implements Publish
 	    publisher.publishTopicStart("Method Summaries");
 	    Iterator it = allSummaries.entrySet().iterator();
 	    while (it.hasNext()){
+	    	
 	    	Map.Entry me = (Map.Entry)it.next();
 	    	MethodSummary methodSummary = (MethodSummary)me.getValue();
 	    	printMethodSummary(pw, methodSummary);
@@ -703,6 +633,7 @@ public class SymbolicListener extends PropertyListenerAdapter implements Publish
 	    	MethodSummary methodSummary = (MethodSummary)me.getValue();
 	    	printMethodSummaryHTML(pw, methodSummary);
 	    }
+	    
 	  }
 
 	  protected class MethodSummary{

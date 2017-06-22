@@ -1,3 +1,21 @@
+/*
+ * Copyright (C) 2014, United States Government, as represented by the
+ * Administrator of the National Aeronautics and Space Administration.
+ * All rights reserved.
+ *
+ * Symbolic Pathfinder (jpf-symbc) is licensed under the Apache License, 
+ * Version 2.0 (the "License"); you may not use this file except
+ * in compliance with the License. You may obtain a copy of the License at
+ * 
+ *        http://www.apache.org/licenses/LICENSE-2.0. 
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and 
+ * limitations under the License.
+ */
+
 //
 //Copyright (C) 2005 United States Government as represented by the
 //Administrator of the National Aeronautics and Space Administration
@@ -20,14 +38,13 @@
 package gov.nasa.jpf.symbc.concolic;
 // support for arbitrary external functions
 
-import gov.nasa.jpf.jvm.ClassInfo;
-import gov.nasa.jpf.symbc.numeric.Constraint;
 import gov.nasa.jpf.symbc.numeric.ConstraintExpressionVisitor;
 import gov.nasa.jpf.symbc.numeric.Expression;
 import gov.nasa.jpf.symbc.numeric.IntegerExpression;
 import gov.nasa.jpf.symbc.numeric.PathCondition;
 import gov.nasa.jpf.symbc.numeric.RealExpression;
 import gov.nasa.jpf.util.FileUtils;
+import gov.nasa.jpf.vm.ClassLoaderInfo;
 
 import java.util.ArrayList;
 import java.util.Map;
@@ -70,7 +87,7 @@ public class FunctionExpression extends RealExpression
 		try {
 			if(clsLoader == null) {
 				ArrayList<String> list = new ArrayList<String>();
-				String[] cp = ClassInfo.getClassPathElements();
+				String[] cp = ClassLoaderInfo.getCurrentClassLoader().getClassPathElements();
 				cp = FileUtils.expandWildcards(cp);
 				for (String e : cp) {
 					list.add(e);
@@ -94,7 +111,7 @@ public class FunctionExpression extends RealExpression
 			  Object[] args = new Object[sym_args.length];
 		      for (int i=0; i<args.length; i++)
 		    	  if (sym_args[i] instanceof IntegerExpression) {
-			        args[i] = new Integer(((IntegerExpression)sym_args[i]).solution());
+			        args[i] = new Long(((IntegerExpression)sym_args[i]).solution());
 		    	  }
 			      else {// RealExpression
 			    	args[i] = new Double(((RealExpression)sym_args[i]).solution());
@@ -109,15 +126,9 @@ public class FunctionExpression extends RealExpression
 		    		 e.printStackTrace();
 		    		 System.err.println("exception :" + e.getMessage());
 		    	  }
-		        if (result instanceof Double) {
-		        	//System.out.println("result type is double");
-		        	return ((Double) result).doubleValue();
+		        if (result instanceof Number) {
+		        	return ((Number) result).doubleValue();
 		        }
-		        if (result instanceof Integer) {
-		        	//System.out.println("result type is int");
-		        	return ((Integer) result).doubleValue();
-		        }
-		        //System.out.println("result "+result);
 		      }
 		}
 
@@ -191,5 +202,7 @@ public class FunctionExpression extends RealExpression
 			return getClass().getCanonicalName().compareTo(expr.getClass().getCanonicalName());
 		}
 	}
+
+	
 
 }

@@ -1,7 +1,28 @@
+/*
+ * Copyright (C) 2014, United States Government, as represented by the
+ * Administrator of the National Aeronautics and Space Administration.
+ * All rights reserved.
+ *
+ * Symbolic Pathfinder (jpf-symbc) is licensed under the Apache License, 
+ * Version 2.0 (the "License"); you may not use this file except
+ * in compliance with the License. You may obtain a copy of the License at
+ * 
+ *        http://www.apache.org/licenses/LICENSE-2.0. 
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and 
+ * limitations under the License.
+ */
+
 package gov.nasa.jpf.symbc.string.testing;
 
+import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileNotFoundException;
+import java.io.FileReader;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
@@ -9,8 +30,6 @@ import java.util.Scanner;
 import java.util.Timer;
 
 import javax.print.attribute.IntegerSyntax;
-
-import junit.framework.Assert;
 
 import gov.nasa.jpf.Config;
 import gov.nasa.jpf.symbc.SymbolicInstructionFactory;
@@ -122,7 +141,7 @@ public class RandomTest2 {
 		return p;
 	}
 	
-	public static void main (String [] args) throws FileNotFoundException {
+	public static void main (String [] args) throws NumberFormatException, IOException {
 		Profile p = get3smallSetOfEdges();
 		//Profile p = get3goodSetOfEdges();
 		
@@ -209,9 +228,9 @@ public class RandomTest2 {
 			}
 		}
 		else {
-			Scanner scanner = new Scanner(new File(args[1]));
-			while (scanner.hasNext()) {
-				String number = scanner.nextLine();
+      BufferedReader br = new BufferedReader(new FileReader(args[1]));
+      String number;
+      while ((number = br.readLine()) != null) {
 				long seed = Long.parseLong(number);
 				random = new Random();
 				generateRandomProblem(p, seed);
@@ -228,6 +247,7 @@ public class RandomTest2 {
 				}
 				System.out.println(",\""+seed+"\","+z3dur.time+","+autodur.time);
 			}
+      br.close();
 		}
 		System.exit(0);
 		

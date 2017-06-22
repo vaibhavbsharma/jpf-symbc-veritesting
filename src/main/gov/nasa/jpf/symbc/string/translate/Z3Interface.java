@@ -1,6 +1,26 @@
+/*
+ * Copyright (C) 2014, United States Government, as represented by the
+ * Administrator of the National Aeronautics and Space Administration.
+ * All rights reserved.
+ *
+ * Symbolic Pathfinder (jpf-symbc) is licensed under the Apache License, 
+ * Version 2.0 (the "License"); you may not use this file except
+ * in compliance with the License. You may obtain a copy of the License at
+ * 
+ *        http://www.apache.org/licenses/LICENSE-2.0. 
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and 
+ * limitations under the License.
+ */
+
 package gov.nasa.jpf.symbc.string.translate;
 
 
+
+import gov.nasa.jpf.util.LogManager;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -10,10 +30,12 @@ import java.io.OutputStream;
 import java.math.BigInteger;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.logging.Logger;
 
 
 public class Z3Interface {
-	
+  static Logger logger = LogManager.getLogger("Z3Interface");
+
 	Process process;
 	OutputStream stdin;
 	InputStream stdout;
@@ -81,7 +103,7 @@ public class Z3Interface {
 			if (line.contains("ERROR")) {
 				String oldline = line;
 				line = brCleanUp.readLine();
-				System.out.println(msg);
+				logger.warning(msg);
 				throw new RuntimeException("Z3 encountered an error in its input: " + oldline + "\n" + line);
 			}
 			else if (line.startsWith("((\"model\" \"") && sat) {
@@ -116,7 +138,7 @@ public class Z3Interface {
 			if (line.contains("ERROR")) {
 				String oldline = line;
 				line = brCleanUp.readLine();
-				System.out.println(msg);
+				logger.warning(msg);
 				throw new RuntimeException("Z3 encountered an error in its input: " + oldline + "\n" + line);
 			}
 			else if (line.startsWith("((\"model\" \"") && sat) {
@@ -145,10 +167,7 @@ public class Z3Interface {
 		//println ("Exiting...");
 	}
 	
-	public void println (String msg) {
-		System.out.println("[Z3Interface] " + msg);
-	}
-	
+
 	public void sendIncMessage218 (String msg) throws IOException{
 		sat = false;
 		stdin.write((msg + "\n(check-sat)\n(get-info model)").getBytes());
@@ -170,7 +189,7 @@ public class Z3Interface {
 			if (line.contains("ERROR") || line.contains("error")) {
 				String oldline = line;
 				line = brCleanUp.readLine();
-				System.out.println(msg);
+				logger.severe(msg);
 				throw new RuntimeException("Z3 encuntered an error in its input: " + oldline + "\n" + line);
 			}
 			else if (line.startsWith("((\"model\" \"") && sat) {
@@ -211,7 +230,7 @@ public class Z3Interface {
 			if (line.contains("ERROR") || line.contains("error")) {
 				String oldline = line;
 				line = brCleanUp.readLine();
-				System.out.println(msg);
+				logger.severe(msg);
 				throw new RuntimeException("Z3 encountered an error in its input: " + oldline + "\n" + line);
 			}
 			else if (line.startsWith("((\"model\" \"") && sat) {

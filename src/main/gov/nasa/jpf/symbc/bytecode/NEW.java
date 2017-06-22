@@ -1,33 +1,30 @@
-//
-// Copyright (C) 2006 United States Government as represented by the
-// Administrator of the National Aeronautics and Space Administration
-// (NASA).  All Rights Reserved.
-//
-// This software is distributed under the NASA Open Source Agreement
-// (NOSA), version 1.3.  The NOSA has been approved by the Open Source
-// Initiative.  See the file NOSA-1.3-JPF at the top of the distribution
-// directory tree for the complete NOSA document.
-//
-// THE SUBJECT SOFTWARE IS PROVIDED "AS IS" WITHOUT ANY WARRANTY OF ANY
-// KIND, EITHER EXPRESSED, IMPLIED, OR STATUTORY, INCLUDING, BUT NOT
-// LIMITED TO, ANY WARRANTY THAT THE SUBJECT SOFTWARE WILL CONFORM TO
-// SPECIFICATIONS, ANY IMPLIED WARRANTIES OF MERCHANTABILITY, FITNESS FOR
-// A PARTICULAR PURPOSE, OR FREEDOM FROM INFRINGEMENT, ANY WARRANTY THAT
-// THE SUBJECT SOFTWARE WILL BE ERROR FREE, OR ANY WARRANTY THAT
-// DOCUMENTATION, IF PROVIDED, WILL CONFORM TO THE SUBJECT SOFTWARE.
-//
+/*
+ * Copyright (C) 2014, United States Government, as represented by the
+ * Administrator of the National Aeronautics and Space Administration.
+ * All rights reserved.
+ *
+ * Symbolic Pathfinder (jpf-symbc) is licensed under the Apache License, 
+ * Version 2.0 (the "License"); you may not use this file except
+ * in compliance with the License. You may obtain a copy of the License at
+ * 
+ *        http://www.apache.org/licenses/LICENSE-2.0. 
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and 
+ * limitations under the License.
+ */
 package gov.nasa.jpf.symbc.bytecode;
 
-import gov.nasa.jpf.jvm.ClassInfo;
-import gov.nasa.jpf.jvm.DynamicArea;
-import gov.nasa.jpf.jvm.Heap;
-import gov.nasa.jpf.jvm.JVM;
-import gov.nasa.jpf.jvm.KernelState;
-import gov.nasa.jpf.jvm.NoClassInfoException;
-import gov.nasa.jpf.jvm.SystemState;
-import gov.nasa.jpf.jvm.ThreadInfo;
-import gov.nasa.jpf.jvm.bytecode.Instruction;
-import gov.nasa.jpf.jvm.StackFrame;
+import gov.nasa.jpf.vm.ClassInfo;
+import gov.nasa.jpf.vm.ElementInfo;
+import gov.nasa.jpf.vm.Heap;
+import gov.nasa.jpf.vm.LoadOnJPFRequired;
+
+import gov.nasa.jpf.vm.ThreadInfo;
+
+import gov.nasa.jpf.vm.StackFrame;
 import gov.nasa.jpf.symbc.string.SymbolicStringBuilder;
 
 
@@ -35,7 +32,7 @@ import gov.nasa.jpf.symbc.string.SymbolicStringBuilder;
 
 // TODO: to review
 
-
+import gov.nasa.jpf.vm.Instruction;
 
 /**
  * Create new object
@@ -46,22 +43,22 @@ public class NEW extends gov.nasa.jpf.jvm.bytecode.NEW {
 	    super(clsName);
 	  }
   @Override
-  public Instruction execute (SystemState ss, KernelState ks, ThreadInfo ti) {
-	  Heap da = ti.getHeap();
+  public Instruction execute (ThreadInfo ti) {
+	  Heap heap = ti.getHeap();
 	    ClassInfo ci;
 
+	    // resolve the referenced class
+	    ClassInfo cls = ti.getTopFrameMethodInfo().getClassInfo();
 	    try {
-	      ci = ClassInfo.getResolvedClassInfo(cname);
-
-	    } catch (NoClassInfoException cx){
-	      // can be any inherited class or required interface
-	      return ti.createAndThrowException("java.lang.NoClassDefFoundError", cx.getMessage());
+	      ci = cls.resolveReferencedClass(cname);
+	    } catch(LoadOnJPFRequired lre) {
+	      return ti.getPC();
 	    }
 
 	    String className = ci.getName();
 	      if(!(className.equals("java.lang.StringBuilder") || className.equals("java.lang.StringBuffer")))
-	    	  return super.execute(ss, ks, ti);
-
+	    	  return super.execute(ti);
+	    
 	    if (!ci.isRegistered()){
 	      ci.registerClass(ti);
 	    }
@@ -73,30 +70,29 @@ public class NEW extends gov.nasa.jpf.jvm.bytecode.NEW {
 	      }
 	    }
 
-	    if (da.isOutOfMemory()) { // simulate OutOfMemoryError
+	    if (heap.isOutOfMemory()) { // simulate OutOfMemoryError
 	      return ti.createAndThrowException("java.lang.OutOfMemoryError",
 	                                        "trying to allocate new " + cname);
 	    }
 
-	    int objRef = da.newObject(ci, ti);
+	    ElementInfo ei = heap.newObject(ci, ti);
+	    int objRef = ei.getObjectRef();
+	    newObjRef = objRef;
 
 	    // pushes the return value onto the stack
-	    ti.push(objRef, true);
+	    StackFrame frame = ti.getModifiableTopFrame();
+	    frame.pushRef( objRef);
 
-	// TODO: to review
+	 // TODO: to review
 	    //insert dummy expressions for StringBuilder and StringBuffer
 	    //String className = ci.getName();
 	    if(className.equals("java.lang.StringBuilder") || className.equals("java.lang.StringBuffer")){
 	    	SymbolicStringBuilder t = new SymbolicStringBuilder();
-	    	StackFrame sf = ti.getTopFrame();
+	    	StackFrame sf = ti.getModifiableTopFrame();
 	    	sf.setOperandAttr(t);
 	    }
-
-
-	    ss.checkGC(); // has to happen after we push the new object ref
-
+	    
 	    return getNext(ti);
-
 
   }
 

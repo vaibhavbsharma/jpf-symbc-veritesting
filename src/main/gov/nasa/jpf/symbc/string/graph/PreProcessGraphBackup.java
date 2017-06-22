@@ -1,3 +1,21 @@
+/*
+ * Copyright (C) 2014, United States Government, as represented by the
+ * Administrator of the National Aeronautics and Space Administration.
+ * All rights reserved.
+ *
+ * Symbolic Pathfinder (jpf-symbc) is licensed under the Apache License, 
+ * Version 2.0 (the "License"); you may not use this file except
+ * in compliance with the License. You may obtain a copy of the License at
+ * 
+ *        http://www.apache.org/licenses/LICENSE-2.0. 
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and 
+ * limitations under the License.
+ */
+
 package gov.nasa.jpf.symbc.string.graph;
 
 import java.util.ArrayList;
@@ -14,12 +32,14 @@ import gov.nasa.jpf.symbc.string.StringConstant;
 import gov.nasa.jpf.symbc.string.StringExpression;
 import gov.nasa.jpf.symbc.string.StringUtility;
 import gov.nasa.jpf.symbc.string.SymbolicStringConstraintsGeneral;
+import gov.nasa.jpf.util.LogManager;
+import java.util.logging.Logger;
 
 /**
  * This class does the preprocessing of the StringGraph
  */
 public class PreProcessGraphBackup {
-	private static boolean logging = true;
+  static Logger logger = LogManager.getLogger("stringsolver");
 	public static final int MAXIMUM_LENGTH = 30;
 	private static SymbolicConstraintsGeneral scg;
 	
@@ -201,7 +221,7 @@ public class PreProcessGraphBackup {
 					if (eca.getIndex() instanceof IntegerConstant && eca.getValue() instanceof IntegerConstant 
 							&& eca.getIndex().solution() < e1.getDest().getSolution().length()) {
 							String startsWithString = e1.getDest().getSolution();
-							int charAtIndex = eca.getIndex().solution();
+							int charAtIndex = (int) eca.getIndex().solution();
 							if (startsWithString.charAt(charAtIndex) != charAtIndex) {
 								return false;
 							}
@@ -549,8 +569,8 @@ public class PreProcessGraphBackup {
 					EdgeIndexOfChar eioc = (EdgeIndexOfChar) e1;
 					EdgeIndexOfChar2 eioc2 = (EdgeIndexOfChar2) e2;
 					if (eioc.getIndex().getExpression() instanceof IntegerConstant && eioc2.getIndex().getExpression() instanceof IntegerConstant) {
-						int sol1 = eioc.getIndex().getExpression().solution();
-						int sol2 = eioc2.getIndex().getExpression().solution();
+						int sol1 = (int) eioc.getIndex().getExpression().solution();
+						int sol2 = (int) eioc2.getIndex().getExpression().solution();
 						if (sol1 != sol2) {
 							LogicalORLinearIntegerConstraints loic = new LogicalORLinearIntegerConstraints();
 							loic.addToList(new LinearIntegerConstraint(eioc.getIndex(), Comparator.EQ, new IntegerConstant(-1)));
@@ -986,8 +1006,4 @@ public class PreProcessGraphBackup {
 		}
 	}
 	
-	private static void println (String msg) {
-		if (logging)
-			System.out.println("[PreProcessGraph] " + msg);
-	}
 }

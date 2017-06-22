@@ -1,3 +1,21 @@
+/*
+ * Copyright (C) 2014, United States Government, as represented by the
+ * Administrator of the National Aeronautics and Space Administration.
+ * All rights reserved.
+ *
+ * Symbolic Pathfinder (jpf-symbc) is licensed under the Apache License, 
+ * Version 2.0 (the "License"); you may not use this file except
+ * in compliance with the License. You may obtain a copy of the License at
+ * 
+ *        http://www.apache.org/licenses/LICENSE-2.0. 
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and 
+ * limitations under the License.
+ */
+
 //
 // Copyright (C) 2007 United States Government as represented by the
 // Administrator of the National Aeronautics and Space Administration
@@ -18,14 +36,19 @@
 //
 package gov.nasa.jpf.symbc.numeric;
 
-import gov.nasa.jpf.jvm.IntChoiceGenerator;
-import gov.nasa.jpf.jvm.choice.IntIntervalGenerator;
-//import gov.nasa.jpf.symbc.SymbolicInstructionFactory;
+import java.util.HashMap;
+import java.util.HashSet;
+
+import gov.nasa.jpf.vm.IntChoiceGenerator;
+import gov.nasa.jpf.vm.choice.IntIntervalGenerator;
+
+
 
 
 public class PCChoiceGenerator extends IntIntervalGenerator {
 
-	PathCondition[] PC;
+	//protected PathCondition[] PC;
+	protected HashMap<Integer, PathCondition> PC;
 	boolean isReverseOrder;
 
 	int offset; // to be used in the CFG
@@ -44,10 +67,25 @@ public class PCChoiceGenerator extends IntIntervalGenerator {
 	@SuppressWarnings("deprecation")
 	public PCChoiceGenerator(int size) {
 		super(0, size - 1);
-		PC = new PathCondition[size];
+		PC = new HashMap<Integer, PathCondition>();
+		for(int i = 0; i < size; i++)
+			PC.put(i, new PathCondition());
 		isReverseOrder = false;
 	}
-
+	
+	public PCChoiceGenerator(int min, int max) {
+		this(min, max, 1);
+	}
+	
+	@SuppressWarnings("deprecation")
+	public PCChoiceGenerator(int min, int max, int delta) {
+		super(min, max, delta);
+		PC = new HashMap<Integer, PathCondition>();
+		for(int i = min; i <= max; i += delta)
+			PC.put(i, new PathCondition());
+		isReverseOrder = false;
+	}
+	
 	/*
 	 * If reverseOrder is true, the PCChoiceGenerator
 	 * explores paths in the opposite order used by
@@ -57,7 +95,9 @@ public class PCChoiceGenerator extends IntIntervalGenerator {
 	@SuppressWarnings("deprecation")
 	public PCChoiceGenerator(int size, boolean reverseOrder) {
 		super(0, size - 1, reverseOrder ? -1 : 1);
-		PC = new PathCondition[size];
+		PC = new HashMap<Integer, PathCondition>();
+		for(int i = 0; i < size; i++)
+			PC.put(i, new PathCondition());
 		isReverseOrder = reverseOrder;
 	}
 
@@ -67,15 +107,20 @@ public class PCChoiceGenerator extends IntIntervalGenerator {
 
 	// sets the PC constraints for the current choice
 	public void setCurrentPC(PathCondition pc) {
-		PC[getNextChoice()] = pc;
+		PC.put(getNextChoice(),pc);
 
 	}
+	// sets the PC constraints for the specified choice
+	public void setPC(PathCondition pc, int choice) {
+			PC.put(new Integer(choice),pc);
 
+		}
+	
 	// returns the PC constraints for the current choice
 	public PathCondition getCurrentPC() {
 		PathCondition pc;
 
-		pc = PC[getNextChoice()];
+		pc = PC.get(getNextChoice());
 		if (pc != null) {
 			return pc.make_copy();
 		} else {
@@ -84,7 +129,7 @@ public class PCChoiceGenerator extends IntIntervalGenerator {
 	}
 
 	public IntChoiceGenerator randomize() {
-		return new PCChoiceGenerator(PC.length, random.nextBoolean());
+		return new PCChoiceGenerator(PC.size(), random.nextBoolean());
 	}
 
 	public void setNextChoice(int nextChoice){

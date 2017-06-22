@@ -1,3 +1,21 @@
+/*
+ * Copyright (C) 2014, United States Government, as represented by the
+ * Administrator of the National Aeronautics and Space Administration.
+ * All rights reserved.
+ *
+ * Symbolic Pathfinder (jpf-symbc) is licensed under the Apache License, 
+ * Version 2.0 (the "License"); you may not use this file except
+ * in compliance with the License. You may obtain a copy of the License at
+ * 
+ *        http://www.apache.org/licenses/LICENSE-2.0. 
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and 
+ * limitations under the License.
+ */
+
 //Copyright (C) 2007 United States Government as represented by the
 //Administrator of the National Aeronautics and Space Administration
 //(NASA).  All Rights Reserved.
@@ -17,12 +35,11 @@
 
 package gov.nasa.jpf.symbc.bytecode;
 
-import gov.nasa.jpf.jvm.KernelState;
-import gov.nasa.jpf.jvm.StackFrame;
-import gov.nasa.jpf.jvm.SystemState;
-import gov.nasa.jpf.jvm.ThreadInfo;
-import gov.nasa.jpf.jvm.bytecode.Instruction;
+
 import gov.nasa.jpf.symbc.numeric.Expression;
+import gov.nasa.jpf.vm.Instruction;
+import gov.nasa.jpf.vm.StackFrame;
+import gov.nasa.jpf.vm.ThreadInfo;
 
 
 // we should factor out some of the code and put it in a parent class for all "if statements"
@@ -33,16 +50,16 @@ public class IFNULL extends gov.nasa.jpf.jvm.bytecode.IFNULL {
 	    super(targetPc);
 	  }
 	@Override
-	public Instruction execute (SystemState ss, KernelState ks, ThreadInfo ti) {
+	public Instruction execute (ThreadInfo ti) {
 
-		StackFrame sf = ti.getTopFrame();
+		StackFrame sf = ti.getModifiableTopFrame();
 		Expression sym_v = (Expression) sf.getOperandAttr();
 		if(sym_v == null) { // the condition is concrete
 			//System.out.println("Execute IFEQ: The condition is concrete");
-			return super.execute(ss, ks, ti);
+			return super.execute(ti);
 		}
 		else { // the condition is symbolic
-			ti.pop();
+			sf.pop();
 			return getNext(ti);
 			}
 		}

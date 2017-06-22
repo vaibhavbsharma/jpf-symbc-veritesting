@@ -1,9 +1,27 @@
+/*
+ * Copyright (C) 2014, United States Government, as represented by the
+ * Administrator of the National Aeronautics and Space Administration.
+ * All rights reserved.
+ *
+ * Symbolic Pathfinder (jpf-symbc) is licensed under the Apache License, 
+ * Version 2.0 (the "License"); you may not use this file except
+ * in compliance with the License. You may obtain a copy of the License at
+ * 
+ *        http://www.apache.org/licenses/LICENSE-2.0. 
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and 
+ * limitations under the License.
+ */
+
 package gov.nasa.jpf.symbc.strings;
 
 import javax.print.attribute.IntegerSyntax;
 
-import junit.framework.Assert;
 import gov.nasa.jpf.Config;
+import gov.nasa.jpf.util.test.TestJPF;
 import gov.nasa.jpf.symbc.SymbolicInstructionFactory;
 import gov.nasa.jpf.symbc.numeric.Comparator;
 import gov.nasa.jpf.symbc.numeric.IntegerConstant;
@@ -20,7 +38,7 @@ import gov.nasa.jpf.symbc.string.SymbolicStringConstraintsGeneral;
 import org.junit.Test;
 
 
-public class TestSymString {
+public class TestSymString extends TestJPF {
 
 	String[] solvers = new String[]{"automata","z3" /* "z3_inc" */};
 	
@@ -41,9 +59,9 @@ public class TestSymString {
 			stringCurrentPC._addDet(StringComparator.NOTEQUALS, constant1, pre);
 			stringCurrentPC._addDet(StringComparator.EQUALS, constant2, var);		
 			boolean result = stringCurrentPC.simplify();
-			Assert.assertTrue(result);
-			Assert.assertTrue(!var1.solution().equals("test"));
-			Assert.assertTrue(var1.solution().substring(2,3).equals("s"));
+			assertTrue(result);
+			assertTrue(!var1.solution().equals("test"));
+			assertTrue(var1.solution().substring(2,3).equals("s"));
 		}
 	}
 	
@@ -62,9 +80,9 @@ public class TestSymString {
 			stringCurrentPC._addDet(StringComparator.STARTSWITH, new StringConstant("a"), var1);
 			stringCurrentPC._addDet(StringComparator.STARTSWITH, new StringConstant("b"), var2);
 			boolean result = stringCurrentPC.simplify();
-			Assert.assertTrue(result);
-			Assert.assertTrue(var1.solution().startsWith("a"));
-			Assert.assertTrue(var2.solution().startsWith("b"));
+			assertTrue(result);
+			assertTrue(var1.solution().startsWith("a"));
+			assertTrue(var2.solution().startsWith("b"));
 		}
 	}
 	
@@ -83,9 +101,9 @@ public class TestSymString {
 			stringCurrentPC._addDet(StringComparator.STARTSWITH, new StringConstant("a"), var1);
 			stringCurrentPC._addDet(StringComparator.NOTSTARTSWITH, new StringConstant("b"), var2);
 			boolean result = stringCurrentPC.simplify();
-			Assert.assertTrue(result);
-			Assert.assertTrue(var1.solution().startsWith("a"));
-			Assert.assertTrue(!var2.solution().startsWith("b"));
+			assertTrue(result);
+			assertTrue(var1.solution().startsWith("a"));
+			assertTrue(!var2.solution().startsWith("b"));
 		}
 	}
 
@@ -104,9 +122,9 @@ public class TestSymString {
 			stringCurrentPC._addDet(StringComparator.NOTSTARTSWITH, new StringConstant("a"), var1);
 			stringCurrentPC._addDet(StringComparator.STARTSWITH, new StringConstant("b"), var2);
 			boolean result = stringCurrentPC.simplify();
-			Assert.assertTrue(result);
-			Assert.assertTrue(!var1.solution().startsWith("a"));
-			Assert.assertTrue(var2.solution().startsWith("b"));
+			assertTrue(result);
+			assertTrue(!var1.solution().startsWith("a"));
+			assertTrue(var2.solution().startsWith("b"));
 		}
 	}
 	
@@ -125,9 +143,9 @@ public class TestSymString {
 			stringCurrentPC._addDet(StringComparator.NOTSTARTSWITH, new StringConstant("a"), var1);
 			stringCurrentPC._addDet(StringComparator.NOTSTARTSWITH, new StringConstant("b"), var2);
 			boolean result = stringCurrentPC.simplify();
-			Assert.assertTrue(result);
-			Assert.assertTrue(!var1.solution().startsWith("a"));
-			Assert.assertTrue(!var2.solution().startsWith("b"));
+			assertTrue(result);
+			assertTrue(!var1.solution().startsWith("a"));
+			assertTrue(!var2.solution().startsWith("b"));
 		}
 	}
 	
@@ -146,9 +164,9 @@ public class TestSymString {
 			stringCurrentPC._addDet(StringComparator.ENDSWITH, new StringConstant("a"), var1);
 			stringCurrentPC._addDet(StringComparator.ENDSWITH, new StringConstant("b"), var2);
 			boolean result = stringCurrentPC.simplify();
-			Assert.assertTrue(result);
-			Assert.assertTrue(var1.solution().startsWith("a"));
-			Assert.assertTrue(var2.solution().startsWith("b"));
+			assertTrue(result);
+			assertTrue(var1.solution().startsWith("a"));
+			assertTrue(var2.solution().startsWith("b"));
 		}
 	}
 	
@@ -167,9 +185,9 @@ public class TestSymString {
 			stringCurrentPC._addDet(StringComparator.ENDSWITH, new StringConstant("a"), var1);
 			stringCurrentPC._addDet(StringComparator.NOTENDSWITH, new StringConstant("b"), var2);
 			boolean result = stringCurrentPC.simplify();
-			Assert.assertTrue(result);
-			Assert.assertTrue(var1.solution().startsWith("a"));
-			Assert.assertTrue(!var2.solution().startsWith("b"));
+			assertTrue(result);
+			assertTrue(var1.solution().startsWith("a"));
+			assertTrue(!var2.solution().startsWith("b"));
 		}
 	}
 
@@ -188,9 +206,9 @@ public class TestSymString {
 			stringCurrentPC._addDet(StringComparator.NOTENDSWITH, new StringConstant("a"), var1);
 			stringCurrentPC._addDet(StringComparator.ENDSWITH, new StringConstant("b"), var2);
 			boolean result = stringCurrentPC.simplify();
-			Assert.assertTrue(result);
-			Assert.assertTrue(!var1.solution().startsWith("a"));
-			Assert.assertTrue(var2.solution().startsWith("b"));
+			assertTrue(result);
+			assertTrue(!var1.solution().startsWith("a"));
+			assertTrue(var2.solution().startsWith("b"));
 		}
 	}
 	
@@ -209,9 +227,9 @@ public class TestSymString {
 			stringCurrentPC._addDet(StringComparator.NOTENDSWITH, new StringConstant("a"), var1);
 			stringCurrentPC._addDet(StringComparator.NOTENDSWITH, new StringConstant("b"), var2);
 			boolean result = stringCurrentPC.simplify();
-			Assert.assertTrue(result);
-			Assert.assertTrue(!var1.solution().startsWith("a"));
-			Assert.assertTrue(!var2.solution().startsWith("b"));
+			assertTrue(result);
+			assertTrue(!var1.solution().startsWith("a"));
+			assertTrue(!var2.solution().startsWith("b"));
 		}
 	}
 	
@@ -230,9 +248,9 @@ public class TestSymString {
 			stringCurrentPC._addDet(StringComparator.EQUALS, new StringConstant("a"), var1);
 			stringCurrentPC._addDet(StringComparator.EQUALS, new StringConstant("b"), var2);
 			boolean result = stringCurrentPC.simplify();
-			Assert.assertTrue(result);
-			Assert.assertTrue(var1.solution().equals("a"));
-			Assert.assertTrue(var2.solution().equals("b"));
+			assertTrue(result);
+			assertTrue(var1.solution().equals("a"));
+			assertTrue(var2.solution().equals("b"));
 		}
 	}
 	
@@ -252,9 +270,9 @@ public class TestSymString {
 			stringCurrentPC._addDet(StringComparator.NOTEQUALS, new StringConstant("b"), var2);
 			boolean result = stringCurrentPC.simplify();
 			System.out.println(SymbolicStringConstraintsGeneral.getSolution());
-			Assert.assertTrue(result);
-			Assert.assertTrue(var1.solution().equals("a"));
-			Assert.assertTrue(var2.solution() == null || !var2.solution().equals("b"));
+			assertTrue(result);
+			assertTrue(var1.solution().equals("a"));
+			assertTrue(var2.solution() == null || !var2.solution().equals("b"));
 		}
 	}
 
@@ -273,9 +291,9 @@ public class TestSymString {
 			stringCurrentPC._addDet(StringComparator.NOTEQUALS, new StringConstant("a"), var1);
 			stringCurrentPC._addDet(StringComparator.EQUALS, new StringConstant("b"), var2);
 			boolean result = stringCurrentPC.simplify();
-			Assert.assertTrue(result);
-			Assert.assertTrue(!var1.solution().equals("a"));
-			Assert.assertTrue(var2.solution().equals("b"));
+			assertTrue(result);
+			assertTrue(!var1.solution().equals("a"));
+			assertTrue(var2.solution().equals("b"));
 		}
 	}
 	
@@ -294,9 +312,9 @@ public class TestSymString {
 			stringCurrentPC._addDet(StringComparator.NOTEQUALS, new StringConstant("a"), var1);
 			stringCurrentPC._addDet(StringComparator.NOTEQUALS, new StringConstant("b"), var2);
 			boolean result = stringCurrentPC.simplify();
-			Assert.assertTrue(result);
-			Assert.assertTrue(!var1.solution().equals("a"));
-			Assert.assertTrue(!var2.solution().equals("b"));
+			assertTrue(result);
+			assertTrue(!var1.solution().equals("a"));
+			assertTrue(!var2.solution().equals("b"));
 		}
 	}
 	
@@ -315,9 +333,9 @@ public class TestSymString {
 			stringCurrentPC._addDet(StringComparator.CONTAINS, new StringConstant("a"), var1);
 			stringCurrentPC._addDet(StringComparator.CONTAINS, new StringConstant("b"), var2);
 			boolean result = stringCurrentPC.simplify();
-			Assert.assertTrue(result);
-			Assert.assertTrue(var1.solution().contains("a"));
-			Assert.assertTrue(var2.solution().contains("b"));
+			assertTrue(result);
+			assertTrue(var1.solution().contains("a"));
+			assertTrue(var2.solution().contains("b"));
 		}
 	}
 	
@@ -337,9 +355,9 @@ public class TestSymString {
 			stringCurrentPC._addDet(StringComparator.NOTCONTAINS, new StringConstant("b"), var2);
 			boolean result = stringCurrentPC.simplify();
 			System.out.println(SymbolicStringConstraintsGeneral.getSolution());
-			Assert.assertTrue(result);
-			Assert.assertTrue(var1.solution().contains("a"));
-			Assert.assertTrue(!var2.solution().contains("b"));
+			assertTrue(result);
+			assertTrue(var1.solution().contains("a"));
+			assertTrue(!var2.solution().contains("b"));
 		}
 	}
 
@@ -358,9 +376,9 @@ public class TestSymString {
 			stringCurrentPC._addDet(StringComparator.NOTCONTAINS, new StringConstant("a"), var1);
 			stringCurrentPC._addDet(StringComparator.CONTAINS, new StringConstant("b"), var2);
 			boolean result = stringCurrentPC.simplify();
-			Assert.assertTrue(result);
-			Assert.assertTrue(!var1.solution().contains("a"));
-			Assert.assertTrue(var2.solution().contains("b"));
+			assertTrue(result);
+			assertTrue(!var1.solution().contains("a"));
+			assertTrue(var2.solution().contains("b"));
 		}
 	}
 	
@@ -379,9 +397,9 @@ public class TestSymString {
 			stringCurrentPC._addDet(StringComparator.NOTCONTAINS, new StringConstant("a"), var1);
 			stringCurrentPC._addDet(StringComparator.NOTCONTAINS, new StringConstant("b"), var2);
 			boolean result = stringCurrentPC.simplify();
-			Assert.assertTrue(result);
-			Assert.assertTrue(!var1.solution().contains("a"));
-			Assert.assertTrue(!var2.solution().contains("b"));
+			assertTrue(result);
+			assertTrue(!var1.solution().contains("a"));
+			assertTrue(!var2.solution().contains("b"));
 		}
 	}
 	
@@ -403,11 +421,11 @@ public class TestSymString {
 			StringExpression var3 = var1._concat(var2);
 			pc._addDet(Comparator.LE, var3._length(), 10);
 			boolean result = stringCurrentPC.simplify();
-			Assert.assertTrue(result);
-			Assert.assertTrue(var1.solution().contains("a"));
-			Assert.assertTrue(var2.solution().contains("b"));
-			Assert.assertTrue(var1.solution().concat(var2.solution()).equals(var3.solution()));
-			Assert.assertTrue(var3.solution().length() < 10);
+			assertTrue(result);
+			assertTrue(var1.solution().contains("a"));
+			assertTrue(var2.solution().contains("b"));
+			assertTrue(var1.solution().concat(var2.solution()).equals(var3.solution()));
+			assertTrue(var3.solution().length() < 10);
 		}
 	}
 	
@@ -429,11 +447,11 @@ public class TestSymString {
 			StringExpression var3 = var1._concat(var2);
 			pc._addDet(Comparator.LE, var3._length(), 10);
 			boolean result = stringCurrentPC.simplify();
-			Assert.assertTrue(result);
-			Assert.assertTrue(!var1.solution().contains("a"));
-			Assert.assertTrue(var2.solution().contains("b"));
-			Assert.assertTrue(var1.solution().concat(var2.solution()).equals(var3.solution()));
-			Assert.assertTrue(var3.solution().length() < 10);
+			assertTrue(result);
+			assertTrue(!var1.solution().contains("a"));
+			assertTrue(var2.solution().contains("b"));
+			assertTrue(var1.solution().concat(var2.solution()).equals(var3.solution()));
+			assertTrue(var3.solution().length() < 10);
 		}
 	}
 	
@@ -455,11 +473,11 @@ public class TestSymString {
 			StringExpression var3 = var1._concat(var2);
 			pc._addDet(Comparator.LE, var3._length(), 10);
 			boolean result = stringCurrentPC.simplify();
-			Assert.assertTrue(result);
-			Assert.assertTrue(var1.solution().contains("a"));
-			Assert.assertTrue(!var2.solution().contains("b"));
-			Assert.assertTrue(var1.solution().concat(var2.solution()).equals(var3.solution()));
-			Assert.assertTrue(var3.solution().length() < 10);
+			assertTrue(result);
+			assertTrue(var1.solution().contains("a"));
+			assertTrue(!var2.solution().contains("b"));
+			assertTrue(var1.solution().concat(var2.solution()).equals(var3.solution()));
+			assertTrue(var3.solution().length() < 10);
 		}
 	}
 	
@@ -481,11 +499,11 @@ public class TestSymString {
 			StringExpression var3 = var1._concat(var2);
 			pc._addDet(Comparator.LE, var3._length(), 10);
 			boolean result = stringCurrentPC.simplify();
-			Assert.assertTrue(result);
-			Assert.assertTrue(!var1.solution().contains("a"));
-			Assert.assertTrue(!var2.solution().contains("b"));
-			Assert.assertTrue(var1.solution().concat(var2.solution()).equals(var3.solution()));
-			Assert.assertTrue(var3.solution().length() < 10);
+			assertTrue(result);
+			assertTrue(!var1.solution().contains("a"));
+			assertTrue(!var2.solution().contains("b"));
+			assertTrue(var1.solution().concat(var2.solution()).equals(var3.solution()));
+			assertTrue(var3.solution().length() < 10);
 		}
 	}
 
@@ -507,11 +525,11 @@ public class TestSymString {
 			StringExpression var3 = var1._concat(var2);
 			pc._addDet(Comparator.GT, var3._length(), 10);
 			boolean result = stringCurrentPC.simplify();
-			Assert.assertTrue(result);
-			Assert.assertTrue(var1.solution().contains("a"));
-			Assert.assertTrue(var2.solution().contains("b"));
-			Assert.assertTrue(var1.solution().concat(var2.solution()).equals(var3.solution()));
-			Assert.assertTrue(var3.solution().length() > 10);
+			assertTrue(result);
+			assertTrue(var1.solution().contains("a"));
+			assertTrue(var2.solution().contains("b"));
+			assertTrue(var1.solution().concat(var2.solution()).equals(var3.solution()));
+			assertTrue(var3.solution().length() > 10);
 		}
 	}
 	
@@ -533,11 +551,11 @@ public class TestSymString {
 			StringExpression var3 = var1._concat(var2);
 			pc._addDet(Comparator.GT, var3._length(), 10);
 			boolean result = stringCurrentPC.simplify();
-			Assert.assertTrue(result);
-			Assert.assertTrue(!var1.solution().contains("a"));
-			Assert.assertTrue(var2.solution().contains("b"));
-			Assert.assertTrue(var1.solution().concat(var2.solution()).equals(var3.solution()));
-			Assert.assertTrue(var3.solution().length() > 10);
+			assertTrue(result);
+			assertTrue(!var1.solution().contains("a"));
+			assertTrue(var2.solution().contains("b"));
+			assertTrue(var1.solution().concat(var2.solution()).equals(var3.solution()));
+			assertTrue(var3.solution().length() > 10);
 		}
 	}
 	
@@ -559,11 +577,11 @@ public class TestSymString {
 			StringExpression var3 = var1._concat(var2);
 			pc._addDet(Comparator.GT, var3._length(), 10);
 			boolean result = stringCurrentPC.simplify();
-			Assert.assertTrue(result);
-			Assert.assertTrue(var1.solution().contains("a"));
-			Assert.assertTrue(!var2.solution().contains("b"));
-			Assert.assertTrue(var1.solution().concat(var2.solution()).equals(var3.solution()));
-			Assert.assertTrue(var3.solution().length() > 10);
+			assertTrue(result);
+			assertTrue(var1.solution().contains("a"));
+			assertTrue(!var2.solution().contains("b"));
+			assertTrue(var1.solution().concat(var2.solution()).equals(var3.solution()));
+			assertTrue(var3.solution().length() > 10);
 		}
 	}
 	
@@ -585,11 +603,11 @@ public class TestSymString {
 			StringExpression var3 = var1._concat(var2);
 			pc._addDet(Comparator.GT, var3._length(), 10);
 			boolean result = stringCurrentPC.simplify();
-			Assert.assertTrue(result);
-			Assert.assertTrue(!var1.solution().contains("a"));
-			Assert.assertTrue(!var2.solution().contains("b"));
-			Assert.assertTrue(var1.solution().concat(var2.solution()).equals(var3.solution()));
-			Assert.assertTrue(var3.solution().length() > 10);
+			assertTrue(result);
+			assertTrue(!var1.solution().contains("a"));
+			assertTrue(!var2.solution().contains("b"));
+			assertTrue(var1.solution().concat(var2.solution()).equals(var3.solution()));
+			assertTrue(var3.solution().length() > 10);
 		}
 	}
 	
@@ -608,9 +626,9 @@ public class TestSymString {
 			StringExpression var2 = var1._trim();
 			stringCurrentPC._addDet(StringComparator.EQUALS, new StringConstant("cc"), var2);
 			boolean result = stringCurrentPC.simplify();
-			Assert.assertTrue(result);
-			Assert.assertTrue(var2.solution().equals("cc"));
-			Assert.assertTrue(var1.solution().trim().equals("cc"));
+			assertTrue(result);
+			assertTrue(var2.solution().equals("cc"));
+			assertTrue(var1.solution().trim().equals("cc"));
 		}
 	}
 	
@@ -629,9 +647,9 @@ public class TestSymString {
 			StringExpression var2 = var1._trim();
 			stringCurrentPC._addDet(StringComparator.NOTEQUALS, new StringConstant("cc"), var2);
 			boolean result = stringCurrentPC.simplify();
-			Assert.assertTrue(result);
-			Assert.assertTrue(!var2.solution().equals("cc"));
-			Assert.assertTrue(!var1.solution().trim().equals("cc"));
+			assertTrue(result);
+			assertTrue(!var2.solution().equals("cc"));
+			assertTrue(!var1.solution().trim().equals("cc"));
 		}
 	}
 	
@@ -654,9 +672,9 @@ public class TestSymString {
 			pc._addDet(Comparator.GT, var1._indexOf(new StringConstant("a")), 0);
 			boolean result = stringCurrentPC.simplify();
 			//System.out.printf("var1: '%s'\n", var1.solution());
-			Assert.assertTrue("Solver " + solver + " failed",  !result);
-			/*Assert.assertTrue(var1.solution().startsWith("aa"));
-			Assert.assertTrue(var1.solution().indexOf("a") > 0);*/
+			assertTrue("Solver " + solver + " failed",  !result);
+			/*assertTrue(var1.solution().startsWith("aa"));
+			assertTrue(var1.solution().indexOf("a") > 0);*/
 			
 		}
 	}
@@ -678,9 +696,9 @@ public class TestSymString {
 			pc._addDet(Comparator.GT, var1._indexOf(new StringConstant("a")), 0);
 			boolean result = stringCurrentPC.simplify();
 			//System.out.printf("var1: '%s'\n", var1.solution());
-			Assert.assertTrue(result);
-			Assert.assertTrue(var1.solution().startsWith("bb"));
-			Assert.assertTrue(var1.solution().indexOf("a") > 0);
+			assertTrue(result);
+			assertTrue(var1.solution().startsWith("bb"));
+			assertTrue(var1.solution().indexOf("a") > 0);
 			
 		}
 	}
@@ -704,9 +722,9 @@ public class TestSymString {
 			pc._addDet(Comparator.GT, var1._indexOf(new IntegerConstant((int) 'a')), 0);
 			boolean result = stringCurrentPC.simplify();
 			//System.out.printf("var1: '%s'\n", var1.solution());
-			Assert.assertTrue("Solver " + solver + " failed",  !result);
-			/*Assert.assertTrue(var1.solution().startsWith("aa"));
-			Assert.assertTrue(var1.solution().indexOf("a") > 0);*/
+			assertTrue("Solver " + solver + " failed",  !result);
+			/*assertTrue(var1.solution().startsWith("aa"));
+			assertTrue(var1.solution().indexOf("a") > 0);*/
 			
 		}
 	}
@@ -729,9 +747,9 @@ public class TestSymString {
 			pc._addDet(Comparator.GT, var1._indexOf(new IntegerConstant((int) 'a')), 0);
 			boolean result = stringCurrentPC.simplify();
 			//System.out.printf("var1: '%s'\n", var1.solution());
-			Assert.assertTrue(result);
-			Assert.assertTrue(var1.solution().startsWith("bb"));
-			Assert.assertTrue(var1.solution().indexOf("a") > 0);
+			assertTrue(result);
+			assertTrue(var1.solution().startsWith("bb"));
+			assertTrue(var1.solution().indexOf("a") > 0);
 			
 		}
 	}
@@ -757,11 +775,11 @@ public class TestSymString {
 			pc._addDet(Comparator.EQ, var1._indexOf(new StringConstant("a"), new IntegerConstant(5)), si);
 			boolean result = stringCurrentPC.simplify();
 			//System.out.printf("var1: '%s'\n", var1.solution());
-			Assert.assertTrue("Solver " + solver + " failed",  result);
-			Assert.assertTrue(var1.solution().startsWith("aa"));
+			assertTrue("Solver " + solver + " failed",  result);
+			assertTrue(var1.solution().startsWith("aa"));
 			System.out.printf("var1.solution() '%s'\n", var1.solution());
 			System.out.printf("si.solution() '%s'\n", si.solution());
-			Assert.assertTrue(var1.solution().indexOf("a", 5) == si.solution());
+			assertTrue(var1.solution().indexOf("a", 5) == si.solution());
 			
 		}
 	}
@@ -785,9 +803,9 @@ public class TestSymString {
 			pc._addDet(Comparator.EQ, var1._indexOf(new StringConstant("a"), new IntegerConstant(5)), si);
 			boolean result = stringCurrentPC.simplify();
 			//System.out.printf("var1: '%s'\n", var1.solution());
-			Assert.assertTrue(result);
-			Assert.assertTrue(var1.solution().startsWith("bb"));
-			Assert.assertTrue(var1.solution().indexOf("a", 5) == si.solution());
+			assertTrue(result);
+			assertTrue(var1.solution().startsWith("bb"));
+			assertTrue(var1.solution().indexOf("a", 5) == si.solution());
 			
 		}
 	}
@@ -812,10 +830,10 @@ public class TestSymString {
 			pc._addDet(Comparator.GT, var1._indexOf(var2), 0);
 			boolean result = stringCurrentPC.simplify();
 			//System.out.printf("var1: '%s'\n", var1.solution());
-			Assert.assertTrue(result);
-			Assert.assertTrue(var1.solution().startsWith("aa"));
-			Assert.assertTrue(var2.solution().endsWith("bb"));
-			Assert.assertTrue(var1.solution().indexOf(var2.solution()) > 0);
+			assertTrue(result);
+			assertTrue(var1.solution().startsWith("aa"));
+			assertTrue(var2.solution().endsWith("bb"));
+			assertTrue(var1.solution().indexOf(var2.solution()) > 0);
 			
 		}
 	}
@@ -837,8 +855,8 @@ public class TestSymString {
 			pc._addDet(Comparator.EQ, var1._charAt(new IntegerConstant(1)), new IntegerConstant((int) 'a'));
 			boolean result = stringCurrentPC.simplify();
 			//System.out.printf("var1: '%s'\n", var1.solution());
-			Assert.assertTrue(result);
-			Assert.assertTrue(var1.solution().charAt(1) == 'a');
+			assertTrue(result);
+			assertTrue(var1.solution().charAt(1) == 'a');
 			
 		}
 	}
@@ -861,8 +879,8 @@ public class TestSymString {
 			boolean result = stringCurrentPC.simplify();
 			System.out.println(pc);
 			System.out.printf("var1: '%s'\n", var1.solution());
-			Assert.assertTrue(result);
-			Assert.assertTrue(var1.solution().charAt(1) != 'a');
+			assertTrue(result);
+			assertTrue(var1.solution().charAt(1) != 'a');
 		}
 	}
 	
@@ -884,8 +902,8 @@ public class TestSymString {
 			pc._addDet(Comparator.EQ, var1._charAt(new IntegerConstant(1)), si);
 			boolean result = stringCurrentPC.simplify();
 			//System.out.printf("var1: '%s'\n", var1.solution());
-			Assert.assertTrue(result);
-			Assert.assertTrue(var1.solution().charAt(1) == si.solution());
+			assertTrue(result);
+			assertTrue(var1.solution().charAt(1) == si.solution());
 			
 		}
 	}
@@ -910,7 +928,7 @@ public class TestSymString {
 			stringCurrentPC._addDet(StringComparator.EQUALS, var1, var2);
 			boolean result = stringCurrentPC.simplify();
 			//System.out.printf("var1: '%s'\n", var1.solution());
-			Assert.assertTrue(!result);
+			assertTrue(!result);
 		}
 	}
 	
@@ -934,8 +952,8 @@ public class TestSymString {
 			stringCurrentPC._addDet(StringComparator.NOTEQUALS, var1, var2);
 			boolean result = stringCurrentPC.simplify();
 			//System.out.printf("var1: '%s'\n", var1.solution());
-			Assert.assertTrue(result);
-			Assert.assertTrue(!var1.solution().equals(var2.solution()));
+			assertTrue(result);
+			assertTrue(!var1.solution().equals(var2.solution()));
 		}
 	}
 	
@@ -957,8 +975,8 @@ public class TestSymString {
 			stringCurrentPC._addDet(StringComparator.NOTEQUALS, var1, var2);
 			boolean result = stringCurrentPC.simplify();
 			//System.out.printf("var1: '%s'\n", var1.solution());
-			Assert.assertTrue(result);
-			Assert.assertTrue(!var1.solution().equals(var2.solution()));
+			assertTrue(result);
+			assertTrue(!var1.solution().equals(var2.solution()));
 		}
 	}
 	
@@ -980,8 +998,8 @@ public class TestSymString {
 			stringCurrentPC._addDet(StringComparator.EQUALS, var1, var2);
 			boolean result = stringCurrentPC.simplify();
 			//System.out.printf("var1: '%s'\n", var1.solution());
-			Assert.assertTrue(result);
-			Assert.assertTrue(var1.solution().equals(var2.solution()));
+			assertTrue(result);
+			assertTrue(var1.solution().equals(var2.solution()));
 		}
 	}
 	
@@ -1003,8 +1021,8 @@ public class TestSymString {
 			stringCurrentPC._addDet(StringComparator.EQUALS, var2, new StringConstant("ab"));
 			boolean result = stringCurrentPC.simplify();
 			//System.out.printf("var1: '%s'\n", var1.solution());
-			Assert.assertTrue(result);
-			Assert.assertTrue(var1.solution().trim().equals("ab"));
+			assertTrue(result);
+			assertTrue(var1.solution().trim().equals("ab"));
 		}
 	}
 	
@@ -1028,9 +1046,9 @@ public class TestSymString {
 			//System.out.println(stringCurrentPC);
 			boolean result = stringCurrentPC.simplify();
 			//System.out.printf("var1: '%s'\n", var1.solution());
-			Assert.assertTrue(solver + " failed", result);
-			Assert.assertTrue(var1.solution().trim().equals("ab"));
-			Assert.assertTrue(var1.solution().startsWith(" "));
+			assertTrue(solver + " failed", result);
+			assertTrue(var1.solution().trim().equals("ab"));
+			assertTrue(var1.solution().startsWith(" "));
 		}
 	}
 	
@@ -1054,8 +1072,8 @@ public class TestSymString {
 			//System.out.println(stringCurrentPC);
 			boolean result = stringCurrentPC.simplify();
 			//System.out.printf("var1: '%s'\n", var1.solution());
-			Assert.assertTrue(solver + " failed", result);
-			Assert.assertTrue(var1.solution().substring(1).equals(var2.solution()));
+			assertTrue(solver + " failed", result);
+			assertTrue(var1.solution().substring(1).equals(var2.solution()));
 		}
 	}
 	
@@ -1079,9 +1097,9 @@ public class TestSymString {
 			System.out.println(stringCurrentPC);
 			boolean result = stringCurrentPC.simplify();
 			//System.out.printf("var1: '%s'\n", var1.solution());
-			Assert.assertTrue(solver + " failed", result);
-			Assert.assertTrue(var2.solution().endsWith("a"));
-			Assert.assertTrue(var1.solution().startsWith(var2.solution()));
+			assertTrue(solver + " failed", result);
+			assertTrue(var2.solution().endsWith("a"));
+			assertTrue(var1.solution().startsWith(var2.solution()));
 		}
 	}
 	
@@ -1105,9 +1123,9 @@ public class TestSymString {
 			System.out.println(stringCurrentPC);
 			boolean result = stringCurrentPC.simplify();
 			//System.out.printf("var1: '%s'\n", var1.solution());
-			Assert.assertTrue(solver + " failed", result);
-			Assert.assertTrue(!var2.solution().endsWith("a"));
-			Assert.assertTrue(var1.solution().startsWith(var2.solution()));
+			assertTrue(solver + " failed", result);
+			assertTrue(!var2.solution().endsWith("a"));
+			assertTrue(var1.solution().startsWith(var2.solution()));
 		}
 	}
 	
@@ -1131,9 +1149,9 @@ public class TestSymString {
 			System.out.println(stringCurrentPC);
 			boolean result = stringCurrentPC.simplify();
 			//System.out.printf("var1: '%s'\n", var1.solution());
-			Assert.assertTrue(solver + " failed", result);
-			Assert.assertTrue(var2.solution().endsWith("a"));
-			Assert.assertTrue(!var1.solution().startsWith(var2.solution()));
+			assertTrue(solver + " failed", result);
+			assertTrue(var2.solution().endsWith("a"));
+			assertTrue(!var1.solution().startsWith(var2.solution()));
 		}
 	}
 	
@@ -1157,9 +1175,9 @@ public class TestSymString {
 			System.out.println(stringCurrentPC);
 			boolean result = stringCurrentPC.simplify();
 			//System.out.printf("var1: '%s'\n", var1.solution());
-			Assert.assertTrue(solver + " failed", result);
-			Assert.assertTrue(!var2.solution().endsWith("a"));
-			Assert.assertTrue(!var1.solution().startsWith(var2.solution()));
+			assertTrue(solver + " failed", result);
+			assertTrue(!var2.solution().endsWith("a"));
+			assertTrue(!var1.solution().startsWith(var2.solution()));
 		}
 	}
 	
@@ -1184,9 +1202,9 @@ public class TestSymString {
 			System.out.println(stringCurrentPC);
 			boolean result = stringCurrentPC.simplify();
 			//System.out.printf("var1: '%s'\n", var1.solution());
-			Assert.assertTrue(solver + " failed", result);
-			Assert.assertTrue(var2.solution().equals(var1.solution()));
-			Assert.assertTrue(var2.solution().equals(var3.solution()));
+			assertTrue(solver + " failed", result);
+			assertTrue(var2.solution().equals(var1.solution()));
+			assertTrue(var2.solution().equals(var3.solution()));
 		}
 	}
 	
@@ -1211,9 +1229,9 @@ public class TestSymString {
 			System.out.println(stringCurrentPC);
 			boolean result = stringCurrentPC.simplify();
 			//System.out.printf("var1: '%s'\n", var1.solution());
-			Assert.assertTrue(solver + " failed", result);
-			Assert.assertTrue(!var2.solution().equals(var1.solution()));
-			Assert.assertTrue(var2.solution().equals(var3.solution()));
+			assertTrue(solver + " failed", result);
+			assertTrue(!var2.solution().equals(var1.solution()));
+			assertTrue(var2.solution().equals(var3.solution()));
 		}
 	}
 	
@@ -1238,9 +1256,9 @@ public class TestSymString {
 			System.out.println(stringCurrentPC);
 			boolean result = stringCurrentPC.simplify();
 			//System.out.printf("var1: '%s'\n", var1.solution());
-			Assert.assertTrue(solver + " failed", result);
-			Assert.assertTrue(var2.solution().equals(var1.solution()));
-			Assert.assertTrue(!var2.solution().equals(var3.solution()));
+			assertTrue(solver + " failed", result);
+			assertTrue(var2.solution().equals(var1.solution()));
+			assertTrue(!var2.solution().equals(var3.solution()));
 		}
 	}
 	
@@ -1267,9 +1285,9 @@ public class TestSymString {
 			System.out.printf("var1: '%s'\n", var1.solution());
 			System.out.printf("var2: '%s'\n", var2.solution());
 			System.out.printf("var3: '%s'\n", var3.solution());
-			Assert.assertTrue(solver + " failed", result);
-			Assert.assertTrue(!var2.solution().equals(var1.solution()));
-			Assert.assertTrue(!var2.solution().equals(var3.solution()));
+			assertTrue(solver + " failed", result);
+			assertTrue(!var2.solution().equals(var1.solution()));
+			assertTrue(!var2.solution().equals(var3.solution()));
 		}
 	}
 	
@@ -1296,10 +1314,10 @@ public class TestSymString {
 			System.out.println(stringCurrentPC);
 			boolean result = stringCurrentPC.simplify();
 			//System.out.printf("var1: '%s'\n", var1.solution());
-			Assert.assertTrue(solver + " failed", result);
-			Assert.assertTrue(var2.solution().equals(var1.solution()));
-			Assert.assertTrue(var2.solution().equals(var3.solution()));
-			Assert.assertTrue(var3.solution().equals(var4.solution()));
+			assertTrue(solver + " failed", result);
+			assertTrue(var2.solution().equals(var1.solution()));
+			assertTrue(var2.solution().equals(var3.solution()));
+			assertTrue(var3.solution().equals(var4.solution()));
 		}
 	}
 	
@@ -1326,10 +1344,10 @@ public class TestSymString {
 			System.out.println(stringCurrentPC);
 			boolean result = stringCurrentPC.simplify();
 			//System.out.printf("var1: '%s'\n", var1.solution());
-			Assert.assertTrue(solver + " failed", result);
-			Assert.assertTrue(!var2.solution().equals(var1.solution()));
-			Assert.assertTrue(var2.solution().equals(var3.solution()));
-			Assert.assertTrue(var3.solution().equals(var4.solution()));
+			assertTrue(solver + " failed", result);
+			assertTrue(!var2.solution().equals(var1.solution()));
+			assertTrue(var2.solution().equals(var3.solution()));
+			assertTrue(var3.solution().equals(var4.solution()));
 		}
 	}
 	
@@ -1356,10 +1374,10 @@ public class TestSymString {
 			System.out.println(stringCurrentPC);
 			boolean result = stringCurrentPC.simplify();
 			//System.out.printf("var1: '%s'\n", var1.solution());
-			Assert.assertTrue(solver + " failed", result);
-			Assert.assertTrue(var2.solution().equals(var1.solution()));
-			Assert.assertTrue(!var2.solution().equals(var3.solution()));
-			Assert.assertTrue(var3.solution().equals(var4.solution()));
+			assertTrue(solver + " failed", result);
+			assertTrue(var2.solution().equals(var1.solution()));
+			assertTrue(!var2.solution().equals(var3.solution()));
+			assertTrue(var3.solution().equals(var4.solution()));
 		}
 	}
 	
@@ -1386,10 +1404,10 @@ public class TestSymString {
 			System.out.println(stringCurrentPC);
 			boolean result = stringCurrentPC.simplify();
 			//System.out.printf("var1: '%s'\n", var1.solution());
-			Assert.assertTrue(solver + " failed", result);
-			Assert.assertTrue(!var2.solution().equals(var1.solution()));
-			Assert.assertTrue(!var2.solution().equals(var3.solution()));
-			Assert.assertTrue(var3.solution().equals(var4.solution()));
+			assertTrue(solver + " failed", result);
+			assertTrue(!var2.solution().equals(var1.solution()));
+			assertTrue(!var2.solution().equals(var3.solution()));
+			assertTrue(var3.solution().equals(var4.solution()));
 		}
 	}
 	
@@ -1416,10 +1434,10 @@ public class TestSymString {
 			System.out.println(stringCurrentPC);
 			boolean result = stringCurrentPC.simplify();
 			//System.out.printf("var1: '%s'\n", var1.solution());
-			Assert.assertTrue(solver + " failed", result);
-			Assert.assertTrue(var2.solution().equals(var1.solution()));
-			Assert.assertTrue(var2.solution().equals(var3.solution()));
-			Assert.assertTrue(!var3.solution().equals(var4.solution()));
+			assertTrue(solver + " failed", result);
+			assertTrue(var2.solution().equals(var1.solution()));
+			assertTrue(var2.solution().equals(var3.solution()));
+			assertTrue(!var3.solution().equals(var4.solution()));
 		}
 	}
 	
@@ -1446,10 +1464,10 @@ public class TestSymString {
 			System.out.println(stringCurrentPC);
 			boolean result = stringCurrentPC.simplify();
 			//System.out.printf("var1: '%s'\n", var1.solution());
-			Assert.assertTrue(solver + " failed", result);
-			Assert.assertTrue(!var2.solution().equals(var1.solution()));
-			Assert.assertTrue(var2.solution().equals(var3.solution()));
-			Assert.assertTrue(!var3.solution().equals(var4.solution()));
+			assertTrue(solver + " failed", result);
+			assertTrue(!var2.solution().equals(var1.solution()));
+			assertTrue(var2.solution().equals(var3.solution()));
+			assertTrue(!var3.solution().equals(var4.solution()));
 		}
 	}
 	
@@ -1476,10 +1494,10 @@ public class TestSymString {
 			System.out.println(stringCurrentPC);
 			boolean result = stringCurrentPC.simplify();
 			//System.out.printf("var1: '%s'\n", var1.solution());
-			Assert.assertTrue(solver + " failed", result);
-			Assert.assertTrue(var2.solution().equals(var1.solution()));
-			Assert.assertTrue(!var2.solution().equals(var3.solution()));
-			Assert.assertTrue(!var3.solution().equals(var4.solution()));
+			assertTrue(solver + " failed", result);
+			assertTrue(var2.solution().equals(var1.solution()));
+			assertTrue(!var2.solution().equals(var3.solution()));
+			assertTrue(!var3.solution().equals(var4.solution()));
 		}
 	}
 	
@@ -1506,10 +1524,10 @@ public class TestSymString {
 			System.out.println(stringCurrentPC);
 			boolean result = stringCurrentPC.simplify();
 			//System.out.printf("var1: '%s'\n", var1.solution());
-			Assert.assertTrue(solver + " failed", result);
-			Assert.assertTrue(!var2.solution().equals(var1.solution()));
-			Assert.assertTrue(!var2.solution().equals(var3.solution()));
-			Assert.assertTrue(!var3.solution().equals(var4.solution()));
+			assertTrue(solver + " failed", result);
+			assertTrue(!var2.solution().equals(var1.solution()));
+			assertTrue(!var2.solution().equals(var3.solution()));
+			assertTrue(!var3.solution().equals(var4.solution()));
 		}
 	}
 	
@@ -1537,11 +1555,11 @@ public class TestSymString {
 			System.out.println(stringCurrentPC);
 			boolean result = stringCurrentPC.simplify();
 			//System.out.printf("var1: '%s'\n", var1.solution());
-			Assert.assertTrue(solver + " failed", result);
-			Assert.assertTrue(var2.solution().equals(var1.solution()));
-			Assert.assertTrue(var2.solution().equals(var3.solution()));
-			Assert.assertTrue(var3.solution().equals(var4.solution()));
-			Assert.assertTrue(var4.solution().equals(var1.solution()));
+			assertTrue(solver + " failed", result);
+			assertTrue(var2.solution().equals(var1.solution()));
+			assertTrue(var2.solution().equals(var3.solution()));
+			assertTrue(var3.solution().equals(var4.solution()));
+			assertTrue(var4.solution().equals(var1.solution()));
 		}
 	}
 	
@@ -1569,7 +1587,7 @@ public class TestSymString {
 			System.out.println(stringCurrentPC);
 			boolean result = stringCurrentPC.simplify();
 			//System.out.printf("var1: '%s'\n", var1.solution());
-			Assert.assertTrue(solver + " failed", !result);
+			assertTrue(solver + " failed", !result);
 		}
 	}
 	
@@ -1597,7 +1615,7 @@ public class TestSymString {
 			System.out.println(stringCurrentPC);
 			boolean result = stringCurrentPC.simplify();
 			//System.out.printf("var1: '%s'\n", var1.solution());
-			Assert.assertTrue(solver + " failed", !result);
+			assertTrue(solver + " failed", !result);
 		}
 	}
 	
@@ -1625,11 +1643,11 @@ public class TestSymString {
 			System.out.println(stringCurrentPC);
 			boolean result = stringCurrentPC.simplify();
 			//System.out.printf("var1: '%s'\n", var1.solution());
-			Assert.assertTrue(solver + " failed", result);
-			Assert.assertTrue(!var2.solution().equals(var1.solution()));
-			Assert.assertTrue(!var2.solution().equals(var3.solution()));
-			Assert.assertTrue(var3.solution().equals(var4.solution()));
-			Assert.assertTrue(var4.solution().equals(var1.solution()));
+			assertTrue(solver + " failed", result);
+			assertTrue(!var2.solution().equals(var1.solution()));
+			assertTrue(!var2.solution().equals(var3.solution()));
+			assertTrue(var3.solution().equals(var4.solution()));
+			assertTrue(var4.solution().equals(var1.solution()));
 		}
 	}
 	
@@ -1657,7 +1675,7 @@ public class TestSymString {
 			System.out.println(stringCurrentPC);
 			boolean result = stringCurrentPC.simplify();
 			//System.out.printf("var1: '%s'\n", var1.solution());
-			Assert.assertTrue(solver + " failed", !result);
+			assertTrue(solver + " failed", !result);
 		}
 	}
 	
@@ -1685,11 +1703,11 @@ public class TestSymString {
 			System.out.println(stringCurrentPC);
 			boolean result = stringCurrentPC.simplify();
 			//System.out.printf("var1: '%s'\n", var1.solution());
-			Assert.assertTrue(solver + " failed", result);
-			Assert.assertTrue(!var2.solution().equals(var1.solution()));
-			Assert.assertTrue(var2.solution().equals(var3.solution()));
-			Assert.assertTrue(!var3.solution().equals(var4.solution()));
-			Assert.assertTrue(var4.solution().equals(var1.solution()));
+			assertTrue(solver + " failed", result);
+			assertTrue(!var2.solution().equals(var1.solution()));
+			assertTrue(var2.solution().equals(var3.solution()));
+			assertTrue(!var3.solution().equals(var4.solution()));
+			assertTrue(var4.solution().equals(var1.solution()));
 		}
 	}
 	
@@ -1717,11 +1735,11 @@ public class TestSymString {
 			System.out.println(stringCurrentPC);
 			boolean result = stringCurrentPC.simplify();
 			//System.out.printf("var1: '%s'\n", var1.solution());
-			Assert.assertTrue(solver + " failed", result);
-			Assert.assertTrue(var2.solution().equals(var1.solution()));
-			Assert.assertTrue(!var2.solution().equals(var3.solution()));
-			Assert.assertTrue(!var3.solution().equals(var4.solution()));
-			Assert.assertTrue(var4.solution().equals(var1.solution()));
+			assertTrue(solver + " failed", result);
+			assertTrue(var2.solution().equals(var1.solution()));
+			assertTrue(!var2.solution().equals(var3.solution()));
+			assertTrue(!var3.solution().equals(var4.solution()));
+			assertTrue(var4.solution().equals(var1.solution()));
 		}
 	}
 	
@@ -1749,11 +1767,11 @@ public class TestSymString {
 			System.out.println(stringCurrentPC);
 			boolean result = stringCurrentPC.simplify();
 			//System.out.printf("var1: '%s'\n", var1.solution());
-			Assert.assertTrue(solver + " failed", result);
-			Assert.assertTrue(!var2.solution().equals(var1.solution()));
-			Assert.assertTrue(!var2.solution().equals(var3.solution()));
-			Assert.assertTrue(!var3.solution().equals(var4.solution()));
-			Assert.assertTrue(var4.solution().equals(var1.solution()));
+			assertTrue(solver + " failed", result);
+			assertTrue(!var2.solution().equals(var1.solution()));
+			assertTrue(!var2.solution().equals(var3.solution()));
+			assertTrue(!var3.solution().equals(var4.solution()));
+			assertTrue(var4.solution().equals(var1.solution()));
 		}
 	}
 	
@@ -1781,7 +1799,7 @@ public class TestSymString {
 			System.out.println(stringCurrentPC);
 			boolean result = stringCurrentPC.simplify();
 			//System.out.printf("var1: '%s'\n", var1.solution());
-			Assert.assertTrue(solver + " failed", !result);
+			assertTrue(solver + " failed", !result);
 		}
 	}
 	
@@ -1809,11 +1827,11 @@ public class TestSymString {
 			System.out.println(stringCurrentPC);
 			boolean result = stringCurrentPC.simplify();
 			//System.out.printf("var1: '%s'\n", var1.solution());
-			Assert.assertTrue(solver + " failed", result);
-			Assert.assertTrue(!var2.solution().equals(var1.solution()));
-			Assert.assertTrue(var2.solution().equals(var3.solution()));
-			Assert.assertTrue(var3.solution().equals(var4.solution()));
-			Assert.assertTrue(!var4.solution().equals(var1.solution()));
+			assertTrue(solver + " failed", result);
+			assertTrue(!var2.solution().equals(var1.solution()));
+			assertTrue(var2.solution().equals(var3.solution()));
+			assertTrue(var3.solution().equals(var4.solution()));
+			assertTrue(!var4.solution().equals(var1.solution()));
 		}
 	}
 	
@@ -1841,11 +1859,11 @@ public class TestSymString {
 			System.out.println(stringCurrentPC);
 			boolean result = stringCurrentPC.simplify();
 			//System.out.printf("var1: '%s'\n", var1.solution());
-			Assert.assertTrue(solver + " failed", result);
-			Assert.assertTrue(var2.solution().equals(var1.solution()));
-			Assert.assertTrue(!var2.solution().equals(var3.solution()));
-			Assert.assertTrue(var3.solution().equals(var4.solution()));
-			Assert.assertTrue(!var4.solution().equals(var1.solution()));
+			assertTrue(solver + " failed", result);
+			assertTrue(var2.solution().equals(var1.solution()));
+			assertTrue(!var2.solution().equals(var3.solution()));
+			assertTrue(var3.solution().equals(var4.solution()));
+			assertTrue(!var4.solution().equals(var1.solution()));
 		}
 	}
 	
@@ -1873,11 +1891,11 @@ public class TestSymString {
 			System.out.println(stringCurrentPC);
 			boolean result = stringCurrentPC.simplify();
 			//System.out.printf("var1: '%s'\n", var1.solution());
-			Assert.assertTrue(solver + " failed", result);
-			Assert.assertTrue(!var2.solution().equals(var1.solution()));
-			Assert.assertTrue(!var2.solution().equals(var3.solution()));
-			Assert.assertTrue(var3.solution().equals(var4.solution()));
-			Assert.assertTrue(!var4.solution().equals(var1.solution()));
+			assertTrue(solver + " failed", result);
+			assertTrue(!var2.solution().equals(var1.solution()));
+			assertTrue(!var2.solution().equals(var3.solution()));
+			assertTrue(var3.solution().equals(var4.solution()));
+			assertTrue(!var4.solution().equals(var1.solution()));
 		}
 	}
 	
@@ -1905,11 +1923,11 @@ public class TestSymString {
 			System.out.println(stringCurrentPC);
 			boolean result = stringCurrentPC.simplify();
 			//System.out.printf("var1: '%s'\n", var1.solution());
-			Assert.assertTrue(solver + " failed", result);
-			Assert.assertTrue(var2.solution().equals(var1.solution()));
-			Assert.assertTrue(var2.solution().equals(var3.solution()));
-			Assert.assertTrue(!var3.solution().equals(var4.solution()));
-			Assert.assertTrue(!var4.solution().equals(var1.solution()));
+			assertTrue(solver + " failed", result);
+			assertTrue(var2.solution().equals(var1.solution()));
+			assertTrue(var2.solution().equals(var3.solution()));
+			assertTrue(!var3.solution().equals(var4.solution()));
+			assertTrue(!var4.solution().equals(var1.solution()));
 		}
 	}
 	
@@ -1937,11 +1955,11 @@ public class TestSymString {
 			System.out.println(stringCurrentPC);
 			boolean result = stringCurrentPC.simplify();
 			//System.out.printf("var1: '%s'\n", var1.solution());
-			Assert.assertTrue(solver + " failed", result);
-			Assert.assertTrue(!var2.solution().equals(var1.solution()));
-			Assert.assertTrue(var2.solution().equals(var3.solution()));
-			Assert.assertTrue(!var3.solution().equals(var4.solution()));
-			Assert.assertTrue(!var4.solution().equals(var1.solution()));
+			assertTrue(solver + " failed", result);
+			assertTrue(!var2.solution().equals(var1.solution()));
+			assertTrue(var2.solution().equals(var3.solution()));
+			assertTrue(!var3.solution().equals(var4.solution()));
+			assertTrue(!var4.solution().equals(var1.solution()));
 		}
 	}
 	
@@ -1969,11 +1987,11 @@ public class TestSymString {
 			System.out.println(stringCurrentPC);
 			boolean result = stringCurrentPC.simplify();
 			//System.out.printf("var1: '%s'\n", var1.solution());
-			Assert.assertTrue(solver + " failed", result);
-			Assert.assertTrue(var2.solution().equals(var1.solution()));
-			Assert.assertTrue(!var2.solution().equals(var3.solution()));
-			Assert.assertTrue(!var3.solution().equals(var4.solution()));
-			Assert.assertTrue(!var4.solution().equals(var1.solution()));
+			assertTrue(solver + " failed", result);
+			assertTrue(var2.solution().equals(var1.solution()));
+			assertTrue(!var2.solution().equals(var3.solution()));
+			assertTrue(!var3.solution().equals(var4.solution()));
+			assertTrue(!var4.solution().equals(var1.solution()));
 		}
 	}
 	
@@ -2001,11 +2019,11 @@ public class TestSymString {
 			System.out.println(stringCurrentPC);
 			boolean result = stringCurrentPC.simplify();
 			//System.out.printf("var1: '%s'\n", var1.solution());
-			Assert.assertTrue(solver + " failed", result);
-			Assert.assertTrue(!var2.solution().equals(var1.solution()));
-			Assert.assertTrue(!var2.solution().equals(var3.solution()));
-			Assert.assertTrue(!var3.solution().equals(var4.solution()));
-			Assert.assertTrue(!var4.solution().equals(var1.solution()));
+			assertTrue(solver + " failed", result);
+			assertTrue(!var2.solution().equals(var1.solution()));
+			assertTrue(!var2.solution().equals(var3.solution()));
+			assertTrue(!var3.solution().equals(var4.solution()));
+			assertTrue(!var4.solution().equals(var1.solution()));
 		}
 	}
 	
@@ -2031,10 +2049,10 @@ public class TestSymString {
 			System.out.println(stringCurrentPC);
 			boolean result = stringCurrentPC.simplify();
 			//System.out.printf("var1: '%s'\n", var1.solution());
-			Assert.assertTrue(solver + " failed", result);
-			Assert.assertTrue(var2.solution().equals(var1.solution()));
-			Assert.assertTrue(var1.solution().startsWith("aa"));
-			Assert.assertTrue(var2.solution().startsWith(var3.solution()));
+			assertTrue(solver + " failed", result);
+			assertTrue(var2.solution().equals(var1.solution()));
+			assertTrue(var1.solution().startsWith("aa"));
+			assertTrue(var2.solution().startsWith(var3.solution()));
 		}
 	}
 	
@@ -2058,8 +2076,8 @@ public class TestSymString {
 			System.out.println(stringCurrentPC);
 			boolean result = stringCurrentPC.simplify();
 			//System.out.printf("var1: '%s'\n", var1.solution());
-			Assert.assertTrue(solver + " failed", result);
-			Assert.assertTrue(var1.solution().concat(var2.solution()).equals("abc"));
+			assertTrue(solver + " failed", result);
+			assertTrue(var1.solution().concat(var2.solution()).equals("abc"));
 		}
 	}
 	
@@ -2083,8 +2101,8 @@ public class TestSymString {
 			System.out.println(stringCurrentPC);
 			boolean result = stringCurrentPC.simplify();
 			//System.out.printf("var1: '%s'\n", var1.solution());
-			Assert.assertTrue(solver + " failed", result);
-			Assert.assertTrue(!var1.solution().concat(var2.solution()).equals("abc"));
+			assertTrue(solver + " failed", result);
+			assertTrue(!var1.solution().concat(var2.solution()).equals("abc"));
 		}
 	}
 	
@@ -2108,8 +2126,8 @@ public class TestSymString {
 			System.out.println(stringCurrentPC);
 			boolean result = stringCurrentPC.simplify();
 			//System.out.printf("var1: '%s'\n", var1.solution());
-			Assert.assertTrue(solver + " failed", result);
-			Assert.assertTrue(var1.solution().concat(var2.solution()).equals("abc"));
+			assertTrue(solver + " failed", result);
+			assertTrue(var1.solution().concat(var2.solution()).equals("abc"));
 		}
 	}
 	
@@ -2133,8 +2151,8 @@ public class TestSymString {
 			System.out.println(stringCurrentPC);
 			boolean result = stringCurrentPC.simplify();
 			//System.out.printf("var1: '%s'\n", var1.solution());
-			Assert.assertTrue(solver + " failed", result);
-			Assert.assertTrue(!var1.solution().concat(var2.solution()).equals("abc"));
+			assertTrue(solver + " failed", result);
+			assertTrue(!var1.solution().concat(var2.solution()).equals("abc"));
 		}
 	}
 	
@@ -2158,8 +2176,8 @@ public class TestSymString {
 			System.out.println(stringCurrentPC);
 			boolean result = stringCurrentPC.simplify();
 			//System.out.printf("var1: '%s'\n", var1.solution());
-			Assert.assertTrue(solver + " failed", result);
-			Assert.assertTrue(var1.solution().concat(var2.solution()).equals("abc"));
+			assertTrue(solver + " failed", result);
+			assertTrue(var1.solution().concat(var2.solution()).equals("abc"));
 		}
 	}
 	
@@ -2183,8 +2201,8 @@ public class TestSymString {
 			System.out.println(stringCurrentPC);
 			boolean result = stringCurrentPC.simplify();
 			//System.out.printf("var1: '%s'\n", var1.solution());
-			Assert.assertTrue(solver + " failed", result);
-			Assert.assertTrue(!var1.solution().concat(var2.solution()).equals("abc"));
+			assertTrue(solver + " failed", result);
+			assertTrue(!var1.solution().concat(var2.solution()).equals("abc"));
 		}
 	}
 	
@@ -2209,8 +2227,8 @@ public class TestSymString {
 			System.out.println(stringCurrentPC);
 			boolean result = stringCurrentPC.simplify();
 			//System.out.printf("var1: '%s'\n", var1.solution());
-			Assert.assertTrue(solver + " failed", result);
-			Assert.assertTrue(var4.solution().equals("abc"));
+			assertTrue(solver + " failed", result);
+			assertTrue(var4.solution().equals("abc"));
 		}
 	}
 	
@@ -2235,8 +2253,8 @@ public class TestSymString {
 			System.out.println(stringCurrentPC);
 			boolean result = stringCurrentPC.simplify();
 			//System.out.printf("var1: '%s'\n", var1.solution());
-			Assert.assertTrue(solver + " failed", result);
-			Assert.assertTrue(!var4.solution().equals("abc"));
+			assertTrue(solver + " failed", result);
+			assertTrue(!var4.solution().equals("abc"));
 		}
 	}
 	
@@ -2259,9 +2277,9 @@ public class TestSymString {
 			System.out.println(stringCurrentPC);
 			boolean result = stringCurrentPC.simplify();
 			//System.out.printf("var1: '%s'\n", var1.solution());
-			Assert.assertTrue(solver + " failed", result);
-			Assert.assertTrue(var1.solution().startsWith("abc"));
-			Assert.assertTrue(var1.solution().length() > 5);
+			assertTrue(solver + " failed", result);
+			assertTrue(var1.solution().startsWith("abc"));
+			assertTrue(var1.solution().length() > 5);
 		}
 	}
 	
@@ -2284,9 +2302,9 @@ public class TestSymString {
 			System.out.println(stringCurrentPC);
 			boolean result = stringCurrentPC.simplify();
 			//System.out.printf("var1: '%s'\n", var1.solution());
-			Assert.assertTrue(solver + " failed", result);
-			Assert.assertTrue(!var1.solution().startsWith("abc"));
-			Assert.assertTrue(var1.solution().length() > 5);
+			assertTrue(solver + " failed", result);
+			assertTrue(!var1.solution().startsWith("abc"));
+			assertTrue(var1.solution().length() > 5);
 		}
 	}
 	
@@ -2309,9 +2327,9 @@ public class TestSymString {
 			System.out.println(stringCurrentPC);
 			boolean result = stringCurrentPC.simplify();
 			//System.out.printf("var1: '%s'\n", var1.solution());
-			Assert.assertTrue(solver + " failed", result);
-			Assert.assertTrue(var1.solution().startsWith("abc"));
-			Assert.assertTrue(var1.solution().length() <= 5);
+			assertTrue(solver + " failed", result);
+			assertTrue(var1.solution().startsWith("abc"));
+			assertTrue(var1.solution().length() <= 5);
 		}
 	}
 	
@@ -2334,9 +2352,9 @@ public class TestSymString {
 			System.out.println(stringCurrentPC);
 			boolean result = stringCurrentPC.simplify();
 			//System.out.printf("var1: '%s'\n", var1.solution());
-			Assert.assertTrue(solver + " failed", result);
-			Assert.assertTrue(!var1.solution().startsWith("abc"));
-			Assert.assertTrue(var1.solution().length() <= 5);
+			assertTrue(solver + " failed", result);
+			assertTrue(!var1.solution().startsWith("abc"));
+			assertTrue(var1.solution().length() <= 5);
 		}
 	}
 	
@@ -2359,9 +2377,9 @@ public class TestSymString {
 			System.out.println(stringCurrentPC);
 			boolean result = stringCurrentPC.simplify();
 			//System.out.printf("var1: '%s'\n", var1.solution());
-			Assert.assertTrue(solver + " failed", result);
-			Assert.assertTrue(var1.solution().startsWith("aa"));
-			Assert.assertTrue(var1.solution().charAt(5) == 'c');
+			assertTrue(solver + " failed", result);
+			assertTrue(var1.solution().startsWith("aa"));
+			assertTrue(var1.solution().charAt(5) == 'c');
 		}
 	}
 	
@@ -2384,9 +2402,9 @@ public class TestSymString {
 			System.out.println(stringCurrentPC);
 			boolean result = stringCurrentPC.simplify();
 			//System.out.printf("var1: '%s'\n", var1.solution());
-			Assert.assertTrue(solver + " failed", result);
-			Assert.assertTrue(!var1.solution().startsWith("aa"));
-			Assert.assertTrue(var1.solution().charAt(5) == 'c');
+			assertTrue(solver + " failed", result);
+			assertTrue(!var1.solution().startsWith("aa"));
+			assertTrue(var1.solution().charAt(5) == 'c');
 		}
 	}
 	
@@ -2409,9 +2427,9 @@ public class TestSymString {
 			System.out.println(stringCurrentPC);
 			boolean result = stringCurrentPC.simplify();
 			//System.out.printf("var1: '%s'\n", var1.solution());
-			Assert.assertTrue(solver + " failed", result);
-			Assert.assertTrue(var1.solution().startsWith("aa"));
-			Assert.assertTrue(var1.solution().charAt(5) != 'c');
+			assertTrue(solver + " failed", result);
+			assertTrue(var1.solution().startsWith("aa"));
+			assertTrue(var1.solution().charAt(5) != 'c');
 		}
 	}
 	
@@ -2434,9 +2452,9 @@ public class TestSymString {
 			System.out.println(stringCurrentPC);
 			boolean result = stringCurrentPC.simplify();
 			//System.out.printf("var1: '%s'\n", var1.solution());
-			Assert.assertTrue(solver + " failed", result);
-			Assert.assertTrue(!var1.solution().startsWith("aa"));
-			Assert.assertTrue(var1.solution().charAt(5) != 'c');
+			assertTrue(solver + " failed", result);
+			assertTrue(!var1.solution().startsWith("aa"));
+			assertTrue(var1.solution().charAt(5) != 'c');
 		}
 	}
 	
@@ -2459,9 +2477,9 @@ public class TestSymString {
 			System.out.println(stringCurrentPC);
 			boolean result = stringCurrentPC.simplify();
 			//System.out.printf("var1: '%s'\n", var1.solution());
-			Assert.assertTrue(solver + " failed", result);
-			Assert.assertTrue(var1.solution().startsWith("aa"));
-			Assert.assertTrue(var1.solution().charAt(1) == 'a');
+			assertTrue(solver + " failed", result);
+			assertTrue(var1.solution().startsWith("aa"));
+			assertTrue(var1.solution().charAt(1) == 'a');
 		}
 	}
 	
@@ -2484,9 +2502,9 @@ public class TestSymString {
 			System.out.println(stringCurrentPC);
 			boolean result = stringCurrentPC.simplify();
 			//System.out.printf("var1: '%s'\n", var1.solution());
-			Assert.assertTrue(solver + " failed", result);
-			Assert.assertTrue(!var1.solution().startsWith("aa"));
-			Assert.assertTrue(var1.solution().charAt(1) == 'a');
+			assertTrue(solver + " failed", result);
+			assertTrue(!var1.solution().startsWith("aa"));
+			assertTrue(var1.solution().charAt(1) == 'a');
 		}
 	}
 	
@@ -2509,7 +2527,7 @@ public class TestSymString {
 			System.out.println(stringCurrentPC);
 			boolean result = stringCurrentPC.simplify();
 			//System.out.printf("var1: '%s'\n", var1.solution());
-			Assert.assertTrue(solver + " failed", !result);
+			assertTrue(solver + " failed", !result);
 		}
 	}
 	
@@ -2532,9 +2550,9 @@ public class TestSymString {
 			System.out.println(stringCurrentPC);
 			boolean result = stringCurrentPC.simplify();
 			//System.out.printf("var1: '%s'\n", var1.solution());
-			Assert.assertTrue(solver + " failed", result);
-			Assert.assertTrue(!var1.solution().startsWith("aa"));
-			Assert.assertTrue(var1.solution().charAt(1) != 'a');
+			assertTrue(solver + " failed", result);
+			assertTrue(!var1.solution().startsWith("aa"));
+			assertTrue(var1.solution().charAt(1) != 'a');
 		}
 	}
 	
@@ -2558,9 +2576,9 @@ public class TestSymString {
 			System.out.println(stringCurrentPC);
 			boolean result = stringCurrentPC.simplify();
 			//System.out.printf("var1: '%s'\n", var1.solution());
-			Assert.assertTrue(solver + " failed", result);
-			Assert.assertTrue(var1.solution().startsWith("aa"));
-			Assert.assertTrue(var1.solution().charAt(si.solution()) == 'a');
+			assertTrue(solver + " failed", result);
+			assertTrue(var1.solution().startsWith("aa"));
+			assertTrue(var1.solution().charAt(si.solutionInt()) == 'a');
 		}
 	}
 	
@@ -2584,15 +2602,15 @@ public class TestSymString {
 			System.out.println(stringCurrentPC);
 			boolean result = stringCurrentPC.simplify();
 			//System.out.printf("var1: '%s'\n", var1.solution());
-			Assert.assertTrue(solver + " failed", result);
-			Assert.assertTrue(!var1.solution().startsWith("aa"));
-			Assert.assertTrue(var1.solution().charAt(si.solution()) == 'a');
+			assertTrue(solver + " failed", result);
+			assertTrue(!var1.solution().startsWith("aa"));
+			assertTrue(var1.solution().charAt(si.solutionInt()) == 'a');
 		}
 	}
 	
 	@Test
 	public void Test31_3 () {
-		//Assert.assertTrue(false);
+		//assertTrue(false);
 		
 		
 		
@@ -2612,9 +2630,9 @@ public class TestSymString {
 			System.out.println(stringCurrentPC);
 			boolean result = stringCurrentPC.simplify();
 			System.out.printf("var1: '%s'\n", var1.solution());
-			Assert.assertTrue(solver + " failed", result);
-			Assert.assertTrue(var1.solution().startsWith("aa"));
-			Assert.assertTrue(var1.solution().charAt(si.solution()) != 'a');
+			assertTrue(solver + " failed", result);
+			assertTrue(var1.solution().startsWith("aa"));
+			assertTrue(var1.solution().charAt(si.solutionInt()) != 'a');
 		}
 	}
 	
@@ -2638,9 +2656,9 @@ public class TestSymString {
 			System.out.println(stringCurrentPC);
 			boolean result = stringCurrentPC.simplify();
 			//System.out.printf("var1: '%s'\n", var1.solution());
-			Assert.assertTrue(solver + " failed", result);
-			Assert.assertTrue(!var1.solution().startsWith("aa"));
-			Assert.assertTrue(var1.solution().charAt(si.solution()) != 'a');
+			assertTrue(solver + " failed", result);
+			assertTrue(!var1.solution().startsWith("aa"));
+			assertTrue(var1.solution().charAt(si.solutionInt()) != 'a');
 		}
 	}
 	
@@ -2663,9 +2681,9 @@ public class TestSymString {
 			System.out.println(stringCurrentPC);
 			boolean result = stringCurrentPC.simplify();
 			//System.out.printf("var1: '%s'\n", var1.solution());
-			Assert.assertTrue(solver + " failed", result);
-			Assert.assertTrue(var1.solution().endsWith("aa"));
-			Assert.assertTrue(var1.solution().charAt(0) == 'a');
+			assertTrue(solver + " failed", result);
+			assertTrue(var1.solution().endsWith("aa"));
+			assertTrue(var1.solution().charAt(0) == 'a');
 		}
 	}
 	
@@ -2688,9 +2706,9 @@ public class TestSymString {
 			System.out.println(stringCurrentPC);
 			boolean result = stringCurrentPC.simplify();
 			//System.out.printf("var1: '%s'\n", var1.solution());
-			Assert.assertTrue(solver + " failed", result);
-			Assert.assertTrue(!var1.solution().endsWith("aa"));
-			Assert.assertTrue(var1.solution().charAt(0) == 'a');
+			assertTrue(solver + " failed", result);
+			assertTrue(!var1.solution().endsWith("aa"));
+			assertTrue(var1.solution().charAt(0) == 'a');
 		}
 	}
 	
@@ -2713,9 +2731,9 @@ public class TestSymString {
 			System.out.println(stringCurrentPC);
 			boolean result = stringCurrentPC.simplify();
 			//System.out.printf("var1: '%s'\n", var1.solution());
-			Assert.assertTrue(solver + " failed", result);
-			Assert.assertTrue(var1.solution().endsWith("aa"));
-			Assert.assertTrue(var1.solution().charAt(0) != 'a');
+			assertTrue(solver + " failed", result);
+			assertTrue(var1.solution().endsWith("aa"));
+			assertTrue(var1.solution().charAt(0) != 'a');
 		}
 	}
 	
@@ -2738,9 +2756,9 @@ public class TestSymString {
 			System.out.println(stringCurrentPC);
 			boolean result = stringCurrentPC.simplify();
 			//System.out.printf("var1: '%s'\n", var1.solution());
-			Assert.assertTrue(solver + " failed", result);
-			Assert.assertTrue(!var1.solution().endsWith("aa"));
-			Assert.assertTrue(var1.solution().charAt(0) != 'a');
+			assertTrue(solver + " failed", result);
+			assertTrue(!var1.solution().endsWith("aa"));
+			assertTrue(var1.solution().charAt(0) != 'a');
 		}
 	}
 	
@@ -2763,8 +2781,8 @@ public class TestSymString {
 			System.out.println(stringCurrentPC);
 			boolean result = stringCurrentPC.simplify();
 			//System.out.printf("var1: '%s'\n", var1.solution());
-			Assert.assertTrue(solver + " failed", result);
-			Assert.assertTrue(var1.solution().substring(3,5).equals("aa"));
+			assertTrue(solver + " failed", result);
+			assertTrue(var1.solution().substring(3,5).equals("aa"));
 		}
 	}
 	
@@ -2787,8 +2805,8 @@ public class TestSymString {
 			System.out.println(stringCurrentPC);
 			boolean result = stringCurrentPC.simplify();
 			//System.out.printf("var1: '%s'\n", var1.solution());
-			Assert.assertTrue(solver + " failed", result);
-			Assert.assertTrue(!var1.solution().substring(3,5).equals("aa"));
+			assertTrue(solver + " failed", result);
+			assertTrue(!var1.solution().substring(3,5).equals("aa"));
 		}
 	}
 	
@@ -2812,9 +2830,9 @@ public class TestSymString {
 			System.out.println(stringCurrentPC);
 			boolean result = stringCurrentPC.simplify();
 			//System.out.printf("var1: '%s'\n", var1.solution());
-			Assert.assertTrue(solver + " failed", result);
-			Assert.assertTrue(var1.solution().substring(3,5).equals("aa"));
-			Assert.assertTrue(var1.solution().charAt(0) == 'a');
+			assertTrue(solver + " failed", result);
+			assertTrue(var1.solution().substring(3,5).equals("aa"));
+			assertTrue(var1.solution().charAt(0) == 'a');
 		}
 	}
 	
@@ -2838,9 +2856,9 @@ public class TestSymString {
 			System.out.println(stringCurrentPC);
 			boolean result = stringCurrentPC.simplify();
 			//System.out.printf("var1: '%s'\n", var1.solution());
-			Assert.assertTrue(solver + " failed", result);
-			Assert.assertTrue(!var1.solution().substring(3,5).equals("aa"));
-			Assert.assertTrue(var1.solution().charAt(0) == 'a');
+			assertTrue(solver + " failed", result);
+			assertTrue(!var1.solution().substring(3,5).equals("aa"));
+			assertTrue(var1.solution().charAt(0) == 'a');
 		}
 	}
 	
@@ -2864,9 +2882,9 @@ public class TestSymString {
 			System.out.println(stringCurrentPC);
 			boolean result = stringCurrentPC.simplify();
 			//System.out.printf("var1: '%s'\n", var1.solution());
-			Assert.assertTrue(solver + " failed", result);
-			Assert.assertTrue(var1.solution().substring(3,5).equals("aa"));
-			Assert.assertTrue(var1.solution().charAt(0) != 'a');
+			assertTrue(solver + " failed", result);
+			assertTrue(var1.solution().substring(3,5).equals("aa"));
+			assertTrue(var1.solution().charAt(0) != 'a');
 		}
 	}
 	
@@ -2890,9 +2908,9 @@ public class TestSymString {
 			System.out.println(stringCurrentPC);
 			boolean result = stringCurrentPC.simplify();
 			//System.out.printf("var1: '%s'\n", var1.solution());
-			Assert.assertTrue(solver + " failed", result);
-			Assert.assertTrue(!var1.solution().substring(3,5).equals("aa"));
-			Assert.assertTrue(var1.solution().charAt(0) != 'a');
+			assertTrue(solver + " failed", result);
+			assertTrue(!var1.solution().substring(3,5).equals("aa"));
+			assertTrue(var1.solution().charAt(0) != 'a');
 		}
 	}
 	
@@ -2915,8 +2933,8 @@ public class TestSymString {
 			System.out.println(stringCurrentPC);
 			boolean result = stringCurrentPC.simplify();
 			//System.out.printf("var1: '%s'\n", var1.solution());
-			Assert.assertTrue(solver + " failed", result);
-			Assert.assertTrue(var1.solution().substring(3).equals("aa"));
+			assertTrue(solver + " failed", result);
+			assertTrue(var1.solution().substring(3).equals("aa"));
 		}
 	}
 	
@@ -2939,8 +2957,8 @@ public class TestSymString {
 			System.out.println(stringCurrentPC);
 			boolean result = stringCurrentPC.simplify();
 			//System.out.printf("var1: '%s'\n", var1.solution());
-			Assert.assertTrue(solver + " failed", result);
-			Assert.assertTrue(!var1.solution().substring(3).equals("aa"));
+			assertTrue(solver + " failed", result);
+			assertTrue(!var1.solution().substring(3).equals("aa"));
 		}
 	}
 	
@@ -2964,9 +2982,9 @@ public class TestSymString {
 			System.out.println(stringCurrentPC);
 			boolean result = stringCurrentPC.simplify();
 			//System.out.printf("var1: '%s'\n", var1.solution());
-			Assert.assertTrue(solver + " failed", result);
-			Assert.assertTrue(var1.solution().substring(3).equals("aa"));
-			Assert.assertTrue(var1.solution().charAt(0) == 'a');
+			assertTrue(solver + " failed", result);
+			assertTrue(var1.solution().substring(3).equals("aa"));
+			assertTrue(var1.solution().charAt(0) == 'a');
 		}
 	}
 	
@@ -2990,9 +3008,9 @@ public class TestSymString {
 			System.out.println(stringCurrentPC);
 			boolean result = stringCurrentPC.simplify();
 			//System.out.printf("var1: '%s'\n", var1.solution());
-			Assert.assertTrue(solver + " failed", result);
-			Assert.assertTrue(!var1.solution().substring(3).equals("aa"));
-			Assert.assertTrue(var1.solution().charAt(0) == 'a');
+			assertTrue(solver + " failed", result);
+			assertTrue(!var1.solution().substring(3).equals("aa"));
+			assertTrue(var1.solution().charAt(0) == 'a');
 		}
 	}
 	
@@ -3016,9 +3034,9 @@ public class TestSymString {
 			System.out.println(stringCurrentPC);
 			boolean result = stringCurrentPC.simplify();
 			//System.out.printf("var1: '%s'\n", var1.solution());
-			Assert.assertTrue(solver + " failed", result);
-			Assert.assertTrue(var1.solution().substring(3).equals("aa"));
-			Assert.assertTrue(var1.solution().charAt(0) != 'a');
+			assertTrue(solver + " failed", result);
+			assertTrue(var1.solution().substring(3).equals("aa"));
+			assertTrue(var1.solution().charAt(0) != 'a');
 		}
 	}
 	
@@ -3042,9 +3060,9 @@ public class TestSymString {
 			System.out.println(stringCurrentPC);
 			boolean result = stringCurrentPC.simplify();
 			//System.out.printf("var1: '%s'\n", var1.solution());
-			Assert.assertTrue(solver + " failed", result);
-			Assert.assertTrue(!var1.solution().substring(3).equals("aa"));
-			Assert.assertTrue(var1.solution().charAt(0) != 'a');
+			assertTrue(solver + " failed", result);
+			assertTrue(!var1.solution().substring(3).equals("aa"));
+			assertTrue(var1.solution().charAt(0) != 'a');
 		}
 	}
 	
@@ -3067,7 +3085,7 @@ public class TestSymString {
 			System.out.println(stringCurrentPC);
 			boolean result = stringCurrentPC.simplify();
 			//System.out.printf("var1: '%s'\n", var1.solution());
-			Assert.assertTrue(solver + " failed", !result);
+			assertTrue(solver + " failed", !result);
 		}
 	}
 	
@@ -3089,9 +3107,9 @@ public class TestSymString {
 			pc._addDet(Comparator.EQ, var1._indexOf(new StringConstant("el")), 2);
 			System.out.println(stringCurrentPC);
 			boolean result = stringCurrentPC.simplify();
-			Assert.assertTrue(solver + " failed", result);
-			Assert.assertTrue(var1.solution().endsWith("hello"));
-			Assert.assertTrue(var1.solution().indexOf("el") == 2);
+			assertTrue(solver + " failed", result);
+			assertTrue(var1.solution().endsWith("hello"));
+			assertTrue(var1.solution().indexOf("el") == 2);
 		}
 	}
 	
@@ -3114,9 +3132,9 @@ public class TestSymString {
 			System.out.println(stringCurrentPC);
 			boolean result = stringCurrentPC.simplify();
 			//System.out.printf("var1: '%s'\n", var1.solution());
-			Assert.assertTrue(solver + " failed", result);
-			Assert.assertTrue(!var1.solution().endsWith("hello"));
-			Assert.assertTrue(var1.solution().indexOf("el") == 2);
+			assertTrue(solver + " failed", result);
+			assertTrue(!var1.solution().endsWith("hello"));
+			assertTrue(var1.solution().indexOf("el") == 2);
 		}
 	}
 	
@@ -3139,9 +3157,9 @@ public class TestSymString {
 			System.out.println(stringCurrentPC);
 			boolean result = stringCurrentPC.simplify();
 			//System.out.printf("var1: '%s'\n", var1.solution());
-			Assert.assertTrue(solver + " failed", result);
-			Assert.assertTrue(var1.solution().endsWith("hello"));
-			Assert.assertTrue(var1.solution().indexOf("el") != 2);
+			assertTrue(solver + " failed", result);
+			assertTrue(var1.solution().endsWith("hello"));
+			assertTrue(var1.solution().indexOf("el") != 2);
 		}
 	}
 	
@@ -3164,9 +3182,9 @@ public class TestSymString {
 			System.out.println(stringCurrentPC);
 			boolean result = stringCurrentPC.simplify();
 			//System.out.printf("var1: '%s'\n", var1.solution());
-			Assert.assertTrue(solver + " failed", result);
-			Assert.assertTrue(!var1.solution().endsWith("hello"));
-			Assert.assertTrue(var1.solution().indexOf("el") != 2);
+			assertTrue(solver + " failed", result);
+			assertTrue(!var1.solution().endsWith("hello"));
+			assertTrue(var1.solution().indexOf("el") != 2);
 		}
 	}
 	
@@ -3189,7 +3207,7 @@ public class TestSymString {
 			pc._addDet(Comparator.EQ, var1._indexOf(new StringConstant("el")), 2);
 			System.out.println(stringCurrentPC);
 			boolean result = stringCurrentPC.simplify();
-			Assert.assertTrue(solver + " failed", !result);
+			assertTrue(solver + " failed", !result);
 		}
 	}
 
@@ -3212,9 +3230,9 @@ public class TestSymString {
 			pc._addDet(Comparator.EQ, var1._indexOf(new StringConstant("el")), 2);
 			System.out.println(stringCurrentPC);
 			boolean result = stringCurrentPC.simplify();
-			Assert.assertTrue(solver + " failed", result);
-			Assert.assertTrue(!var1.solution().substring(2,7).equals("hello"));
-			Assert.assertTrue(var1.solution().indexOf("el") == 2);
+			assertTrue(solver + " failed", result);
+			assertTrue(!var1.solution().substring(2,7).equals("hello"));
+			assertTrue(var1.solution().indexOf("el") == 2);
 		}
 	}
 
@@ -3237,9 +3255,9 @@ public class TestSymString {
 			pc._addDet(Comparator.NE, var1._indexOf(new StringConstant("el")), 2);
 			System.out.println(stringCurrentPC);
 			boolean result = stringCurrentPC.simplify();
-			Assert.assertTrue(solver + " failed", result);
-			Assert.assertTrue(var1.solution().substring(2,7).equals("hello"));
-			Assert.assertTrue(var1.solution().indexOf("el") != 2);
+			assertTrue(solver + " failed", result);
+			assertTrue(var1.solution().substring(2,7).equals("hello"));
+			assertTrue(var1.solution().indexOf("el") != 2);
 		}
 	}
 
@@ -3262,9 +3280,9 @@ public class TestSymString {
 			pc._addDet(Comparator.NE, var1._indexOf(new StringConstant("el")), 2);
 			System.out.println(stringCurrentPC);
 			boolean result = stringCurrentPC.simplify();
-			Assert.assertTrue(solver + " failed", result);
-			Assert.assertTrue(!var1.solution().substring(2,7).equals("hello"));
-			Assert.assertTrue(var1.solution().indexOf("el") != 2);
+			assertTrue(solver + " failed", result);
+			assertTrue(!var1.solution().substring(2,7).equals("hello"));
+			assertTrue(var1.solution().indexOf("el") != 2);
 		}
 	}
 	
@@ -3285,8 +3303,8 @@ public class TestSymString {
 			pc._addDet(Comparator.EQ, new StringConstant("hello")._indexOf(var1), 2);
 			System.out.println(stringCurrentPC);
 			boolean result = stringCurrentPC.simplify();
-			Assert.assertTrue(solver + " failed", result);
-			Assert.assertTrue("hello".indexOf(var1.solution()) == 2);
+			assertTrue(solver + " failed", result);
+			assertTrue("hello".indexOf(var1.solution()) == 2);
 		}
 	}
 	
@@ -3307,8 +3325,8 @@ public class TestSymString {
 			pc._addDet(Comparator.NE, new StringConstant("hello")._indexOf(var1), 2);
 			System.out.println(stringCurrentPC);
 			boolean result = stringCurrentPC.simplify();
-			Assert.assertTrue(solver + " failed", result);
-			Assert.assertTrue("hello".indexOf(var1.solution()) != 2);
+			assertTrue(solver + " failed", result);
+			assertTrue("hello".indexOf(var1.solution()) != 2);
 		}
 	}
 	
@@ -3329,8 +3347,8 @@ public class TestSymString {
 			pc._addDet(Comparator.EQ, new StringConstant("hello ")._indexOf(var1), 2);
 			System.out.println(stringCurrentPC);
 			boolean result = stringCurrentPC.simplify();
-			Assert.assertTrue(solver + " failed", result);
-			Assert.assertTrue("hello".indexOf(var1.solution()) == 2);
+			assertTrue(solver + " failed", result);
+			assertTrue("hello".indexOf(var1.solution()) == 2);
 		}
 	}
 	
@@ -3351,8 +3369,8 @@ public class TestSymString {
 			pc._addDet(Comparator.NE, new StringConstant("hello ")._indexOf(var1), 2);
 			System.out.println(stringCurrentPC);
 			boolean result = stringCurrentPC.simplify();
-			Assert.assertTrue(solver + " failed", result);
-			Assert.assertTrue("hello".indexOf(var1.solution()) != 2);
+			assertTrue(solver + " failed", result);
+			assertTrue("hello".indexOf(var1.solution()) != 2);
 		}
 	}
 	
@@ -3375,9 +3393,9 @@ public class TestSymString {
 			pc._addDet(Comparator.EQ, var2._indexOf(var1), 2);
 			System.out.println(stringCurrentPC);
 			boolean result = stringCurrentPC.simplify();
-			Assert.assertTrue(solver + " failed", result);
-			Assert.assertTrue(var2.solution().startsWith("bol"));
-			Assert.assertTrue(var2.solution().indexOf(var1.solution()) == 2);
+			assertTrue(solver + " failed", result);
+			assertTrue(var2.solution().startsWith("bol"));
+			assertTrue(var2.solution().indexOf(var1.solution()) == 2);
 		}
 	}
 	
@@ -3402,9 +3420,9 @@ public class TestSymString {
 			boolean result = stringCurrentPC.simplify();
 			System.out.println(String.format("var1.solution(): '%s'", var1.solution()));
 			System.out.println(String.format("var2.solution(): '%s'", var2.solution()));
-			Assert.assertTrue(solver + " failed", result);
-			Assert.assertTrue(!var2.solution().startsWith("bol"));
-			Assert.assertTrue(var2.solution().indexOf(var1.solution()) == 2);
+			assertTrue(solver + " failed", result);
+			assertTrue(!var2.solution().startsWith("bol"));
+			assertTrue(var2.solution().indexOf(var1.solution()) == 2);
 		}
 	}
 	
@@ -3427,9 +3445,9 @@ public class TestSymString {
 			pc._addDet(Comparator.NE, var2._indexOf(var1), 2);
 			System.out.println(stringCurrentPC);
 			boolean result = stringCurrentPC.simplify();
-			Assert.assertTrue(solver + " failed", result);
-			Assert.assertTrue(var2.solution().startsWith("bol"));
-			Assert.assertTrue(var2.solution().indexOf(var1.solution()) != 2);
+			assertTrue(solver + " failed", result);
+			assertTrue(var2.solution().startsWith("bol"));
+			assertTrue(var2.solution().indexOf(var1.solution()) != 2);
 		}
 	}
 	
@@ -3452,9 +3470,9 @@ public class TestSymString {
 			pc._addDet(Comparator.NE, var2._indexOf(var1), 2);
 			System.out.println(stringCurrentPC);
 			boolean result = stringCurrentPC.simplify();
-			Assert.assertTrue(solver + " failed", result);
-			Assert.assertTrue(!var2.solution().startsWith("bol"));
-			Assert.assertTrue(var2.solution().indexOf(var1.solution()) != 2);
+			assertTrue(solver + " failed", result);
+			assertTrue(!var2.solution().startsWith("bol"));
+			assertTrue(var2.solution().indexOf(var1.solution()) != 2);
 		}
 	}
 	
@@ -3491,7 +3509,7 @@ public class TestSymString {
 			}
 			System.out.println(stringCurrentPC);
 			boolean result = stringCurrentPC.simplify();
-			Assert.assertTrue(solver + " failed", result);
+			assertTrue(solver + " failed", result);
 			System.out.println(solver + " " + (System.currentTimeMillis() - startTime));
 		}
 	}
@@ -3525,7 +3543,7 @@ public class TestSymString {
 			}
 			System.out.println(stringCurrentPC);
 			boolean result = stringCurrentPC.simplify();
-			Assert.assertTrue(solver + " failed", result);
+			assertTrue(solver + " failed", result);
 			System.out.println(solver + " " + (System.currentTimeMillis() - startTime));
 		}
 	}
@@ -3547,8 +3565,8 @@ public class TestSymString {
 			stringCurrentPC._addDet(StringComparator.CONTAINS, new StringConstant("a"), var1);
 			System.out.println(stringCurrentPC);
 			boolean result = stringCurrentPC.simplify();
-			Assert.assertTrue(solver + " failed", result);
-			Assert.assertTrue(var1.solution().contains("a"));
+			assertTrue(solver + " failed", result);
+			assertTrue(var1.solution().contains("a"));
 		}
 	}
 	
@@ -3569,8 +3587,8 @@ public class TestSymString {
 			stringCurrentPC._addDet(StringComparator.NOTCONTAINS, new StringConstant("a"), var1);
 			System.out.println(stringCurrentPC);
 			boolean result = stringCurrentPC.simplify();
-			Assert.assertTrue(solver + " failed", result);
-			Assert.assertTrue(!var1.solution().contains("a"));
+			assertTrue(solver + " failed", result);
+			assertTrue(!var1.solution().contains("a"));
 		}
 	}
 	
@@ -3592,9 +3610,9 @@ public class TestSymString {
 			pc._addDet(Comparator.LE, var1._length(), 3);
 			System.out.println(stringCurrentPC);
 			boolean result = stringCurrentPC.simplify();
-			Assert.assertTrue(solver + " failed", result);
-			Assert.assertTrue(var1.solution().contains("a"));
-			Assert.assertTrue(var1.solution().length() <= 3);
+			assertTrue(solver + " failed", result);
+			assertTrue(var1.solution().contains("a"));
+			assertTrue(var1.solution().length() <= 3);
 		}
 	}
 	
@@ -3616,9 +3634,9 @@ public class TestSymString {
 			pc._addDet(Comparator.LE, var1._length(), 3);
 			System.out.println(stringCurrentPC);
 			boolean result = stringCurrentPC.simplify();
-			Assert.assertTrue(solver + " failed", result);
-			Assert.assertTrue(!var1.solution().contains("a"));
-			Assert.assertTrue(var1.solution().length() <= 3);
+			assertTrue(solver + " failed", result);
+			assertTrue(!var1.solution().contains("a"));
+			assertTrue(var1.solution().length() <= 3);
 		}
 	}
 	
@@ -3640,9 +3658,9 @@ public class TestSymString {
 			pc._addDet(Comparator.GT, var1._length(), 3);
 			System.out.println(stringCurrentPC);
 			boolean result = stringCurrentPC.simplify();
-			Assert.assertTrue(solver + " failed", result);
-			Assert.assertTrue(var1.solution().contains("a"));
-			Assert.assertTrue(var1.solution().length() > 3);
+			assertTrue(solver + " failed", result);
+			assertTrue(var1.solution().contains("a"));
+			assertTrue(var1.solution().length() > 3);
 		}
 	}
 	
@@ -3664,9 +3682,9 @@ public class TestSymString {
 			pc._addDet(Comparator.GT, var1._length(), 3);
 			System.out.println(stringCurrentPC);
 			boolean result = stringCurrentPC.simplify();
-			Assert.assertTrue(solver + " failed", result);
-			Assert.assertTrue(!var1.solution().contains("a"));
-			Assert.assertTrue(var1.solution().length() > 3);
+			assertTrue(solver + " failed", result);
+			assertTrue(!var1.solution().contains("a"));
+			assertTrue(var1.solution().length() > 3);
 		}
 	}
 	
@@ -3688,7 +3706,7 @@ public class TestSymString {
 			pc._addDet(Comparator.LE, var1._length(), 3);
 			System.out.println(stringCurrentPC);
 			boolean result = stringCurrentPC.simplify();
-			Assert.assertTrue(solver + " failed", !result);
+			assertTrue(solver + " failed", !result);
 		}
 	}
 	
@@ -3710,9 +3728,9 @@ public class TestSymString {
 			pc._addDet(Comparator.GT, var1._length(), 3);
 			System.out.println(stringCurrentPC);
 			boolean result = stringCurrentPC.simplify();
-			Assert.assertTrue(solver + " failed", result);
-			Assert.assertTrue(var1.solution().contains("hello"));
-			Assert.assertTrue(var1.solution().length() > 3);
+			assertTrue(solver + " failed", result);
+			assertTrue(var1.solution().contains("hello"));
+			assertTrue(var1.solution().length() > 3);
 		}
 	}
 	
@@ -3734,9 +3752,9 @@ public class TestSymString {
 			pc._addDet(Comparator.LE, var1._length(), 3);
 			System.out.println(stringCurrentPC);
 			boolean result = stringCurrentPC.simplify();
-			Assert.assertTrue(solver + " failed", result);
-			Assert.assertTrue(!var1.solution().contains("hello"));
-			Assert.assertTrue(var1.solution().length() <= 3);
+			assertTrue(solver + " failed", result);
+			assertTrue(!var1.solution().contains("hello"));
+			assertTrue(var1.solution().length() <= 3);
 		}
 	}
 	
@@ -3758,10 +3776,10 @@ public class TestSymString {
 			pc._addDet(Comparator.GT, var1._length(), 3);
 			System.out.println(stringCurrentPC);
 			boolean result = stringCurrentPC.simplify();
-			Assert.assertTrue(solver + " failed", result);
+			assertTrue(solver + " failed", result);
 			System.out.printf("var1: '%s'\n", var1.solution());
-			Assert.assertTrue(!var1.solution().contains("hello"));
-			Assert.assertTrue(var1.solution().length() > 3);
+			assertTrue(!var1.solution().contains("hello"));
+			assertTrue(var1.solution().length() > 3);
 		}
 	}
 	
@@ -3783,9 +3801,9 @@ public class TestSymString {
 			pc._addDet(Comparator.LE, var1._length(), 3);
 			System.out.println(stringCurrentPC);
 			boolean result = stringCurrentPC.simplify();
-			Assert.assertTrue(solver + " failed", result);
-			Assert.assertTrue("hello".contains(var1.solution()));
-			Assert.assertTrue(var1.solution().length() <= 3);
+			assertTrue(solver + " failed", result);
+			assertTrue("hello".contains(var1.solution()));
+			assertTrue(var1.solution().length() <= 3);
 		}
 	}
 	
@@ -3807,9 +3825,9 @@ public class TestSymString {
 			pc._addDet(Comparator.GT, var1._length(), 3);
 			System.out.println(stringCurrentPC);
 			boolean result = stringCurrentPC.simplify();
-			Assert.assertTrue(solver + " failed", result);
-			Assert.assertTrue("hello".contains(var1.solution()));
-			Assert.assertTrue(var1.solution().length() > 3);
+			assertTrue(solver + " failed", result);
+			assertTrue("hello".contains(var1.solution()));
+			assertTrue(var1.solution().length() > 3);
 		}
 	}
 	
@@ -3831,9 +3849,9 @@ public class TestSymString {
 			pc._addDet(Comparator.LE, var1._length(), 3);
 			System.out.println(stringCurrentPC);
 			boolean result = stringCurrentPC.simplify();
-			Assert.assertTrue(solver + " failed", result);
-			Assert.assertTrue(!"hello".contains(var1.solution()));
-			Assert.assertTrue(var1.solution().length() <= 3);
+			assertTrue(solver + " failed", result);
+			assertTrue(!"hello".contains(var1.solution()));
+			assertTrue(var1.solution().length() <= 3);
 		}
 	}
 	
@@ -3855,10 +3873,10 @@ public class TestSymString {
 			pc._addDet(Comparator.GT, var1._length(), 3);
 			System.out.println(stringCurrentPC);
 			boolean result = stringCurrentPC.simplify();
-			Assert.assertTrue(solver + " failed", result);
+			assertTrue(solver + " failed", result);
 			System.out.printf("var1: '%s'\n", var1.solution());
-			Assert.assertTrue(!"hello".contains(var1.solution()));
-			Assert.assertTrue(var1.solution().length() > 3);
+			assertTrue(!"hello".contains(var1.solution()));
+			assertTrue(var1.solution().length() > 3);
 		}
 	}
 	
@@ -3882,7 +3900,7 @@ public class TestSymString {
 			stringCurrentPC._addDet(StringComparator.CONTAINS, var1, var2);
 			System.out.println(stringCurrentPC);
 			boolean result = stringCurrentPC.simplify();
-			Assert.assertTrue(solver + " failed", !result);
+			assertTrue(solver + " failed", !result);
 		}
 	}
 	
@@ -3906,10 +3924,10 @@ public class TestSymString {
 			stringCurrentPC._addDet(StringComparator.CONTAINS, var1, var2);
 			System.out.println(stringCurrentPC);
 			boolean result = stringCurrentPC.simplify();
-			Assert.assertTrue(solver + " failed", result);
-			Assert.assertTrue(var2.solution().contains(var1.solution()));
-			Assert.assertTrue(var1.solution().length() < 3);
-			Assert.assertTrue(var2.solution().length() > 2);
+			assertTrue(solver + " failed", result);
+			assertTrue(var2.solution().contains(var1.solution()));
+			assertTrue(var1.solution().length() < 3);
+			assertTrue(var2.solution().length() > 2);
 		}	
 	}
 	
@@ -3931,7 +3949,7 @@ public class TestSymString {
 			stringCurrentPC._addDet(StringComparator.NOTEQUALS, var1, new StringConstant("aaa"));
 			System.out.println(stringCurrentPC);
 			boolean result = stringCurrentPC.simplify();
-			Assert.assertTrue(solver + " failed", !result);
+			assertTrue(solver + " failed", !result);
 		}
 	}
 	
@@ -3953,7 +3971,7 @@ public class TestSymString {
 			stringCurrentPC._addDet(StringComparator.STARTSWITH, new StringConstant("b"), var1);
 			System.out.println(stringCurrentPC);
 			boolean result = stringCurrentPC.simplify();
-			Assert.assertTrue(solver + " failed", !result);
+			assertTrue(solver + " failed", !result);
 		}
 	}
 	
@@ -3975,9 +3993,9 @@ public class TestSymString {
 			stringCurrentPC._addDet(StringComparator.ENDSWITH, new StringConstant("ab"), var1);
 			System.out.println(stringCurrentPC);
 			boolean result = stringCurrentPC.simplify();
-			Assert.assertTrue(solver + " failed", result);
-			Assert.assertTrue(var1.solution().startsWith("ab"));
-			Assert.assertTrue(var1.solution().endsWith("ab"));
+			assertTrue(solver + " failed", result);
+			assertTrue(var1.solution().startsWith("ab"));
+			assertTrue(var1.solution().endsWith("ab"));
 		}
 	}
 	
@@ -3999,9 +4017,9 @@ public class TestSymString {
 			pc._addDet(Comparator.EQ, var1._indexOf(new StringConstant("d")), -1);
 			System.out.println(stringCurrentPC);
 			boolean result = stringCurrentPC.simplify();
-			Assert.assertTrue(solver + " failed", result);
-			Assert.assertTrue(var1.solution().startsWith("c"));
-			Assert.assertTrue(var1.solution().indexOf("d") == -1);
+			assertTrue(solver + " failed", result);
+			assertTrue(var1.solution().startsWith("c"));
+			assertTrue(var1.solution().indexOf("d") == -1);
 		}
 	}
 	
@@ -4023,9 +4041,9 @@ public class TestSymString {
 			pc._addDet(Comparator.EQ, var1._indexOf(new StringConstant("d")), 2);
 			System.out.println(stringCurrentPC);
 			boolean result = stringCurrentPC.simplify();
-			Assert.assertTrue(solver + " failed", result);
-			Assert.assertTrue(var1.solution().startsWith("c"));
-			Assert.assertTrue(var1.solution().indexOf("d") == 2);
+			assertTrue(solver + " failed", result);
+			assertTrue(var1.solution().startsWith("c"));
+			assertTrue(var1.solution().indexOf("d") == 2);
 		}
 	}
 	
@@ -4048,7 +4066,7 @@ public class TestSymString {
 			pc._addDet(Comparator.EQ, var1._indexOf(new StringConstant("d")), -1);
 			System.out.println(stringCurrentPC);
 			boolean result = stringCurrentPC.simplify();
-			Assert.assertTrue(solver + " failed", !result);
+			assertTrue(solver + " failed", !result);
 		}
 	}
 	
@@ -4073,11 +4091,11 @@ public class TestSymString {
 			stringCurrentPC._addDet(StringComparator.EQUALS, new StringConstant("ab"), var2._trim());
 			System.out.println(stringCurrentPC);
 			boolean result = stringCurrentPC.simplify();
-			Assert.assertTrue(solver + " failed", result);
-			Assert.assertTrue(var1.solution().startsWith(" "));
-			Assert.assertTrue(var1.solution().startsWith(var2.solution()));
-			Assert.assertTrue(var1.solution().endsWith("c"));
-			Assert.assertTrue(var2.solution().trim().equals("ab"));
+			assertTrue(solver + " failed", result);
+			assertTrue(var1.solution().startsWith(" "));
+			assertTrue(var1.solution().startsWith(var2.solution()));
+			assertTrue(var1.solution().endsWith("c"));
+			assertTrue(var2.solution().trim().equals("ab"));
 		}
 	}
 	
@@ -4101,9 +4119,9 @@ public class TestSymString {
 			stringCurrentPC._addDet(StringComparator.EQUALS, var1, var3._subString(new IntegerConstant(2), new IntegerConstant(0)));
 			System.out.println(stringCurrentPC);
 			boolean result = stringCurrentPC.simplify();
-			Assert.assertTrue(solver + " failed", result);
-			Assert.assertTrue(var3.solution().substring(2).equals("hello"));
-			Assert.assertTrue(var3.solution().substring(0,2).equals(var1.solution()));
+			assertTrue(solver + " failed", result);
+			assertTrue(var3.solution().substring(2).equals("hello"));
+			assertTrue(var3.solution().substring(0,2).equals(var1.solution()));
 		}
 	}
 	
@@ -4126,9 +4144,9 @@ public class TestSymString {
 			pc._addDet(Comparator.EQ, var2._indexOf(var1, new IntegerConstant(0)), 2);
 			System.out.println(stringCurrentPC);
 			boolean result = stringCurrentPC.simplify();
-			Assert.assertTrue(solver + " failed", result);
-			Assert.assertTrue(var2.solution().startsWith("bol"));
-			Assert.assertTrue(var2.solution().indexOf(var1.solution()) == 2);
+			assertTrue(solver + " failed", result);
+			assertTrue(var2.solution().startsWith("bol"));
+			assertTrue(var2.solution().indexOf(var1.solution()) == 2);
 		}
 	}
 	
@@ -4153,10 +4171,10 @@ public class TestSymString {
 			boolean result = stringCurrentPC.simplify();
 			System.out.println(String.format("var1.solution(): '%s'", var1.solution()));
 			System.out.println(String.format("var2.solution(): '%s'", var2.solution()));
-			Assert.assertTrue(solver + " failed", result);
-			Assert.assertTrue(!var2.solution().startsWith("bol"));
-//			Assert.assertTrue(var2.solution().indexOf(var1.solution()) == 2);
-			Assert.assertTrue(var2.solution().indexOf(var1.solution(),2) == 2);
+			assertTrue(solver + " failed", result);
+			assertTrue(!var2.solution().startsWith("bol"));
+//			assertTrue(var2.solution().indexOf(var1.solution()) == 2);
+			assertTrue(var2.solution().indexOf(var1.solution(),2) == 2);
 		}
 	}
 	
@@ -4179,9 +4197,9 @@ public class TestSymString {
 			pc._addDet(Comparator.NE, var2._indexOf(var1, new IntegerConstant(0)), 2);
 			System.out.println(stringCurrentPC);
 			boolean result = stringCurrentPC.simplify();
-			Assert.assertTrue(solver + " failed", result);
-			Assert.assertTrue(var2.solution().startsWith("bol"));
-			Assert.assertTrue(var2.solution().indexOf(var1.solution()) != 2);
+			assertTrue(solver + " failed", result);
+			assertTrue(var2.solution().startsWith("bol"));
+			assertTrue(var2.solution().indexOf(var1.solution()) != 2);
 		}
 	}
 	
@@ -4202,9 +4220,9 @@ public class TestSymString {
 			pc._addDet(Comparator.NE, var2._indexOf(var1, new IntegerConstant(0)), 2);
 			System.out.println(stringCurrentPC);
 			boolean result = stringCurrentPC.simplify();
-			Assert.assertTrue(solver + " failed", result);
-			Assert.assertTrue(!var2.solution().startsWith("bol"));
-			Assert.assertTrue(var2.solution().indexOf(var1.solution()) != 2);
+			assertTrue(solver + " failed", result);
+			assertTrue(!var2.solution().startsWith("bol"));
+			assertTrue(var2.solution().indexOf(var1.solution()) != 2);
 		}
 	}
 	
@@ -4225,9 +4243,9 @@ public class TestSymString {
 			pc._addDet(Comparator.EQ, var2._indexOf(var1), 2);
 			System.out.println(stringCurrentPC);
 			boolean result = stringCurrentPC.simplify();
-			Assert.assertTrue(solver + " failed", result);
-			Assert.assertTrue(var2.solution().startsWith("bol"));
-			Assert.assertTrue(var2.solution().indexOf(var1.solution()) == 2);
+			assertTrue(solver + " failed", result);
+			assertTrue(var2.solution().startsWith("bol"));
+			assertTrue(var2.solution().indexOf(var1.solutionChar()) == 2);
 		}
 	}
 	
@@ -4250,9 +4268,9 @@ public class TestSymString {
 			boolean result = stringCurrentPC.simplify();
 			System.out.println(String.format("var1.solution(): '%s'", var1.solution()));
 			System.out.println(String.format("var2.solution(): '%s'", var2.solution()));
-			Assert.assertTrue(solver + " failed", result);
-			Assert.assertTrue(!var2.solution().startsWith("bol"));
-			Assert.assertTrue(var2.solution().indexOf(var1.solution()) == 2);
+			assertTrue(solver + " failed", result);
+			assertTrue(!var2.solution().startsWith("bol"));
+			assertTrue(var2.solution().indexOf(var1.solutionInt()) == 2);
 		}
 	}
 	
@@ -4273,9 +4291,9 @@ public class TestSymString {
 			pc._addDet(Comparator.NE, var2._indexOf(var1), 2);
 			System.out.println(stringCurrentPC);
 			boolean result = stringCurrentPC.simplify();
-			Assert.assertTrue(solver + " failed", result);
-			Assert.assertTrue(var2.solution().startsWith("bol"));
-			Assert.assertTrue(var2.solution().indexOf(var1.solution()) != 2);
+			assertTrue(solver + " failed", result);
+			assertTrue(var2.solution().startsWith("bol"));
+			assertTrue(var2.solution().indexOf(var1.solutionInt()) != 2);
 		}
 	}
 	
@@ -4296,9 +4314,9 @@ public class TestSymString {
 			pc._addDet(Comparator.NE, var2._indexOf(var1), 2);
 			System.out.println(stringCurrentPC);
 			boolean result = stringCurrentPC.simplify();
-			Assert.assertTrue(solver + " failed", result);
-			Assert.assertTrue(!var2.solution().startsWith("bol"));
-			Assert.assertTrue(var2.solution().indexOf(var1.solution()) != 2);
+			assertTrue(solver + " failed", result);
+			assertTrue(!var2.solution().startsWith("bol"));
+			assertTrue(var2.solution().indexOf(var1.solutionInt()) != 2);
 		}
 	}
 	
@@ -4319,9 +4337,9 @@ public class TestSymString {
 			pc._addDet(Comparator.EQ, var2._indexOf(var1, new IntegerConstant(0)), 2);
 			System.out.println(stringCurrentPC);
 			boolean result = stringCurrentPC.simplify();
-			Assert.assertTrue(solver + " failed", result);
-			Assert.assertTrue(var2.solution().startsWith("bol"));
-			Assert.assertTrue(var2.solution().indexOf(var1.solution()) == 2);
+			assertTrue(solver + " failed", result);
+			assertTrue(var2.solution().startsWith("bol"));
+			assertTrue(var2.solution().indexOf(var1.solutionInt()) == 2);
 		}
 	}
 	
@@ -4344,9 +4362,9 @@ public class TestSymString {
 			boolean result = stringCurrentPC.simplify();
 			System.out.println(String.format("var1.solution(): '%s'", var1.solution()));
 			System.out.println(String.format("var2.solution(): '%s'", var2.solution()));
-			Assert.assertTrue(solver + " failed", result);
-			Assert.assertTrue(!var2.solution().startsWith("bol"));
-			Assert.assertTrue(var2.solution().indexOf(var1.solution()) == 2);
+			assertTrue(solver + " failed", result);
+			assertTrue(!var2.solution().startsWith("bol"));
+			assertTrue(var2.solution().indexOf(var1.solutionChar()) == 2);
 		}
 	}
 	
@@ -4367,9 +4385,9 @@ public class TestSymString {
 			pc._addDet(Comparator.NE, var2._indexOf(var1, new IntegerConstant(0)), 2);
 			System.out.println(stringCurrentPC);
 			boolean result = stringCurrentPC.simplify();
-			Assert.assertTrue(solver + " failed", result);
-			Assert.assertTrue(var2.solution().startsWith("bol"));
-			Assert.assertTrue(var2.solution().indexOf(var1.solution()) != 2);
+			assertTrue(solver + " failed", result);
+			assertTrue(var2.solution().startsWith("bol"));
+			assertTrue(var2.solution().indexOf(var1.solutionChar()) != 2);
 		}
 	}
 	
@@ -4390,9 +4408,9 @@ public class TestSymString {
 			pc._addDet(Comparator.NE, var2._indexOf(var1, new IntegerConstant(0)), 2);
 			System.out.println(stringCurrentPC);
 			boolean result = stringCurrentPC.simplify();
-			Assert.assertTrue(solver + " failed", result);
-			Assert.assertTrue(!var2.solution().startsWith("bol"));
-			Assert.assertTrue(var2.solution().indexOf(var1.solution()) != 2);
+			assertTrue(solver + " failed", result);
+			assertTrue(!var2.solution().startsWith("bol"));
+			assertTrue(var2.solution().indexOf(var1.solutionChar()) != 2);
 		}
 	}
 	
@@ -4415,10 +4433,10 @@ public class TestSymString {
 			stringCurrentPC._addDet(StringComparator.CONTAINS, new StringConstant("EasyChair"), rest);
 			stringCurrentPC._addDet(StringComparator.STARTSWITH, new StringConstant("http://"), str);
 			boolean result = stringCurrentPC.simplify();
-			Assert.assertTrue(solver + " failed", result);
-			Assert.assertTrue(str.solution().lastIndexOf('/') >= 0);
-			Assert.assertTrue(str.solution().substring(ie1.solution() + 1).contains("EasyChair"));
-			Assert.assertTrue(str.solution().startsWith("http://"));
+			assertTrue(solver + " failed", result);
+			assertTrue(str.solution().lastIndexOf('/') >= 0);
+			assertTrue(str.solution().substring(ie1.solutionInt() + 1).contains("EasyChair"));
+			assertTrue(str.solution().startsWith("http://"));
 		}
 	}
 	

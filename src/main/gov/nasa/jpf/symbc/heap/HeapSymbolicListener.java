@@ -1,3 +1,21 @@
+/*
+ * Copyright (C) 2014, United States Government, as represented by the
+ * Administrator of the National Aeronautics and Space Administration.
+ * All rights reserved.
+ *
+ * Symbolic Pathfinder (jpf-symbc) is licensed under the Apache License, 
+ * Version 2.0 (the "License"); you may not use this file except
+ * in compliance with the License. You may obtain a copy of the License at
+ * 
+ *        http://www.apache.org/licenses/LICENSE-2.0. 
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and 
+ * limitations under the License.
+ */
+
 //TODO: needs to be simplified; not to use string representation
 
 //
@@ -23,29 +41,32 @@ package gov.nasa.jpf.symbc.heap;
 import gov.nasa.jpf.Config;
 import gov.nasa.jpf.JPF;
 import gov.nasa.jpf.PropertyListenerAdapter;
-import gov.nasa.jpf.jvm.ChoiceGenerator;
-import gov.nasa.jpf.jvm.ClassInfo;
-import gov.nasa.jpf.jvm.DoubleFieldInfo;
-import gov.nasa.jpf.jvm.DynamicElementInfo;
-import gov.nasa.jpf.jvm.ElementInfo;
-import gov.nasa.jpf.jvm.FieldInfo;
-import gov.nasa.jpf.jvm.Fields;
-import gov.nasa.jpf.jvm.FloatFieldInfo;
-import gov.nasa.jpf.jvm.IntegerFieldInfo;
-import gov.nasa.jpf.jvm.JVM;
-import gov.nasa.jpf.jvm.LocalVarInfo;
-import gov.nasa.jpf.jvm.LongFieldInfo;
-import gov.nasa.jpf.jvm.MethodInfo;
-import gov.nasa.jpf.jvm.ReferenceFieldInfo;
-import gov.nasa.jpf.jvm.StackFrame;
-import gov.nasa.jpf.jvm.SystemState;
-import gov.nasa.jpf.jvm.ThreadInfo;
-import gov.nasa.jpf.jvm.Types;
+import gov.nasa.jpf.vm.ChoiceGenerator;
+import gov.nasa.jpf.vm.ClassInfo;
+import gov.nasa.jpf.vm.DoubleFieldInfo;
+import gov.nasa.jpf.vm.DynamicElementInfo;
+import gov.nasa.jpf.vm.ElementInfo;
+import gov.nasa.jpf.vm.FieldInfo;
+import gov.nasa.jpf.vm.Fields;
+import gov.nasa.jpf.vm.FloatFieldInfo;
+import gov.nasa.jpf.vm.Instruction;
+import gov.nasa.jpf.vm.IntegerFieldInfo;
+import gov.nasa.jpf.vm.MJIEnv;
+import gov.nasa.jpf.vm.VM;
+
+import gov.nasa.jpf.vm.LocalVarInfo;
+import gov.nasa.jpf.vm.LongFieldInfo;
+import gov.nasa.jpf.vm.MethodInfo;
+import gov.nasa.jpf.vm.ReferenceFieldInfo;
+import gov.nasa.jpf.vm.StackFrame;
+import gov.nasa.jpf.vm.SystemState;
+import gov.nasa.jpf.vm.ThreadInfo;
+import gov.nasa.jpf.vm.Types;
 import gov.nasa.jpf.jvm.bytecode.ARETURN;
 import gov.nasa.jpf.jvm.bytecode.IRETURN;
-import gov.nasa.jpf.jvm.bytecode.Instruction;
-import gov.nasa.jpf.jvm.bytecode.InvokeInstruction;
-import gov.nasa.jpf.jvm.bytecode.ReturnInstruction;
+
+import gov.nasa.jpf.jvm.bytecode.JVMInvokeInstruction;
+import gov.nasa.jpf.jvm.bytecode.JVMReturnInstruction;
 import gov.nasa.jpf.report.ConsolePublisher;
 import gov.nasa.jpf.report.Publisher;
 import gov.nasa.jpf.report.PublisherExtension;
@@ -76,6 +97,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.StringTokenizer;
 import java.util.Vector;
+
 
 public class HeapSymbolicListener extends PropertyListenerAdapter implements PublisherExtension {
 
@@ -210,7 +232,7 @@ public class HeapSymbolicListener extends PropertyListenerAdapter implements Pub
 								int objIndex = f.getReferenceValue(i);
 								if (null == val){
 									IntegerExpression exp = null;
-									if (objIndex == -1){
+									if (objIndex == MJIEnv.NULL){
 										exp = new IntegerConstant(objIndex);
 										pc._addDet(Comparator.EQ, symField, exp);
 									}else{
@@ -218,13 +240,13 @@ public class HeapSymbolicListener extends PropertyListenerAdapter implements Pub
 										if (null == exp)
 											exp = new IntegerConstant(objIndex);
 										pc._addDet(Comparator.EQ, symField, exp);
-										if (objIndex != objNum && !seenSet.contains(objIndex) && objIndex != -1)
+										if (objIndex != objNum && !seenSet.contains(objIndex) && objIndex != MJIEnv.NULL)
 											expandReferenceObject(pc,ti,ci,objIndex);
 									}
 								}else{
 									//pc._addDet(Comparator.EQ, symField, new IntegerConstant(objIndex));
 									pc._addDet(Comparator.EQ, symField, (SymbolicInteger)val);
-									if (objIndex != objNum && !seenSet.contains(objIndex) && objIndex != -1)
+									if (objIndex != objNum && !seenSet.contains(objIndex) && objIndex != MJIEnv.NULL)
 										expandReferenceObject(pc,ti,ci,objIndex);
 								}
 							}
@@ -285,7 +307,7 @@ public class HeapSymbolicListener extends PropertyListenerAdapter implements Pub
 								ReferenceFieldInfo rfi = (ReferenceFieldInfo)staticFields[i];
 								Integer objIndex = ci.getStaticElementInfo().getReferenceField(rfi);
 								IntegerExpression exp = null;
-								if (objIndex == -1){
+								if (objIndex == MJIEnv.NULL){
 									exp = new IntegerConstant(objIndex);
 									pc._addDet(Comparator.EQ, symStatic,exp);
 								}else{
@@ -316,7 +338,7 @@ public class HeapSymbolicListener extends PropertyListenerAdapter implements Pub
 	private void getFieldValues(PathCondition returnPC, ThreadInfo ti,
 										MethodInfo mi, Instruction insn){
 		ClassInfo ci = mi.getClassInfo();
-		ReturnInstruction ret = (ReturnInstruction)insn;
+		JVMReturnInstruction ret = (JVMReturnInstruction)insn;
 		StackFrame sf = ret.getReturnFrame();
 		int thisRef = sf.getThis();
 
@@ -347,9 +369,10 @@ public class HeapSymbolicListener extends PropertyListenerAdapter implements Pub
 	}
 
 	//not yet tested
+	@Override
 	public void propertyViolated (Search search){
 		//System.out.println("--------->property violated");
-		JVM vm = search.getVM();
+		VM vm = search.getVM();
 		HeapChoiceGenerator heapCG = vm.getLastChoiceGeneratorOfType(HeapChoiceGenerator.class);
 		PCChoiceGenerator pcCG = vm.getLastChoiceGeneratorOfType(PCChoiceGenerator.class);
 		PathCondition pc = (pcCG==null ? null : pcCG.getCurrentPC());
@@ -391,16 +414,17 @@ public class HeapSymbolicListener extends PropertyListenerAdapter implements Pub
 	}
 
 
-	public void instructionExecuted(JVM vm) {
+	@Override
+	public void instructionExecuted(VM vm, ThreadInfo currentThread, Instruction nextInstruction, Instruction executedInstruction) {
 
 		if (!vm.getSystemState().isIgnored()) {
-			Instruction insn = vm.getLastInstruction();
+			Instruction insn = executedInstruction;
 			SystemState ss = vm.getSystemState();
-			ThreadInfo ti = vm.getLastThreadInfo();
+			ThreadInfo ti = currentThread;
 			Config conf = vm.getConfig();
 
-			if (insn instanceof InvokeInstruction) {
-				InvokeInstruction md = (InvokeInstruction) insn;
+			if (insn instanceof JVMInvokeInstruction) {
+				JVMInvokeInstruction md = (JVMInvokeInstruction) insn;
 				String methodName = md.getInvokedMethodName();
 				int numberOfArgs = md.getArgumentValues(ti).length;
 
@@ -501,7 +525,7 @@ public class HeapSymbolicListener extends PropertyListenerAdapter implements Pub
 					currentMethodName = longName;
 					allSummaries.put(longName,methodSummary);
 				}
-			}else if (insn instanceof ReturnInstruction){
+			}else if (insn instanceof JVMReturnInstruction){
 				MethodInfo mi = insn.getMethodInfo();
 				ClassInfo ci = mi.getClassInfo();
 				if (null != ci){

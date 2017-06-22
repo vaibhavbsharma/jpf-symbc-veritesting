@@ -1,3 +1,21 @@
+/*
+ * Copyright (C) 2014, United States Government, as represented by the
+ * Administrator of the National Aeronautics and Space Administration.
+ * All rights reserved.
+ *
+ * Symbolic Pathfinder (jpf-symbc) is licensed under the Apache License, 
+ * Version 2.0 (the "License"); you may not use this file except
+ * in compliance with the License. You may obtain a copy of the License at
+ * 
+ *        http://www.apache.org/licenses/LICENSE-2.0. 
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and 
+ * limitations under the License.
+ */
+
 //
 //Copyright (C) 2006 United States Government as represented by the
 //Administrator of the National Aeronautics and Space Administration
@@ -35,6 +53,11 @@ public abstract class Constraint implements Comparable<Constraint> {
     comp = c;
     right = r;
   }
+
+  /** Returns the same constraint head constraint without the and field
+  * Used to append pathconditions without side effects during testcase generation 
+  */ 
+  public abstract Constraint copy(); 
 
   /** Returns the left expression. Subclasses may override to give tighter type bounds.*/
   public Expression getLeft() {
@@ -157,5 +180,23 @@ public abstract class Constraint implements Comparable<Constraint> {
 		right.accept(visitor);
 		visitor.postVisit(this);
 	}
+
+	public String prefix_notation() {
+		//return left.toString() + comp.toString() + right.toString()
+		        //+ ((and == null) ? "" : " && " + and.toString()); -- for specialization
+		  //      + ((and == null) ? "" : " &&\n" + and.toString());
+		// Sang: rewrite NE in z3's notation: (a != b) becomes (not (= a b))
+		String result = null;
+		if (comp == Comparator.NE){
+			result = "(not ( = " + left.prefix_notation() + " " + right.prefix_notation() +"))";
+		}
+		else{
+			result = " ("+ comp.toString() +" "+ left.prefix_notation() +" " + right.prefix_notation() +")";
+		}
+		if(and!=null) result = "(and "+and.prefix_notation()+" "+result+")";
+		return result;
+	}
+
+	
 
 }

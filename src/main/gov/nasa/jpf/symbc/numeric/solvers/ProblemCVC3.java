@@ -1,3 +1,21 @@
+/*
+ * Copyright (C) 2014, United States Government, as represented by the
+ * Administrator of the National Aeronautics and Space Administration.
+ * All rights reserved.
+ *
+ * Symbolic Pathfinder (jpf-symbc) is licensed under the Apache License, 
+ * Version 2.0 (the "License"); you may not use this file except
+ * in compliance with the License. You may obtain a copy of the License at
+ * 
+ *        http://www.apache.org/licenses/LICENSE-2.0. 
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and 
+ * limitations under the License.
+ */
+
 //
 //Copyright (C) 2006 United States Government as represented by the
 //Administrator of the National Aeronautics and Space Administration
@@ -28,7 +46,6 @@ import java.util.List;
 
 import symlib.SymBool;
 import symlib.Util;
-
 import cvc3.Expr;
 import cvc3.ExprMut;
 import cvc3.FlagsMut;
@@ -39,7 +56,9 @@ import cvc3.TypeMut;
 //import cvc3.SatResult;
 import cvc3.Type;
 import cvc3.ValidityChecker;
-
+/* Rody: add typecasts long->int everywhere now. Needs a nice solution where the user
+ * is notified to use another solver with longs.
+ */
 public class ProblemCVC3 extends ProblemGeneral {
 	protected Expr pb;
 	protected ValidityChecker vc = null;
@@ -74,10 +93,11 @@ public class ProblemCVC3 extends ProblemGeneral {
 
 	//if min or max are passed in as null objects to the vc
 	//it will use minus and plus infinity
-	public Object makeIntVar(String name, int min, int max) {
+	public Object makeIntVar(String name, long min, long max) {
+		assert(min>=Integer.MIN_VALUE && max<=Integer.MAX_VALUE);
 		try{
-			Type sType = vc.subrangeType(vc.ratExpr(min),
-                    vc.ratExpr(max));
+			Type sType = vc.subrangeType(vc.ratExpr((int) min),
+                    vc.ratExpr((int) max));
 			return vc.varExpr(name, sType);
 		} catch (Exception e) {
 			e.printStackTrace();
@@ -108,9 +128,9 @@ public class ProblemCVC3 extends ProblemGeneral {
 	    }
 	}
 
-	public Object eq(int value, Object exp){
+	public Object eq(long value, Object exp){
 		try{
-			return  vc.eqExpr(vc.ratExpr(value), (Expr)exp);
+			return  vc.eqExpr(vc.ratExpr((int) value), (Expr)exp);
 		} catch (Exception e) {
 			e.printStackTrace();
 			throw new RuntimeException("## Error CVC3: Exception caught in CVC3 JNI: \n" + e);
@@ -118,9 +138,9 @@ public class ProblemCVC3 extends ProblemGeneral {
 	    }
 	}
 
-	public Object eq(Object exp, int value){
+	public Object eq(Object exp, long value){
 		try{
-			return  vc.eqExpr((Expr)exp, vc.ratExpr(value));
+			return  vc.eqExpr((Expr)exp, vc.ratExpr((int) value));
 		} catch (Exception e) {
 			e.printStackTrace();
 			throw new RuntimeException("## Error CVC3: Exception caught in CVC3 JNI: \n" + e);
@@ -158,9 +178,9 @@ public class ProblemCVC3 extends ProblemGeneral {
 	    }
 	}
 
-	public Object neq(int value, Object exp){
+	public Object neq(long value, Object exp){
 		try{
-			return  vc.notExpr(vc. eqExpr(vc.ratExpr(value), (Expr)exp));
+			return  vc.notExpr(vc. eqExpr(vc.ratExpr((int) value), (Expr)exp));
 		} catch (Exception e) {
 			e.printStackTrace();
 			throw new RuntimeException("## Error CVC3: Exception caught in CVC3 JNI: \n" + e);
@@ -168,9 +188,9 @@ public class ProblemCVC3 extends ProblemGeneral {
 	    }
 	}
 
-	public Object neq(Object exp, int value){
+	public Object neq(Object exp, long value){
 		try{
-			return  vc.notExpr(vc.eqExpr((Expr)exp, vc.ratExpr(value)));
+			return  vc.notExpr(vc.eqExpr((Expr)exp, vc.ratExpr((int) value)));
 		} catch (Exception e) {
 			e.printStackTrace();
 			throw new RuntimeException("## Error CVC3: Exception caught in CVC3 JNI: \n" + e);
@@ -218,9 +238,9 @@ public class ProblemCVC3 extends ProblemGeneral {
 	    }
 	}
 
-	public Object leq(int value, Object exp){
+	public Object leq(long value, Object exp){
 		try{
-			return  vc.leExpr(vc.ratExpr(value), (Expr)exp);
+			return  vc.leExpr(vc.ratExpr((int) value), (Expr)exp);
 		} catch (Exception e) {
 			e.printStackTrace();
 			throw new RuntimeException("## Error CVC3: Exception caught in CVC3 JNI: \n" + e);
@@ -228,9 +248,9 @@ public class ProblemCVC3 extends ProblemGeneral {
 	    }
 	}
 
-	public Object leq(Object exp, int value){
+	public Object leq(Object exp, long value){
 		try{
-			return  vc.leExpr((Expr)exp, vc.ratExpr(value));
+			return  vc.leExpr((Expr)exp, vc.ratExpr((int) value));
 		} catch (Exception e) {
 			e.printStackTrace();
 			throw new RuntimeException("## Error CVC3: Exception caught in CVC3 JNI: \n" + e);
@@ -268,9 +288,9 @@ public class ProblemCVC3 extends ProblemGeneral {
 	    }
 	}
 
-	public Object geq(int value, Object exp){
+	public Object geq(long value, Object exp){
 		try{
-			return  vc.geExpr(vc.ratExpr(value), (Expr)exp);
+			return  vc.geExpr(vc.ratExpr((int) value), (Expr)exp);
 		} catch (Exception e) {
 			e.printStackTrace();
 			throw new RuntimeException("## Error CVC3: Exception caught in CVC3 JNI: \n" + e);
@@ -278,9 +298,9 @@ public class ProblemCVC3 extends ProblemGeneral {
 	    }
 	}
 
-	public Object geq(Object exp, int value){
+	public Object geq(Object exp, long value){
 		try{
-			return  vc.geExpr((Expr)exp, vc.ratExpr(value));
+			return  vc.geExpr((Expr)exp, vc.ratExpr((int) value));
 		} catch (Exception e) {
 			e.printStackTrace();
 			throw new RuntimeException("## Error CVC3: Exception caught in CVC3 JNI: \n" + e);
@@ -318,9 +338,9 @@ public class ProblemCVC3 extends ProblemGeneral {
 	    }
 	}
 
-	public Object lt(int value, Object exp){
+	public Object lt(long value, Object exp){
 		try{
-			return  vc.ltExpr(vc.ratExpr(value), (Expr)exp);
+			return  vc.ltExpr(vc.ratExpr((int) value), (Expr)exp);
 		} catch (Exception e) {
 			e.printStackTrace();
 			throw new RuntimeException("## Error CVC3: Exception caught in CVC3 JNI: \n" + e);
@@ -328,9 +348,9 @@ public class ProblemCVC3 extends ProblemGeneral {
 	    }
 	}
 
-	public Object lt(Object exp, int value){
+	public Object lt(Object exp, long value){
 		try{
-			return  vc.ltExpr((Expr)exp, vc.ratExpr(value));
+			return  vc.ltExpr((Expr)exp, vc.ratExpr((int) value));
 		} catch (Exception e) {
 			e.printStackTrace();
 			throw new RuntimeException("## Error CVC3: Exception caught in CVC3 JNI: \n" + e);
@@ -369,9 +389,9 @@ public class ProblemCVC3 extends ProblemGeneral {
 	}
 
 
-	public Object gt(int value, Object exp){
+	public Object gt(long value, Object exp){
 		try{
-			return  vc.gtExpr(vc.ratExpr(value), (Expr)exp);
+			return  vc.gtExpr(vc.ratExpr((int) value), (Expr)exp);
 		} catch (Exception e) {
 			e.printStackTrace();
 			throw new RuntimeException("## Error CVC3: Exception caught in CVC3 JNI: \n" + e);
@@ -379,9 +399,9 @@ public class ProblemCVC3 extends ProblemGeneral {
 	    }
 	}
 
-	public Object gt(Object exp, int value){
+	public Object gt(Object exp, long value){
 		try{
-			return  vc.gtExpr((Expr)exp, vc.ratExpr(value));
+			return  vc.gtExpr((Expr)exp, vc.ratExpr((int) value));
 		} catch (Exception e) {
 			e.printStackTrace();
 			throw new RuntimeException("## Error CVC3: Exception caught in CVC3 JNI: \n" + e);
@@ -432,18 +452,18 @@ public class ProblemCVC3 extends ProblemGeneral {
 
 
 
-	public Object plus(int value, Object exp) {
+	public Object plus(long value, Object exp) {
 		try{
-			return  vc.plusExpr(vc.ratExpr(value), (Expr)exp);
+			return  vc.plusExpr(vc.ratExpr((int) value), (Expr)exp);
 		} catch (Exception e) {
 			e.printStackTrace();
 			throw new RuntimeException("## Error CVC3: Exception caught in CVC3 JNI: \n" + e);
 		}
 	}
 
-	public Object plus(Object exp, int value) {
+	public Object plus(Object exp, long value) {
 		try{
-			return  vc.plusExpr((Expr)exp, vc.ratExpr(value));
+			return  vc.plusExpr((Expr)exp, vc.ratExpr((int) value));
 		} catch (Exception e) {
 			e.printStackTrace();
 			throw new RuntimeException("## Error CVC3: Exception caught in CVC3 JNI: \n" + e);
@@ -477,18 +497,18 @@ public class ProblemCVC3 extends ProblemGeneral {
 		}
 	}
 
-	public Object minus(int value, Object exp) {
+	public Object minus(long value, Object exp) {
 		try{
-			return  vc.minusExpr(vc.ratExpr(value), (Expr)exp);
+			return  vc.minusExpr(vc.ratExpr((int) value), (Expr)exp);
 		} catch (Exception e) {
 			e.printStackTrace();
 			throw new RuntimeException("## Error CVC3: Exception caught in CVC3 JNI: \n" + e);
 		}
 	}
 
-	public Object minus(Object exp, int value) {
+	public Object minus(Object exp, long value) {
 		try{
-			return  vc.minusExpr((Expr)exp, vc.ratExpr(value));
+			return  vc.minusExpr((Expr)exp, vc.ratExpr((int) value));
 		} catch (Exception e) {
 			e.printStackTrace();
 			throw new RuntimeException("## Error CVC3: Exception caught in CVC3 JNI: \n" + e);
@@ -522,18 +542,18 @@ public class ProblemCVC3 extends ProblemGeneral {
 		}
 	}
 
-	public Object mult(int value, Object exp) {
+	public Object mult(long value, Object exp) {
 		try{
-			return  vc.multExpr(vc.ratExpr(value), (Expr)exp);
+			return  vc.multExpr(vc.ratExpr((int) value), (Expr)exp);
 		} catch (Exception e) {
 			e.printStackTrace();
 			throw new RuntimeException("## Error CVC3: Exception caught in CVC3 JNI: \n" + e);
 		}
 	}
 
-	public Object mult(Object exp, int value) {
+	public Object mult(Object exp, long value) {
 		try{
-			return  vc.multExpr((Expr)exp, vc.ratExpr(value));
+			return  vc.multExpr((Expr)exp, vc.ratExpr((int) value));
 		} catch (Exception e) {
 			e.printStackTrace();
 			throw new RuntimeException("## Error CVC3: Exception caught in CVC3 JNI: \n" + e);
@@ -567,18 +587,18 @@ public class ProblemCVC3 extends ProblemGeneral {
 
 	//TODO
 
-	public Object div(int value, Object exp) {
+	public Object div(long value, Object exp) {
 		try{
-			return  vc.divideExpr(vc.ratExpr(value), (Expr)exp);
+			return  vc.divideExpr(vc.ratExpr((int) value), (Expr)exp);
 		} catch (Exception e) {
 			e.printStackTrace();
 			throw new RuntimeException("## Error CVC3: Exception caught in CVC3 JNI: \n" + e);
 		}
 	}
 
-	public Object div(Object exp, int value) {
+	public Object div(Object exp, long value) {
 		try{
-			return  vc.divideExpr((Expr)exp, vc.ratExpr(value));
+			return  vc.divideExpr((Expr)exp, vc.ratExpr((int) value));
 		} catch (Exception e) {
 			e.printStackTrace();
 			throw new RuntimeException("## Error CVC3: Exception caught in CVC3 JNI: \n" + e);
@@ -702,7 +722,7 @@ public class ProblemCVC3 extends ProblemGeneral {
 		}
 	}
 
-	public int getIntValue(Object dpVar) { //not done yet for cvc3
+	public long getIntValue(Object dpVar) { //not done yet for cvc3
 		try{
 		Expr exp = (Expr)model.get((Expr)dpVar);
 		Rational val = exp.getRational();
@@ -790,11 +810,11 @@ public class ProblemCVC3 extends ProblemGeneral {
 	    }
 	}
 
-	public Object and(int value, Object exp) {
+	public Object and(long value, Object exp) {
 		throw new RuntimeException("## Switch to CVC3BitVec");
 	}
 
-	public Object and(Object exp, int value) {
+	public Object and(Object exp, long value) {
 		throw new RuntimeException("## Switch to CVC3BitVec");
 	}
 
@@ -802,11 +822,11 @@ public class ProblemCVC3 extends ProblemGeneral {
 		throw new RuntimeException("## Switch to CVC3BitVec");
 	}
 
-	public Object or(int value, Object exp) {
+	public Object or(long value, Object exp) {
 		throw new RuntimeException("## Switch to CVC3BitVec");
 	}
 
-	public Object or(Object exp, int value) {
+	public Object or(Object exp, long value) {
 		throw new RuntimeException("## Switch to CVC3BitVec");
 	}
 
@@ -814,27 +834,27 @@ public class ProblemCVC3 extends ProblemGeneral {
 		throw new RuntimeException("## Switch to CVC3BitVec");
 	}
 
-	public Object shiftL(int value, Object exp) {
+	public Object shiftL(long value, Object exp) {
 		throw new RuntimeException("## Switch to CVC3BitVec");
 	}
 
-	public Object shiftL(Object exp, int value) {
+	public Object shiftL(Object exp, long value) {
 		throw new RuntimeException("## Switch to CVC3BitVec");
 	}
 
-	public Object shiftR(int value, Object exp) {
+	public Object shiftR(long value, Object exp) {
 		throw new RuntimeException("## Switch to CVC3BitVec");
 	}
 
-	public Object shiftR(Object exp, int value) {
+	public Object shiftR(Object exp, long value) {
 		throw new RuntimeException("## Switch to CVC3BitVec");
 	}
 
-	public Object xor(int value, Object exp) {
+	public Object xor(long value, Object exp) {
 		throw new RuntimeException("## Switch to CVC3BitVec");
 	}
 
-	public Object xor(Object exp, int value) {
+	public Object xor(Object exp, long value) {
 		throw new RuntimeException("## Switch to CVC3BitVec");
 	}
 
@@ -850,11 +870,11 @@ public class ProblemCVC3 extends ProblemGeneral {
 		throw new RuntimeException("## Switch to CVC3BitVec");
 	}
 
-	public Object shiftUR(int value, Object exp) {
+	public Object shiftUR(long value, Object exp) {
 		throw new RuntimeException("## Switch to CVC3BitVec");
 	}
 
-	public Object shiftUR(Object exp, int value) {
+	public Object shiftUR(Object exp, long value) {
 		throw new RuntimeException("## Switch to CVC3BitVec");
 	}
 
@@ -873,6 +893,24 @@ public class ProblemCVC3 extends ProblemGeneral {
 
 		post(orResult);
 
+	}
+
+	@Override
+	public Object rem(Object exp1, Object exp2) {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public Object rem(long exp1, Object exp2) {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public Object rem(Object exp1, long exp2) {
+		// TODO Auto-generated method stub
+		return null;
 	}
 
 }

@@ -1,24 +1,29 @@
+/*
+ * Copyright (C) 2014, United States Government, as represented by the
+ * Administrator of the National Aeronautics and Space Administration.
+ * All rights reserved.
+ *
+ * Symbolic Pathfinder (jpf-symbc) is licensed under the Apache License, 
+ * Version 2.0 (the "License"); you may not use this file except
+ * in compliance with the License. You may obtain a copy of the License at
+ * 
+ *        http://www.apache.org/licenses/LICENSE-2.0. 
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and 
+ * limitations under the License.
+ */
+
 package gov.nasa.jpf.symbc;
 
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Set;
+import java.util.Vector;
 
-import gov.nasa.jpf.jvm.ChoiceGenerator;
-import gov.nasa.jpf.jvm.ClassInfo;
-import gov.nasa.jpf.jvm.DoubleFieldInfo;
-import gov.nasa.jpf.jvm.DynamicArea;
-import gov.nasa.jpf.jvm.ElementInfo;
-import gov.nasa.jpf.jvm.FieldInfo;
-import gov.nasa.jpf.jvm.FloatFieldInfo;
-import gov.nasa.jpf.jvm.IntegerFieldInfo;
-import gov.nasa.jpf.jvm.JVM;
-import gov.nasa.jpf.jvm.LongFieldInfo;
-import gov.nasa.jpf.jvm.MJIEnv;
-import gov.nasa.jpf.jvm.ReferenceFieldInfo;
-import gov.nasa.jpf.jvm.StaticArea;
-import gov.nasa.jpf.jvm.StaticElementInfo;
-import gov.nasa.jpf.jvm.SystemState;
-import gov.nasa.jpf.jvm.ThreadInfo;
+import gov.nasa.jpf.annotation.MJI;
 import gov.nasa.jpf.symbc.heap.HeapChoiceGenerator;
 import gov.nasa.jpf.symbc.heap.HeapNode;
 import gov.nasa.jpf.symbc.heap.Helper;
@@ -27,6 +32,7 @@ import gov.nasa.jpf.symbc.numeric.Comparator;
 import gov.nasa.jpf.symbc.numeric.Expression;
 import gov.nasa.jpf.symbc.numeric.IntegerConstant;
 import gov.nasa.jpf.symbc.numeric.IntegerExpression;
+import gov.nasa.jpf.symbc.numeric.MinMax;
 import gov.nasa.jpf.symbc.numeric.PCChoiceGenerator;
 import gov.nasa.jpf.symbc.numeric.PathCondition;
 import gov.nasa.jpf.symbc.numeric.RealExpression;
@@ -34,10 +40,23 @@ import gov.nasa.jpf.symbc.numeric.SymbolicInteger;
 import gov.nasa.jpf.symbc.numeric.SymbolicReal;
 import gov.nasa.jpf.symbc.string.StringExpression;
 import gov.nasa.jpf.symbc.string.StringSymbolic;
+import gov.nasa.jpf.vm.ChoiceGenerator;
+import gov.nasa.jpf.vm.ClassInfo;
+import gov.nasa.jpf.vm.ElementInfo;
+import gov.nasa.jpf.vm.FieldInfo;
+import gov.nasa.jpf.vm.MJIEnv;
+import gov.nasa.jpf.vm.NativePeer;
+import gov.nasa.jpf.vm.ReferenceFieldInfo;
+import gov.nasa.jpf.vm.StaticElementInfo;
+import gov.nasa.jpf.vm.SystemState;
+import gov.nasa.jpf.vm.ThreadInfo;
+import gov.nasa.jpf.vm.VM;
 
-public class JPF_gov_nasa_jpf_symbc_Debug {
+public class JPF_gov_nasa_jpf_symbc_Debug extends NativePeer {
+	
+	@MJI
 	public static PathCondition getPC(MJIEnv env) {
-		JVM vm = env.getVM();
+		VM vm = env.getVM();
 		ChoiceGenerator<?> cg = vm.getChoiceGenerator();
 		PathCondition pc = null;
 
@@ -54,7 +73,9 @@ public class JPF_gov_nasa_jpf_symbc_Debug {
 		}
 		return pc;
 	}
-
+	
+	
+	@MJI
 	public static void printPC(MJIEnv env, int objRef, int msgRef) {
 		PathCondition pc = getPC(env);
 		if (pc != null) {
@@ -64,7 +85,7 @@ public class JPF_gov_nasa_jpf_symbc_Debug {
 		else
 			System.out.println(env.getStringObject(msgRef) + " PC is null");
 	}
-
+	@MJI
 	public static int getSolvedPC(MJIEnv env, int objRef) {
 		PathCondition pc = getPC(env);
 		if (pc != null) {
@@ -74,8 +95,16 @@ public class JPF_gov_nasa_jpf_symbc_Debug {
 		return env.newString("");
 	}
 
-
-
+	@MJI
+	public static int getPC_prefix_notation(MJIEnv env, int objRef) {
+		PathCondition pc = getPC(env);
+		if (pc != null) {
+			pc.solve();
+			return env.newString(pc.prefix_notation());
+		}
+		return env.newString("");
+	}
+	@MJI
 	public static int getSymbolicIntegerValue(MJIEnv env, int objRef, int v) {
 		Object [] attrs = env.getArgAttributes();
 		
@@ -83,8 +112,128 @@ public class JPF_gov_nasa_jpf_symbc_Debug {
 		if (sym_arg !=null)
 			return env.newString(sym_arg.toString());
 		else
-			return env.newString(Integer.toString(v));
+			return env.newString(Long.toString(v));
 	}
+	@MJI
+	public static int getSymbolicByteValue(MJIEnv env, int objRef, byte v) {
+		Object [] attrs = env.getArgAttributes();
+		
+		IntegerExpression sym_arg = (IntegerExpression)attrs[0];
+		if (sym_arg !=null)
+			return env.newString(sym_arg.toString());
+		else
+			return env.newString(Long.toString(v));
+	}
+	@MJI
+	public static int getSymbolicLongValue(MJIEnv env, int objRef, long v) {
+		Object [] attrs = env.getArgAttributes();
+		
+		IntegerExpression sym_arg = (IntegerExpression)attrs[0];
+		if (sym_arg !=null)
+			return env.newString(sym_arg.toString());
+		else
+			return env.newString(Long.toString(v));
+	}
+	
+	@MJI
+	public static boolean isSymbolicInteger(MJIEnv env, int objRef, int v) {
+		Object [] attrs = env.getArgAttributes();
+		if(attrs!=null){
+		  IntegerExpression sym_arg = (IntegerExpression)attrs[0];
+		  if (sym_arg !=null)
+			return true;
+		}
+		return false;
+	}
+	
+	@MJI
+	public static boolean isSymbolicLong(MJIEnv env, int objRef, long v) {
+		Object [] attrs = env.getArgAttributes();
+		if(attrs!=null){
+		  IntegerExpression sym_arg = (IntegerExpression)attrs[0];
+		  if (sym_arg !=null)
+			return true;
+		}
+		return false;
+	}
+	
+	@MJI
+	public static boolean isSymbolicShort(MJIEnv env, int objRef, short v) {
+		Object [] attrs = env.getArgAttributes();
+		if(attrs!=null){
+		  IntegerExpression sym_arg = (IntegerExpression)attrs[0];
+		  if (sym_arg !=null)
+			return true;
+		}
+		return false;
+	}
+	
+	@MJI
+	public static boolean isSymbolicByte(MJIEnv env, int objRef, byte v) {
+		Object [] attrs = env.getArgAttributes();
+		if(attrs!=null){
+		  IntegerExpression sym_arg = (IntegerExpression)attrs[0];
+		  if (sym_arg !=null)
+			return true;
+		}
+		return false;
+	}
+	
+	@MJI
+	public static boolean isSymbolicChar(MJIEnv env, int objRef, char v) {
+		Object [] attrs = env.getArgAttributes();
+		if(attrs!=null){
+		  IntegerExpression sym_arg = (IntegerExpression)attrs[0];
+		  if (sym_arg !=null)
+			return true;
+		}
+		return false;
+	}
+
+	@MJI
+	public static void freshPCcopy(MJIEnv env, int objRef) {
+		PathCondition pc = getPC(env);
+		if(pc!=null)
+			pcLocal = pc.make_copy();
+		else
+			pcLocal = new PathCondition();
+	}
+	
+	static PathCondition pcLocal;
+			
+	@MJI
+	public static boolean addEQ0(MJIEnv env, int objRef, int v) {
+		Object [] attrs = env.getArgAttributes();
+		
+		IntegerExpression sym_arg = (IntegerExpression)attrs[0];
+		if (sym_arg !=null) {
+			pcLocal._addDet(Comparator.EQ, sym_arg, 0);
+			return true;
+		}
+		else
+			return (v==0);
+	}
+	
+	@MJI
+	public static boolean addGT0(MJIEnv env, int objRef, int v) {
+		Object [] attrs = env.getArgAttributes();
+		
+		IntegerExpression sym_arg = (IntegerExpression)attrs[0];
+		if (sym_arg !=null) {
+			pcLocal._addDet(Comparator.GT, sym_arg, 0);
+			return true;
+		}
+		else
+			return (v>0);
+	}
+	
+	@MJI
+	public static boolean checkSAT(MJIEnv env, int objRef) {
+		return pcLocal.simplify();
+	}
+	
+	
+	@MJI
     public static int getSymbolicRealValue(MJIEnv env, int objRef, double v) {
     	Object [] attrs = env.getArgAttributes();
 		RealExpression sym_arg = (RealExpression)attrs[0];
@@ -93,6 +242,7 @@ public class JPF_gov_nasa_jpf_symbc_Debug {
 		else
 			return env.newString(Double.toString(v));
     }
+	@MJI
     public static int getSymbolicBooleanValue(MJIEnv env, int objRef, boolean v) {
     	Object [] attrs = env.getArgAttributes();
 		IntegerExpression sym_arg = (IntegerExpression)attrs[0];
@@ -101,7 +251,7 @@ public class JPF_gov_nasa_jpf_symbc_Debug {
 		else
 			return env.newString(Boolean.toString(v));
     }
-
+	@MJI
     public static int getSymbolicStringValue(MJIEnv env, int objRef, int stringRef) {
     	Object [] attrs = env.getArgAttributes();
 		StringExpression sym_arg = (StringExpression)attrs[0];
@@ -111,8 +261,10 @@ public class JPF_gov_nasa_jpf_symbc_Debug {
 		else
 			return env.newString(string_concrete);
     }
+	@MJI
     public static void assume(MJIEnv env, int objRef, boolean c) {
     	Object [] attrs = env.getArgAttributes();
+    	if(attrs==null)return;
 		IntegerExpression sym_arg = (IntegerExpression)attrs[0];
 		assert(sym_arg==null);
 		if(!c) {// instruct JPF to backtrack
@@ -120,26 +272,50 @@ public class JPF_gov_nasa_jpf_symbc_Debug {
 			ss.setIgnored(true);
 		}
     }
-
+	@MJI
 	public static int makeSymbolicInteger(MJIEnv env, int objRef, int stringRef) {
 		String name = env.getStringObject(stringRef);
-		env.setReturnAttribute(new SymbolicInteger(name));
+		env.setReturnAttribute(new SymbolicInteger(name, MinMax.getVarMinInt(name), MinMax.getVarMaxInt(name)));
 		return 0;
 	}
-
+	@MJI
+	public static long makeSymbolicLong(MJIEnv env, int objRef, int stringRef) {
+		String name = env.getStringObject(stringRef);
+		env.setReturnAttribute(new SymbolicInteger(name, MinMax.getVarMinLong(name), MinMax.getVarMaxLong(name)));
+		return 0;
+	}
+	@MJI
+	public static short makeSymbolicShort(MJIEnv env, int objRef, int stringRef) {
+		String name = env.getStringObject(stringRef);
+		env.setReturnAttribute(new SymbolicInteger(name, MinMax.getVarMinShort(name), MinMax.getVarMaxShort(name)));
+		return 0;
+	}
+	@MJI
+	public static byte makeSymbolicByte(MJIEnv env, int objRef, int stringRef) {
+		String name = env.getStringObject(stringRef);
+		env.setReturnAttribute(new SymbolicInteger(name, MinMax.getVarMinByte(name), MinMax.getVarMaxByte(name)));
+		return 0;
+	}
+	@MJI
+	public static char makeSymbolicChar(MJIEnv env, int objRef, int stringRef) {
+		String name = env.getStringObject(stringRef);
+		env.setReturnAttribute(new SymbolicInteger(name, MinMax.getVarMinChar(name), MinMax.getVarMaxChar(name)));
+		return 0;
+	}
+	@MJI
 	public static double makeSymbolicReal(MJIEnv env, int objRef, int stringRef) {
 		String name = env.getStringObject(stringRef);
-		env.setReturnAttribute(new SymbolicReal(name));
+		env.setReturnAttribute(new SymbolicReal(name, MinMax.getVarMinDouble(name), MinMax.getVarMaxDouble(name)));
 		return 0.0;
 	}
-
+	@MJI
 	public static boolean makeSymbolicBoolean(MJIEnv env, int objRef, int stringRef) {
 		String name = env.getStringObject(stringRef);
 		env.setReturnAttribute(new SymbolicInteger(name,0,1));
 		return false;
 	}
-
-	public static int makeSymbolicString(MJIEnv env, int objRef, int stringRef) {
+	@MJI
+	public static int makeSymbolicString__Ljava_lang_String_2__Ljava_lang_String_2(MJIEnv env, int objRef, int stringRef) {
 		String name = env.getStringObject(stringRef);
 		env.setReturnAttribute(new StringSymbolic(name));
 		return env.newString("");
@@ -152,18 +328,19 @@ public class JPF_gov_nasa_jpf_symbc_Debug {
 //	}
 
 	// the purpose of this method is to set the PCheap to the "eq null" constraint for the input specified w/ stringRef
+	@MJI
 	public static int makeSymbolicNull(MJIEnv env, int objRef, int stringRef) {
 
 		// introduce a heap choice generator for the element in the heap
 		ThreadInfo ti = env.getVM().getCurrentThread();
 		SystemState ss = env.getVM().getSystemState();
-		ChoiceGenerator<?> cg;
+		ChoiceGenerator cg;
 
 		if (!ti.isFirstStepInsn()) {
 			  cg = new HeapChoiceGenerator(1);  //new
 			  ss.setNextChoiceGenerator(cg);
 			  env.repeatInvocation();
-			  return -1;  // not used anyways
+			  return MJIEnv.NULL;  // not used anyways
 		  }
 		//else this is what really returns results
 
@@ -202,7 +379,7 @@ public class JPF_gov_nasa_jpf_symbc_Debug {
 	    ((HeapChoiceGenerator)cg).setCurrentPCheap(pcHeap);
 	    ((HeapChoiceGenerator)cg).setCurrentSymInputHeap(symInputHeap);
 	    //System.out.println(">>>>>>>>>>>> initial pcHeap: " + pcHeap.toString());
-		return -1;
+		return MJIEnv.NULL;
 	}
 
 
@@ -211,10 +388,10 @@ public class JPF_gov_nasa_jpf_symbc_Debug {
 	// moreover it adds this object to the symbolic heap to participate in lazy initialization
 	// -- useful for debugging
 
-
+	@MJI
 	public static void makeFieldsSymbolic(MJIEnv env, int objRef, int stringRef, int objvRef) {
 		// makes all the fields of obj v symbolic and adds obj v to the symbolic heap to kick off lazy initialization
-		if (objvRef == -1)
+		if (objvRef == MJIEnv.NULL)
 			throw new RuntimeException("## Error: null object");
 		// introduce a heap choice generator for the element in the heap
 		ThreadInfo ti = env.getVM().getCurrentThread();
@@ -262,7 +439,7 @@ public class JPF_gov_nasa_jpf_symbc_Debug {
 
 		SymbolicInteger newSymRef = new SymbolicInteger( refChain);
 		//ElementInfo eiRef = DynamicArea.getHeap().get(objvRef);
-		ElementInfo eiRef = JVM.getVM().getHeap().get(objvRef);
+		ElementInfo eiRef = VM.getVM().getHeap().getModifiable(objvRef);
 		Helper.initializeInstanceFields(fields, eiRef, refChain);
 		Helper.initializeStaticFields(staticFields, ci, ti);
 
@@ -290,8 +467,8 @@ public class JPF_gov_nasa_jpf_symbc_Debug {
 	 */
 	static void buildHeapTree(MJIEnv env, int n) {
 		res += " { ";
-		res += ((n == -1) ? " -1 " : " 0 ");
-		if (n != -1) {
+		res += ((n == MJIEnv.NULL) ? " -1 " : " 0 ");
+		if (n != MJIEnv.NULL) {
 			ClassInfo ci = env.getClassInfo(n);
 			FieldInfo[] fields = ci.getDeclaredInstanceFields();
 			for (int i = 0; i < fields.length; i++)
@@ -308,11 +485,11 @@ public class JPF_gov_nasa_jpf_symbc_Debug {
 
 
 
-
+	@MJI
 	public static void printHeapPC(MJIEnv env, int objRef, int msgRef) {
 		// should first solve the pc's!!!!
 
-		JVM vm = env.getVM();
+		VM vm = env.getVM();
 		ChoiceGenerator<?> cg = vm.getChoiceGenerator();
 		PathCondition pc = null;
 
@@ -342,6 +519,7 @@ public class JPF_gov_nasa_jpf_symbc_Debug {
 
 	// goes through heap rooted in objvRef in DFS order and prints the symbolic heap
 	// does not print the static fields
+	@MJI
 	public static void printSymbolicRef(MJIEnv env, int objRef, int objvRef, int msgRef) {
 		discovered = new HashSet<Integer>();
 		discoveredClasses = new HashSet<ClassInfo>();
@@ -351,7 +529,7 @@ public class JPF_gov_nasa_jpf_symbc_Debug {
 	}
 
 	 static String toStringSymbolicRef(MJIEnv env, int objvRef) {
-		if (objvRef == -1) {
+		if (objvRef == MJIEnv.NULL) {
 			sequence += "[";
 			sequence += "null";
 			sequence += "]";
@@ -360,7 +538,7 @@ public class JPF_gov_nasa_jpf_symbc_Debug {
 		else{
 			ClassInfo ci = env.getClassInfo(objvRef);
 			//ElementInfo ei = DynamicArea.getHeap().get(objvRef);
-			ElementInfo ei = JVM.getVM().getHeap().get(objvRef);
+			ElementInfo ei = VM.getVM().getHeap().get(objvRef);
 			sequence += "["+objvRef+"]";
 			if (!discovered.contains(new Integer(objvRef))){
 				discovered.add(new Integer(objvRef));
@@ -470,7 +648,7 @@ public class JPF_gov_nasa_jpf_symbc_Debug {
 	 */
 	private static String traverseRootedHeapAndGetSequence(MJIEnv env, int n){
 		// lets call the current vertex v
-		if (n==-1) { // vertex v is null
+		if (n==MJIEnv.NULL) { // vertex v is null
 			// for null vertex, discovery and finish time are the same
 			// so open and close the bracket all in one place.
 			sequence += "{";
@@ -493,7 +671,7 @@ public class JPF_gov_nasa_jpf_symbc_Debug {
 					//System.out.println("field name " + fname);
 					int temp = env.getReferenceField(n, fname);
 					// null (short-circuited) OR successor yet undiscovered
-					if(temp==-1 || !discovered.contains(new Integer(temp))){
+					if(temp==MJIEnv.NULL || !discovered.contains(new Integer(temp))){
 						traverseRootedHeapAndGetSequence(env, temp);
 					}
 				}
@@ -649,6 +827,7 @@ public class JPF_gov_nasa_jpf_symbc_Debug {
 	 * Performs abstract matching
 	 *
 	 */
+	@MJI
 	public static boolean matchAbstractState(MJIEnv env, int objRef, int objvRef) {
 		// get the sequence for the abstracted state
 		String abstractedState = getAbstractedState(env, objvRef);

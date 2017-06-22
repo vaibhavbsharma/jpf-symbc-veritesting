@@ -1,12 +1,31 @@
+/*
+ * Copyright (C) 2014, United States Government, as represented by the
+ * Administrator of the National Aeronautics and Space Administration.
+ * All rights reserved.
+ *
+ * Symbolic Pathfinder (jpf-symbc) is licensed under the Apache License, 
+ * Version 2.0 (the "License"); you may not use this file except
+ * in compliance with the License. You may obtain a copy of the License at
+ * 
+ *        http://www.apache.org/licenses/LICENSE-2.0. 
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and 
+ * limitations under the License.
+ */
+
 package gov.nasa.jpf.symbc.bytecode;
 
-import gov.nasa.jpf.jvm.ClassInfo;
-import gov.nasa.jpf.jvm.KernelState;
-import gov.nasa.jpf.jvm.SystemState;
-import gov.nasa.jpf.jvm.ThreadInfo;
-import gov.nasa.jpf.jvm.bytecode.Instruction;
+
 import gov.nasa.jpf.symbc.numeric.IntegerExpression;
 import gov.nasa.jpf.symbc.string.SymbolicLengthInteger;
+import gov.nasa.jpf.vm.ClassInfo;
+import gov.nasa.jpf.vm.ClassLoaderInfo;
+import gov.nasa.jpf.vm.Instruction;
+import gov.nasa.jpf.vm.StackFrame;
+import gov.nasa.jpf.vm.ThreadInfo;
 
 /**
  * Symbolic version of the MULTIANEWARRAY class from jpf-core. Like NEWARRAY,
@@ -14,6 +33,7 @@ import gov.nasa.jpf.symbc.string.SymbolicLengthInteger;
  * variable is being used as the size of the new array, and treat it accordingly.
  * 
  * And someone should review this one too :)
+ * TODO: to review
  */
 
 public class MULTIANEWARRAY extends gov.nasa.jpf.jvm.bytecode.MULTIANEWARRAY {
@@ -23,20 +43,21 @@ public class MULTIANEWARRAY extends gov.nasa.jpf.jvm.bytecode.MULTIANEWARRAY {
 	}
 
 	@Override
-	public Instruction execute(SystemState ss, KernelState ks, ThreadInfo ti) {
+	public Instruction execute(ThreadInfo ti) {
 		arrayLengths = new int[dimensions];
-
+		StackFrame sf = ti.getModifiableTopFrame();
 		for (int i = dimensions - 1; i >= 0; i--) {
-			Object attr = ti.getOperandAttr();
+			Object attr = sf.getOperandAttr();
 			
 			if(attr instanceof SymbolicLengthInteger) {
-				arrayLengths[i] = ((SymbolicLengthInteger) attr).solution;
-				ti.pop();
+				long l = ((SymbolicLengthInteger) attr).solution;
+				assert(l>=0 && l<=Integer.MAX_VALUE) : "Array length must be positive integer";
+				arrayLengths[i] = (int) l;
+				sf.pop();
 			} else 	if(attr instanceof IntegerExpression) {
-				arrayLengths[i] = ((IntegerExpression) attr).solution();
-				ti.pop();
+				throw new RuntimeException("MULTIANEWARRAY: symbolic array length");
 			} else {
-				arrayLengths[i] = ti.pop();
+				arrayLengths[i] = sf.pop();
 			}
 		}
 
@@ -44,7 +65,7 @@ public class MULTIANEWARRAY extends gov.nasa.jpf.jvm.bytecode.MULTIANEWARRAY {
 		
 		// there is no clinit for array classes, but we still have  to create a class object
 		// since its a builtin class, we also don't have to bother with NoClassDefFoundErrors
-		ClassInfo ci = ClassInfo.getResolvedClassInfo(type);
+		ClassInfo ci = ClassLoaderInfo.getCurrentResolvedClassInfo(type);
 		if (!ci.isRegistered()) {
 			ci.registerClass(ti);
 			ci.setInitialized();
@@ -53,7 +74,7 @@ public class MULTIANEWARRAY extends gov.nasa.jpf.jvm.bytecode.MULTIANEWARRAY {
 		int arrayRef = allocateArray(ti.getHeap(), type, arrayLengths, ti, 0);
 
 		// put the result (the array reference) on the stack
-		ti.push(arrayRef, true);
+		sf.push(arrayRef, true);
 
 		return getNext(ti);
 	}

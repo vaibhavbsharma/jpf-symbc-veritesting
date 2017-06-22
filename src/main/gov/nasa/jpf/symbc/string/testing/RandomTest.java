@@ -1,7 +1,28 @@
+/*
+ * Copyright (C) 2014, United States Government, as represented by the
+ * Administrator of the National Aeronautics and Space Administration.
+ * All rights reserved.
+ *
+ * Symbolic Pathfinder (jpf-symbc) is licensed under the Apache License, 
+ * Version 2.0 (the "License"); you may not use this file except
+ * in compliance with the License. You may obtain a copy of the License at
+ * 
+ *        http://www.apache.org/licenses/LICENSE-2.0. 
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and 
+ * limitations under the License.
+ */
+
 package gov.nasa.jpf.symbc.string.testing;
 
+import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileNotFoundException;
+import java.io.FileReader;
+import java.io.IOException;
 import java.util.List;
 import java.util.Random;
 import java.util.Scanner;
@@ -113,7 +134,7 @@ public class RandomTest {
 		return p;
 	}
 	
-	public static void main (String [] args) throws FileNotFoundException {
+	public static void main (String [] args) throws NumberFormatException, IOException {
 		setUpJPF();
 		
 		//Profile p = get3smallSetOfEdges();
@@ -187,9 +208,9 @@ public class RandomTest {
 			}
 		}
 		else {
-			Scanner scanner = new Scanner(new File(args[1]));
-			while (scanner.hasNext()) {
-				String number = scanner.nextLine();
+		  BufferedReader br = new BufferedReader(new FileReader(args[1]));
+			String number;
+			while ((number = br.readLine()) != null) {
 				long seed = Long.parseLong(number);
 				random = new Random();
 				StringGraph sg = generateRandomStringGraph (p, seed);
@@ -207,6 +228,7 @@ public class RandomTest {
 				}
 				System.out.println(",\""+seed+"\","+z3dur.time+","+autodur.time);
 			}
+			br.close();
 		}
 	}
 	
@@ -427,7 +449,7 @@ public class RandomTest {
 		}
 		/*println (pc.header.toString());
 		println ("ic: " + ic);*/
-		EdgeSubstring1Equal edge = new EdgeSubstring1Equal("EdgeSubstring1Equal_" + getCounter(), ic.solution(), v1, v2);
+		EdgeSubstring1Equal edge = new EdgeSubstring1Equal("EdgeSubstring1Equal_" + getCounter(), ic.solutionInt(), v1, v2);
 		result.addEdge(v1, v2, edge);
 	}
 	
@@ -475,13 +497,13 @@ public class RandomTest {
 			pc._addDet(Comparator.LE, ie2, v1.getSymbolicLength());
 		}
 		if (ie1 instanceof IntegerConstant && ie2 instanceof IntegerConstant) {
-			edge = new EdgeSubstring2Equal("EdgeSubstring1Equal_" + getCounter(), ie1.solution(), ie2.solution(), v1, v2);
+			edge = new EdgeSubstring2Equal("EdgeSubstring1Equal_" + getCounter(), ie1.solutionInt(), ie2.solutionInt(), v1, v2);
 		}
 		else if (ie1 instanceof IntegerConstant) {
-			edge = new EdgeSubstring2Equal("EdgeSubstring1Equal_" + getCounter(), ie1.solution(), ie2, v1, v2);
+			edge = new EdgeSubstring2Equal("EdgeSubstring1Equal_" + getCounter(), ie1.solutionInt(), ie2, v1, v2);
 		}
 		else if (ie2 instanceof IntegerConstant) {
-			edge = new EdgeSubstring2Equal("EdgeSubstring1Equal_" + getCounter(), ie1, ie2.solution(), v1, v2);
+			edge = new EdgeSubstring2Equal("EdgeSubstring1Equal_" + getCounter(), ie1, ie2.solutionInt(), v1, v2);
 		}
 		result.addEdge(v1, v2, edge);
 	}

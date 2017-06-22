@@ -1,3 +1,21 @@
+/*
+ * Copyright (C) 2014, United States Government, as represented by the
+ * Administrator of the National Aeronautics and Space Administration.
+ * All rights reserved.
+ *
+ * Symbolic Pathfinder (jpf-symbc) is licensed under the Apache License, 
+ * Version 2.0 (the "License"); you may not use this file except
+ * in compliance with the License. You may obtain a copy of the License at
+ * 
+ *        http://www.apache.org/licenses/LICENSE-2.0. 
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and 
+ * limitations under the License.
+ */
+
 package gov.nasa.jpf.symbc.string.translate;
 
 import java.util.ArrayList;
@@ -762,7 +780,7 @@ public class TranslateToAutomataSpeedUp {
 			return false;
 		}
 		else {
-			temp = AutomatonExtra.lengthAutomaton(e.getIndex().solution());
+			temp = AutomatonExtra.lengthAutomaton(e.getIndex().solutionInt());
 			temp = temp.concatenate(Automaton.makeChar((char) e.getValue().solution()).concatenate(AutomatonExtra.makeAnyStringFixed()));
 			intersection = AutomatonExtra.intersection(a1, temp);
 			if (intersection.isEmpty()) {
@@ -878,7 +896,7 @@ public class TranslateToAutomataSpeedUp {
 		//println ("[handleEdgeIndexOf] entered");
 		Automaton a1 = mapAutomaton.get(e.getSource());
 		Automaton a2 = mapAutomaton.get(e.getDest());
-		int index = e.getIndex().solution();
+		int index = e.getIndex().solutionInt();
 		//First check if it is possible
 		if (index > -1) {
 			Automaton temp = AutomatonExtra.makeAnyStringFixed().concatenate(a2).concatenate(AutomatonExtra.makeAnyStringFixed());
@@ -964,7 +982,7 @@ public class TranslateToAutomataSpeedUp {
 		//println ("[handleEdgeIndexOf] entered");
 		Automaton a1 = mapAutomaton.get(e.getSource());
 		Automaton a2 = mapAutomaton.get(e.getDest());
-		int index = e.getIndex().solution();
+		int index = e.getIndex().solutionInt();
 		//First check if it is possible
 		if (index > -1) {
 			Automaton temp = AutomatonExtra.makeAnyStringFixed().concatenate(a2).concatenate(AutomatonExtra.makeAnyStringFixed());
@@ -1050,7 +1068,7 @@ public class TranslateToAutomataSpeedUp {
 		//println ("[handleEdgeIndexOf] entered");
 		Automaton a1 = mapAutomaton.get(e.getSource());
 		//Automaton a2 = mapAutomaton.get(e.getDest());
-		int index = e.getIndex().solution();
+		int index = e.getIndex().solutionInt();
 		String character = String.valueOf((char) e.getIndex().getExpression().solution());
 		//First check if it is possible
 		if (index > -1) {
@@ -1137,7 +1155,7 @@ public class TranslateToAutomataSpeedUp {
 		//println ("[handleEdgeIndexOf] entered");
 		Automaton a1 = mapAutomaton.get(e.getSource());
 		//Automaton a2 = mapAutomaton.get(e.getDest());
-		int index = e.getIndex().solution();
+		int index = e.getIndex().solutionInt();
 		String character = String.valueOf((char) e.getIndex().getExpression().solution());
 		//First check if it is possible
 		if (index > -1) {
@@ -1374,8 +1392,5 @@ public class TranslateToAutomataSpeedUp {
 		return loic;
 	}
 	
-	private static void println (String msg) {
-		if (logging) System.out.println("[TranslateToAutomata] " + msg);
-	}
 
 }

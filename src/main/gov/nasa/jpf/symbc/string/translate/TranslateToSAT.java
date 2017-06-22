@@ -1,3 +1,21 @@
+/*
+ * Copyright (C) 2014, United States Government, as represented by the
+ * Administrator of the National Aeronautics and Space Administration.
+ * All rights reserved.
+ *
+ * Symbolic Pathfinder (jpf-symbc) is licensed under the Apache License, 
+ * Version 2.0 (the "License"); you may not use this file except
+ * in compliance with the License. You may obtain a copy of the License at
+ * 
+ *        http://www.apache.org/licenses/LICENSE-2.0. 
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and 
+ * limitations under the License.
+ */
+
 package gov.nasa.jpf.symbc.string.translate;
 
 import java.util.ArrayList;
@@ -382,8 +400,8 @@ public class TranslateToSAT {
 		//Constant cases should be handeld by the preprocessor
 		if (!e.getSource().isConstant()) {
 			int vector1 = retrieveInt(e.getSource());
-			int index = e.getIndex().solution();
-			int character = e.getValue().solution() - SymbolicStringConstraintsGeneral.MIN_CHAR;
+			int index = e.getIndex().solutionInt();
+			int character = e.getValue().solutionInt() - SymbolicStringConstraintsGeneral.MIN_CHAR;
 			int clause[] = new int [1];
 			clause[0] = vector1 + index * SymbolicStringConstraintsGeneral.DIFF_CHAR + character;
 			//printClause(clause);
@@ -393,7 +411,7 @@ public class TranslateToSAT {
 		else {
 			//throw new RuntimeException ("Unexpected");
 			String constantString = e.getSource().getSolution();
-			int index = e.getIndex().solution();
+			int index = e.getIndex().solutionInt();
 			//int character = e.getValue().solution() - SymbolicStringConstraintsSAT.MIN_CHAR;
 			if (constantString.charAt(index) != (char) e.getValue().solution()) {
 				return false;
@@ -1329,7 +1347,7 @@ public class TranslateToSAT {
 			int vectorLengthOfSource = lengthOfSource * SymbolicStringConstraintsGeneral.DIFF_CHAR;
 			int vectorLengthOfDest = lengthOfDest * SymbolicStringConstraintsGeneral.DIFF_CHAR;
 			
-			int pos = e.getIndex().solution();
+			int pos = e.getIndex().solutionInt();
 			if (pos > -1) {
 				int vectorPos = pos * SymbolicStringConstraintsGeneral.DIFF_CHAR;
 				//println ("[handleEdgeIndexOf] start...");
@@ -1355,7 +1373,7 @@ public class TranslateToSAT {
 			int vector1 = retrieveInt(e.getSource());
 			int length = e.getSource().getLength();
 			String constant = e.getDest().getSolution();
-			int position = e.getIndex().solution();
+			int position = e.getIndex().solutionInt();
 			if (position >= 0) {
 				//The string should be found at position
 				int clause[] = new int [1];
@@ -1390,7 +1408,7 @@ public class TranslateToSAT {
 			int vector2 = retrieveInt(e.getDest());
 			String constantSource = e.getSource().getSolution();
 			//println ("[handleEdgeIndexof] constantSource: " + constantSource);
-			int pos = e.getIndex().solution();
+			int pos = e.getIndex().solutionInt();
 			if (pos != -1) {
 				//println ("[handleEdgeIndexOf] pos = " + pos);
 				List<int[]> clauses = new ArrayList<int[]>();
