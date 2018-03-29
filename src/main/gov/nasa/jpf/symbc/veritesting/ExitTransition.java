@@ -2,26 +2,34 @@ package gov.nasa.jpf.symbc.veritesting;
 
 import za.ac.sun.cs.green.expr.Expression;
 
-public class VeritestingTransition {
+public class NominalTransition {
     public int pathLabel;
     public String pathLabelString;
-    public Expression transitionConstraint;
+    public Expression nominalConstraint;
+    public Expression negNominalConstraint;
+    private Expression nominalRHS;
+    private Expression negNominalRHS;
     public String instructionName;
 
 
-    public VeritestingTransition(Expression transitionConstraint, String instructionName, String pathLabelString, int pathLabel){
+    public NominalTransition(Expression Constraint, String instructionName, String pathLabelString, int pathLabel){
         this.pathLabelString = pathLabelString;
         this.pathLabel = pathLabel;
-        this.transitionConstraint = transitionConstraint;
+        this.nominalConstraint = nominalConstraint;
         this.instructionName = instructionName;
     }
+
+    public Expression getNegNominalConstraint() {
+        return negNominalConstraint;
+    }
+
 
     public String getInstructionName() {
         return instructionName;
     }
 
-    public Expression getTransitionConstraint() {
-        return transitionConstraint;
+    public Expression getNominalConstraint() {
+        return nominalConstraint;
     }
 
     public int getPathLabel() {
@@ -32,8 +40,8 @@ public class VeritestingTransition {
         return pathLabelString;
     }
 
-    public void setTransitionConstraint(Expression transitionConstraint) {
-        this.transitionConstraint = transitionConstraint;
+    public void setNominalConstraint(Expression nominalConstraint) {
+        this.nominalConstraint = nominalConstraint;
     }
 
     public void setPathLabel(int exceptionPathLabel) {
@@ -50,6 +58,6 @@ public class VeritestingTransition {
 
     @Override
     public String toString() {
-        return("instruction = " + instructionName + ", "+ pathLabelString + " = " + pathLabel +", transitionConstraint = " + transitionConstraint.toString() );
+        return("instruction = " + instructionName + ", "+ pathLabelString + " = " + pathLabel +", nominalConstraint = " + nominalConstraint.toString() );
     }
 }
