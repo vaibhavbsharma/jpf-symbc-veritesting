@@ -633,7 +633,13 @@ public class SymbolicListener extends PropertyListenerAdapter implements Publish
 	    	MethodSummary methodSummary = (MethodSummary)me.getValue();
 	    	printMethodSummaryHTML(pw, methodSummary);
 	    }
-	    
+		  publisher.publishTopicStart("SymbolicListener time report");
+		  pw.println("totalSolverTime = " + VeritestingListener.totalSolverTime/1000000);
+		  pw.println("z3Time = " + VeritestingListener.z3Time/1000000);
+		  pw.println("parsingTime = " + VeritestingListener.parseTime/1000000);
+		  pw.println("solverAllocTime = " + VeritestingListener.solverAllocTime/1000000);
+		  pw.println("cleanupTime = " + VeritestingListener.cleanupTime/1000000);
+		  pw.println("solverCount = " + VeritestingListener.solverCount);
 	  }
 
 	  protected class MethodSummary{

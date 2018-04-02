@@ -42,6 +42,7 @@ import com.ibm.wala.util.graph.impl.GraphInverter;
 import com.ibm.wala.util.io.FileProvider;
 import com.ibm.wala.util.strings.Atom;
 import com.ibm.wala.util.strings.StringStuff;
+import com.microsoft.z3.Expr;
 import gov.nasa.jpf.Config;
 import gov.nasa.jpf.symbc.VeritestingListener;
 import x10.wala.util.NatLoop;
@@ -382,9 +383,9 @@ public class VeritestingMain {
                 summarizedRegionStartBB.add(currUnit.getNumber());
 
                 // Create thenExpr
-                while (thenUnit != commonSucc) {
+                while (thenUnit != commonSucc) { // the meet point not reached yet
                     boolean isPhithenUnit = false;
-                    while(cfg.getNormalSuccessors(thenUnit).size() > 1 && thenUnit != commonSucc && canVeritest) {
+                    while(cfg.getNormalSuccessors(thenUnit).size() > 1 && thenUnit != commonSucc && canVeritest) {  //TODO: Support exceptionalSuccessors in the future
                         if (VeritestingListener.veritestingMode == 1) {
                             canVeritest = false;
                             break;
@@ -395,33 +396,34 @@ public class VeritestingMain {
                         HashMap<Expression, Expression> savedHoleHashMap = saveHoleHashMap();
                         HashMap<String, Expression> savedVarCache = saveVarCache();
                         doAnalysis(thenUnit, commonSucc);
-                        for(Map.Entry<Expression, Expression> entry: savedHoleHashMap.entrySet()) {
+                        for(Map.Entry<Expression, Expression> entry: savedHoleHashMap.entrySet()) { //restore holeHshMap
                             varUtil.holeHashMap.put(entry.getKey(), entry.getValue());
                         }
-                        for(Map.Entry<String, Expression> entry: savedVarCache.entrySet()) {
+                        for(Map.Entry<String, Expression> entry: savedVarCache.entrySet()) { //restore varCache
                             varUtil.varCache.put(entry.getKey(), entry.getValue());
                         }
                         int offset = ((IBytecodeMethod) (ir.getMethod())).getBytecodeIndex(thenUnit.getLastInstructionIndex());
                         String key = currentClassName + "." + methodName + methodSig + "#" + offset;
-                        if(VeritestingListener.veritestingRegions.containsKey(key)) {
+                        if(VeritestingListener.veritestingRegions.containsKey(key)) { // we are able to summarize the inner region, try to sallow it
                             System.out.println("Veritested inner region with key = " + key);
                             //visit all instructions up to and including the condition
                             BlockSummary blockSummary = new BlockSummary(thenUnit, thenExpr, canVeritest, isPhithenUnit).invoke();
                             canVeritest = blockSummary.isCanVeritest();
-                            thenExpr = blockSummary.getExpression();
+                            thenExpr = blockSummary.getExpression(); // outer region thenExpr
                             Expression conditionExpression = blockSummary.getIfExpression();
                             //cannot handle returns inside a if-then-else
                             if(blockSummary.getIsExitNode()) canVeritest = false;
                             if(!canVeritest) break;
                             ISSABasicBlock commonSuccthenUnit = cfg.getIPdom(thenUnit.getNumber());
 
+                            //invariant: outer region meetpoint postdominate inner region meet point
                             NumberedGraph<ISSABasicBlock> invertedCFG = GraphInverter.invert(cfg);
                             NumberedDominators<ISSABasicBlock> postDom = (NumberedDominators<ISSABasicBlock>)
                                     Dominators.make(invertedCFG, cfg.exit());
                             boolean bPostDom = (postDom.isDominatedBy(commonSuccthenUnit, commonSucc));
                             assert(bPostDom);
 
-
+                            //start swallow holes from inner region to the outer region by taking a copy of the inner holes to the outer region
                             VeritestingRegion innerRegion = VeritestingListener.veritestingRegions.get(key);
                             for(Expression e: innerRegion.getOutputVars()) {
                                 varUtil.defLocalVars.add(e);
@@ -448,7 +450,7 @@ public class VeritestingMain {
                         } else canVeritest = false;
                     }
                     if (!canVeritest || thenUnit == commonSucc) break;
-                    BlockSummary blockSummary = new BlockSummary(thenUnit, thenExpr, canVeritest, isPhithenUnit, pathLabelString, thenPathLabel).invoke();
+                    BlockSummary blockSummary = new BlockSummary(thenUnit, thenExpr, canVeritest, isPhithenUnit, thenPLAssignSPF).invoke();
                     canVeritest = blockSummary.isCanVeritest();
                     thenExpr = blockSummary.getExpression();
                     //we should not encounter a BB with more than one successor at this point
@@ -544,7 +546,7 @@ public class VeritestingMain {
                         } else canVeritest = false;
                     }
                     if (!canVeritest || elseUnit == commonSucc) break;
-                    BlockSummary blockSummary = new BlockSummary(elseUnit, elseExpr, canVeritest, isPhielseUnit, pathLabelString, elsePathLabel).invoke();
+                    BlockSummary blockSummary = new BlockSummary(elseUnit, elseExpr, canVeritest, isPhielseUnit, elsePLAssignSPF).invoke();
                     canVeritest = blockSummary.isCanVeritest();
                     elseExpr = blockSummary.getExpression();
                     //we should not encounter a BB with more than one successor at this point
@@ -767,8 +769,7 @@ public class VeritestingMain {
     }
 
     private class BlockSummary {
-        private int pathLabel =-1;
-        private String pathLabelString = null;
+        private Expression pathLabelHole;
         private ISSABasicBlock unit;
         private Expression expression;
         private Expression lastExpression;
@@ -789,13 +790,12 @@ public class VeritestingMain {
             this.isPhiUnit = isPhithenUnit;
         }
 
-        public BlockSummary(ISSABasicBlock thenUnit, Expression thenExpr, boolean canVeritest, boolean isPhithenUnit, String pathLabelString, int pathLabel ) {
+        public BlockSummary(ISSABasicBlock thenUnit, Expression thenExpr, boolean canVeritest, boolean isPhithenUnit, Expression pathLabelHole ) {
             this.unit = thenUnit;
             this.expression = thenExpr;
             this.canVeritest = canVeritest;
             this.isPhiUnit = isPhithenUnit;
-            this.pathLabelString = pathLabelString;
-            this.pathLabel = pathLabel;
+            this.pathLabelHole = pathLabelHole;
         }
 
         public Expression getExpression() {
@@ -816,7 +816,7 @@ public class VeritestingMain {
                 assert(ssaInstructionIterator.next() instanceof SSAPhiInstruction);
             }
             while (ssaInstructionIterator.hasNext()) {
-                myIVisitor = new MyIVisitor(varUtil, -1, -1, false, pathLabelString, pathLabel);
+                myIVisitor = new MyIVisitor(varUtil, -1, -1, false, pathLabelHole);
                 ssaInstructionIterator.next().visit(myIVisitor);
 
                 if (!myIVisitor.canVeritest()) {

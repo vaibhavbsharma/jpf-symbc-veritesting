@@ -13,6 +13,7 @@ import com.ibm.wala.util.strings.Atom;
 import gov.nasa.jpf.symbc.VeritestingListener;
 import za.ac.sun.cs.green.expr.Expression;
 
+import za.ac.sun.cs.green.expr.IntVariable;
 import za.ac.sun.cs.green.expr.Operation;
 import za.ac.sun.cs.green.expr.Operation.Operator;
 
@@ -30,8 +31,7 @@ public class MyIVisitor implements SSAInstruction.IVisitor {
     private Expression phiExprLHS = null;
     private String invokeClassName;
     private boolean isInvoke = false;
-    private String pathLabelString = null;
-    private int pathLabel = -1;
+    private Expression pathLabelHole;
 
     public Expression getIfExpr() {
         return ifExpr;
@@ -70,14 +70,13 @@ public class MyIVisitor implements SSAInstruction.IVisitor {
         //SPFExpr = new String();
     }
 
-    public MyIVisitor(VarUtil _varUtil, int _thenUseNum, int _elseUseNum, boolean _isMeetVisitor, String pathLabelString, int pathLabel) {
+    public MyIVisitor(VarUtil _varUtil, int _thenUseNum, int _elseUseNum, boolean _isMeetVisitor, Expression pathLabelHole) {
         varUtil = _varUtil;
         thenUseNum = _thenUseNum;
         elseUseNum = _elseUseNum;
         isMeetVisitor = _isMeetVisitor;
         //SPFExpr = new String();
-        this.pathLabel = pathLabel;
-        this.pathLabelString = pathLabelString;
+        this.pathLabelHole = pathLabelHole;
     }
 
     @Override
@@ -94,15 +93,16 @@ public class MyIVisitor implements SSAInstruction.IVisitor {
         System.out.println("SSAArrayLoadInstruction = " + instruction);
         lastInstruction = instruction;
         int lhs = instruction.getDef();
-        Expression lhsExpr = varUtil.addVal(lhs);
+        Expression lhsExpr = varUtil.makeIntermediateVar(lhs);
+        Expression arrayLoadResult = new IntVariable("arrayLoadResult", Integer.MIN_VALUE, Integer.MAX_VALUE);
         int arrayRef = instruction.getUse(0);
         int arrayIndex = instruction.getUse(1);
         TypeReference arrayType = instruction.getElementType();
         Expression arrayRefHole = varUtil.addVal(arrayRef);
         Expression arrayIndexHole = varUtil.addVal(arrayIndex);
 
-        Expression arrayLoadHole = varUtil.addArrayLoadVal(arrayRefHole, arrayIndexHole,arrayType, HoleExpression.HoleType.ARRAYLOAD, instruction, pathLabelString, pathLabel);
-        SPFExpr = new Operation(Operator.EQ, lhsExpr, arrayLoadHole);
+        Expression arrayLoadHole = varUtil.addArrayLoadVal(arrayRefHole, arrayIndexHole,arrayType, HoleExpression.HoleType.ARRAYLOAD, instruction, pathLabelHole);
+        SPFExpr = new Operation(Operator.IMPLIES, arrayLoadHole, new Operation(Operator.EQ, lhsExpr, arrayLoadResult));
        canVeritest = true;
     }
 

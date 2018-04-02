@@ -1,6 +1,7 @@
 package gov.nasa.jpf.symbc.veritesting;
 
 import com.ibm.wala.types.TypeReference;
+import ia_parser.Exp;
 import za.ac.sun.cs.green.expr.Expression;
 import za.ac.sun.cs.green.expr.Visitor;
 import za.ac.sun.cs.green.expr.VisitorException;
@@ -203,33 +204,28 @@ public class HoleExpression extends za.ac.sun.cs.green.expr.Expression{
     }
 
     public ArrayInfoHole getArrayInfo() {return  arrayInfoHole;}
-    public void setArrayInfo(Expression arrayRef, Expression arrayIndex, TypeReference arrayType, String pathLabelString, int pathLabel){
+    public void setArrayInfo(Expression arrayRef, Expression arrayIndex, TypeReference arrayType, Expression pathLabelHole){
         assert(this.isHole && this.holeType== HoleType.ARRAYLOAD);
-        arrayInfoHole = new ArrayInfoHole(arrayRef, arrayIndex, arrayType, pathLabelString, pathLabel);
+        arrayInfoHole = new ArrayInfoHole(arrayRef, arrayIndex, arrayType, pathLabelHole);
     }
     ArrayInfoHole arrayInfoHole = null;
 
     public class ArrayInfoHole{
         public Expression arrayRefHole,arrayIndexHole;
         public TypeReference arrayType;
-        String pathLabelString;
-        int pathLabel;
+        Expression pathLabelHole;
 
-        public ArrayInfoHole(Expression arrayRef, Expression arrayIndex, TypeReference arrayType, String pathLabelString, int pathLabel){
+        public ArrayInfoHole(Expression arrayRef, Expression arrayIndex, TypeReference arrayType, Expression pathLabelHole){
             this.arrayRefHole = arrayRef;
             this.arrayIndexHole = arrayIndex;
             this.arrayType = arrayType;
-            this.pathLabelString = pathLabelString;
-            this.pathLabel = pathLabel;
+            this.pathLabelHole = pathLabelHole;
         }
 
-        public String getPathLabelString() {
-            return pathLabelString;
+        public Expression getPathLabelHole() {
+            return pathLabelHole;
         }
 
-        public int getPathLabel() {
-            return pathLabel;
-        }
 
         @Override
         public String toString() {

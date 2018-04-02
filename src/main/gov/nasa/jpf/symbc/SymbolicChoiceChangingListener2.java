@@ -17,29 +17,13 @@ package gov.nasa.jpf.symbc;//
 // DOCUMENTATION, IF PROVIDED, WILL CONFORM TO THE SUBJECT SOFTWARE.
 //
 
-import java.util.Collections;
-import java.util.LinkedList;
-import java.util.Stack;
-
 import gov.nasa.jpf.ListenerAdapter;
-import gov.nasa.jpf.jvm.bytecode.JVMInvokeInstruction;
-import gov.nasa.jpf.search.Search;
 import gov.nasa.jpf.symbc.numeric.PCChoiceGenerator;
 import gov.nasa.jpf.symbc.numeric.PathCondition;
-import gov.nasa.jpf.symbc.numeric.Comparator;
-import gov.nasa.jpf.vm.ChoiceGenerator;
-import gov.nasa.jpf.vm.ClassInfo;
-import gov.nasa.jpf.vm.Instruction;
-import gov.nasa.jpf.vm.IntChoiceGenerator;
-import gov.nasa.jpf.vm.MJIEnv;
-import gov.nasa.jpf.vm.MethodInfo;
-import gov.nasa.jpf.vm.StackFrame;
-import gov.nasa.jpf.vm.SystemState;
-import gov.nasa.jpf.vm.ThreadInfo;
-import gov.nasa.jpf.vm.VM;
-import gov.nasa.jpf.vm.choice.IntIntervalGenerator;
+import gov.nasa.jpf.symbc.numeric.VeriPCChoiceGenerator;
+import gov.nasa.jpf.vm.*;
 
-public class SymbolicChoiceChangingListener extends ListenerAdapter {
+public class SymbolicChoiceChangingListener2 extends ListenerAdapter {
 
     @Override
     public void executeInstruction(VM vm, ThreadInfo ti, Instruction instr) {
@@ -56,7 +40,7 @@ public class SymbolicChoiceChangingListener extends ListenerAdapter {
                 StackFrame sframe = ti.getTopFrame();
 
                 if (!ti.isFirstStepInsn()) { // first time around
-                    PCChoiceGenerator newPCChoice = new PCChoiceGenerator(2);
+                    VeriPCChoiceGenerator newPCChoice = new VeriPCChoiceGenerator(2);
                     newPCChoice.setOffset(instr.getPosition());
                     newPCChoice.setMethodName(instr.getMethodInfo().getFullName());
                     SystemState ss = vm.getSystemState();
@@ -66,17 +50,19 @@ public class SymbolicChoiceChangingListener extends ListenerAdapter {
                     return;
                 } else {
                     PCChoiceGenerator cg = (PCChoiceGenerator) ti.getVM().getSystemState().getChoiceGenerator();
-                    int value = (Integer) cg.getNextChoice();
-                    PathCondition pc = cg.getCurrentPC();
-                    if (value == 0) { // default SPF running
-                        //pc._addDet(Comparator.EQ, 0, 0); // add !nominal PC
-                        System.out.println("First choice run through ifeq ");
-                        ti.setNextPC(instr.getNext().getNext());
-                        return;
-                    } else {
-                        System.out.println("Second choice run through ifeq");
-                        //ti.setNextPC(...); // this needs to be set to after the verittesting region
-                        return;
+                    if(cg instanceof VeriPCChoiceGenerator) {
+                        int value = (Integer) cg.getNextChoice();
+                        PathCondition pc = cg.getCurrentPC();
+                        if (value == 0) { // default SPF running
+                            //pc._addDet(Comparator.EQ, 0, 0); // add !nominal PC
+                            System.out.println("First choice run through ifeq ");
+                            //ti.setNextPC(instr.getNext());
+                            return;
+                        } else {
+                            System.out.println("Second choice run through ifeq");
+                            //ti.setNextPC(...); // this needs to be set to after the verittesting region
+                            return;
+                        }
                     }
                 }
         }

@@ -453,4 +453,8 @@ public class ProblemChoco extends ProblemGeneral {
 		throw new RuntimeException("## Error Choco does not support LOGICAL_AND");
 	}
 
+	public Object logical_implies(Object exp1, Object exp2) {
+		throw new RuntimeException("## Error Choco does not support LOGICAL_IMPLIES");
+	}
+
 }

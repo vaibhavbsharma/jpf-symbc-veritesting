@@ -788,6 +788,11 @@ public class ProblemCoral extends ProblemGeneral {
 		throw new RuntimeException("## Error Coral does not support LOGICAL_NOT");
 	}
 
+	@Override
+	public Object logical_implies(Object exp1, Object exp2) {
+		throw new RuntimeException("## Error Coral does not support LOGICAL_IMPLIES");
+	}
+
 	public Object logical_and(Object exp1, Object exp2) {
 		throw new RuntimeException("## Error Coral does not support LOGICAL_AND");
 	}

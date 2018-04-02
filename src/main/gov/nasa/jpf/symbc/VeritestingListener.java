@@ -44,11 +44,10 @@ import java.util.*;
 public class VeritestingListener extends PropertyListenerAdapter implements PublisherExtension {
 
     public static HashMap<String, VeritestingRegion> veritestingRegions;
-    public static HashMap<VeritestingTransition, VeritestingRegion> veritestingTransitions;
 
 
     //TODO: make these into configuration options
-    public static boolean boostPerf = true;
+    public static boolean boostPerf = false;
     public static int veritestingMode = 0;
 
     public static long totalSolverTime = 0, z3Time = 0;
@@ -96,96 +95,100 @@ public class VeritestingListener extends PropertyListenerAdapter implements Publ
         if (veritestingRegions == null) {
             discoverRegions(ti); // static analysis to discover regions
         }
+        if((instructionToExecute.getPosition() == 48)&&(instructionToExecute.getMethodInfo().getName().equals("boundedOutRangeloadArrayTC"))){
+            String key = generateRegionKey(ti, instructionToExecute);
+            System.out.println("key is = " + key);
+        }
         String key = generateRegionKey(ti, instructionToExecute);
 
         if (veritestingRegions != null && veritestingRegions.containsKey(key)) {
             VeritestingRegion region = veritestingRegions.get(key);
-            VeriPCChoiceGenerator cg;
+            VeriPCChoiceGenerator newCG;
+
             if (!ti.isFirstStepInsn()) { // first time around
                 Expression regionSummary = instantiateHoles(ti, region); // fill holes in region
                 if (regionSummary == null)
                     return; //problem filling holes, abort veritesting
-/*
-                cg = makeVeritestingCG(region, regionSummary, ti);
-                cg.setOffset(instructionToExecute.getPosition());
-                cg.setMethodName(instructionToExecute.getMethodInfo().getFullName());
-                ChoiceGenerator<?> currCG = (PCChoiceGenerator) ti.getVM().getSystemState().getChoiceGenerator();
-                cg.setPreviousChoiceGenerator(currCG.getPreviousChoiceGenerator());
-                currCG.setPreviousChoiceGenerator(cg);
-*/
-//                ChoiceGenerator <?> currentChoiceGenerator = ti.getVM().getSystemState().getChoiceGenerator();
-                //              currentChoiceGenerator.setPreviousChoiceGenerator(cg);
-                // cg.setNextChoice(0);
-                //currCG.getNextChoice();
-                PathCondition pc = ((PCChoiceGenerator) ti.getVM().getSystemState().getChoiceGenerator()).getCurrentPC();
-                pc._addDet(new GreenConstraint(regionSummary));
-                ((PCChoiceGenerator) ti.getVM().getSystemState().getChoiceGenerator()).setCurrentPC(pc);
-                setupSPF(ti, instructionToExecute, region);
-                return;
+                newCG = makeVeritestingCG(region, regionSummary, ti);
+                newCG.setOffset(instructionToExecute.getPosition());
+                newCG.setMethodName(instructionToExecute.getMethodInfo().getFullName());
+                SystemState systemState = vm.getSystemState();
+                systemState.setNextChoiceGenerator(newCG);
+                ti.setNextPC(instructionToExecute);
+                System.out.println("resume program after veritesting region");
+            } else {
+                ChoiceGenerator<?> cg = ti.getVM().getSystemState().getChoiceGenerator();
+                if (cg instanceof VeriPCChoiceGenerator) {
+                    int choice = (Integer) cg.getNextChoice();
+                    PathCondition pc;
+                    if (choice == 0) { // veritesting nominal case
+                        setupSPF(ti, instructionToExecute, region);
+                    } else {
+                        System.out.println("Exploring Exit Transitions");
+                        Instruction nextInstruction = ((VeriPCChoiceGenerator)cg).execute(instructionToExecute, (VeriPCChoiceGenerator) cg, choice);
+                        ti.setNextPC(nextInstruction);
+                    }
+                }
             }
-            return;
         }
     }
 
     private VeriPCChoiceGenerator makeVeritestingCG(VeritestingRegion region, Expression regionSummary, ThreadInfo ti) {
-        Set<VeritestingTransition> regionTransitions = getTransitionsInRegion(region);
+        Set<ExitTransition> regionTransitions = region.getExitTransitionHashMap();
         VeriPCChoiceGenerator cg = null;
-        int gcSize = regionTransitions == null ? 1 : regionTransitions.size()+1;
+        int gcSize = regionTransitions == null ? 1 : 3;
         cg = new VeriPCChoiceGenerator(gcSize); //including a choice for nominal case
         setNominalTransition(ti, regionSummary, cg, region);
-        setExceptionTransition(ti, regionSummary, cg, region) ;
+        if (region.getExitTransitionHashMap() != null)
+            setExitTransition(ti, regionSummary, cg, region);
         return cg;
     }
 
+// S/\ !N_i  for all i in region.exitTransitionHashMap
 
-    private void setExceptionTransition(ThreadInfo ti, Expression regionSummary, ChoiceGenerator<?> cg, VeritestingRegion region) {
-        Set<VeritestingTransition> regionTransitions = getTransitionsInRegion(region);
+    private void setExitTransition(ThreadInfo ti, Expression regionSummary, ChoiceGenerator<?> cg, VeritestingRegion region) {
+        HashSet<ExitTransition> regionTransitions = region.getExitTransitionHashMap();
         PathCondition pc = ((PCChoiceGenerator) ti.getVM().getSystemState().getChoiceGenerator()).getCurrentPC();
         if (regionTransitions != null) {
-            Iterator<VeritestingTransition> veritestingTransitionIterator = regionTransitions.iterator();
+            Iterator<ExitTransition> exitTransitionIterator = regionTransitions.iterator();
+            Expression exitTransitionConstraint = null;
             int gcChoice = 1; //starting from the first choice for non-nominal choices
-            while(veritestingTransitionIterator.hasNext()) {
-                Expression exceptionConstraint = new Operation(Operation.Operator.AND, regionSummary, new Operation(Operation.Operator.NOT,veritestingTransitionIterator.next().transitionConstraint));
-                PathCondition excepTransitionPc = pc.make_copy(); // at this point pc will have the region summary as well
-                excepTransitionPc._addDet(new GreenConstraint(exceptionConstraint));
-                ((VeriPCChoiceGenerator) cg).setPC(excepTransitionPc, gcChoice);
-                ++gcChoice;
+            while (exitTransitionIterator.hasNext()) {
+                if (exitTransitionConstraint == null)
+                    exitTransitionConstraint = exitTransitionIterator.next().getNegNominalConstraint();
+                else
+                    exitTransitionConstraint = new Operation(Operation.Operator.OR, exitTransitionConstraint, exitTransitionIterator.next().getNegNominalConstraint());
             }
+            exitTransitionConstraint = new Operation(Operation.Operator.AND, regionSummary, exitTransitionConstraint);
+            // 2nd choice
+        //    PathCondition exitTransitionPc_1 = pc.make_copy();
+           PathCondition exitTransitionPc_1 = new PathCondition();
+            exitTransitionPc_1._addDet(new GreenConstraint(exitTransitionConstraint));
+            ((VeriPCChoiceGenerator) cg).setPC(exitTransitionPc_1, 1);
+
+            //3rd choice
+       //     PathCondition exitTransitionPc_2 = pc.make_copy();
+            PathCondition exitTransitionPc_2 = new PathCondition();
+            exitTransitionPc_2._addDet(new GreenConstraint(exitTransitionConstraint));
+            ((VeriPCChoiceGenerator) cg).setPC(exitTransitionPc_2, 2);
         }
     }
 
+
+    // S /\ N
     private void setNominalTransition(ThreadInfo ti, Expression regionSummary, ChoiceGenerator<?> cg, VeritestingRegion region) {
-        Set<VeritestingTransition> regionTransitions = getTransitionsInRegion(region);
-        Expression nominalConstraint = regionSummary;
-        if (regionTransitions != null) {
-            Iterator<VeritestingTransition> veritestingTransitionIterator = regionTransitions.iterator();
-            while(veritestingTransitionIterator.hasNext()) {
-                nominalConstraint = new Operation(Operation.Operator.AND, nominalConstraint, veritestingTransitionIterator.next().transitionConstraint);
-            }
-        }
-        PathCondition pc = ((PCChoiceGenerator) ti.getVM().getSystemState().getChoiceGenerator()).getCurrentPC();
-        PathCondition nominalTransitionPC = pc.make_copy();
+       PathCondition pc = ((PCChoiceGenerator) ti.getVM().getSystemState().getChoiceGenerator()).getCurrentPC();
+       PathCondition nominalTransitionPC = pc.make_copy();
+      //  PathCondition nominalTransitionPC = new PathCondition();
+        Expression nominalConstraint = null;
+        if (region.getExitTransitionHashMap() == null)
+            nominalConstraint = regionSummary;
+        else
+            nominalConstraint = new Operation(Operation.Operator.AND, regionSummary, region.getAllNominalsConstraints());
         nominalTransitionPC._addDet(new GreenConstraint(nominalConstraint));
         ((VeriPCChoiceGenerator) cg).setPC(nominalTransitionPC, 0); //setting choice 0 for veritesting nominal case
     }
 
-    private Set<VeritestingTransition> getTransitionsInRegion(VeritestingRegion region) {
-        Set<VeritestingTransition> regionTransitions = new HashSet<>();
-
-        if(veritestingTransitions != null) {
-            Set<VeritestingTransition> allTransitions = veritestingTransitions.keySet();
-
-            Iterator<VeritestingTransition> transitionIterator = allTransitions.iterator();
-
-            while (transitionIterator.hasNext()) {
-                VeritestingTransition transition = transitionIterator.next();
-                VeritestingRegion transitionRegion = veritestingTransitions.get(transition);
-                if (transitionRegion.equals(region))
-                    regionTransitions.add(transition);
-            }
-        }
-        return regionTransitions;
-    }
 
     public long generateHashCode(String key) {
         FNV1 fnv = new FNV1a64();
@@ -219,7 +222,27 @@ public class VeritestingListener extends PropertyListenerAdapter implements Publ
             modifiableTopFrame.pop();
             numOperands--;
         }
-        //((PCChoiceGenerator) ti.getVM().getSystemState().getChoiceGenerator()).setCurrentPC(pc);
+/*
+        ChoiceGenerator<?> cg = ti.getVM().getSystemState().getChoiceGenerator();
+        ChoiceGenerator<?> prev_cg = cg.getPreviousChoiceGenerator();
+        PathCondition pc;
+
+        while (!((prev_cg == null) || (prev_cg instanceof PCChoiceGenerator))) {
+            prev_cg = prev_cg.getPreviousChoiceGenerator();
+        }
+
+        if (prev_cg == null)
+            pc = new PathCondition();
+        else
+            pc = ((PCChoiceGenerator) prev_cg).getCurrentPC();
+
+        assert pc != null;
+
+        PathCondition veritestingPc = ((VeriPCChoiceGenerator)ti.getVM().getChoiceGenerator()).getCurrentPC();
+        pc.appendPathcondition(veritestingPc);
+
+        ((PCChoiceGenerator) ti.getVM().getSystemState().getChoiceGenerator()).setCurrentPC(pc);
+        */
         ti.setNextPC(insn);
         pathLabelCount += 1;
         region.usedCount++;
@@ -259,6 +282,7 @@ public class VeritestingListener extends PropertyListenerAdapter implements Publ
         if (fillHolesOutput.additionalAST != null)
             finalSummaryExpression = new Operation(Operation.Operator.AND, summaryExpression, fillHolesOutput.additionalAST);
         finalSummaryExpression = fillASTHoles(finalSummaryExpression, fillHolesOutput.holeHashMap); //not constant-folding for now
+        exitTransitionsFillASTHoles(fillHolesOutput.holeHashMap);
 
         // pc._addDet(new GreenConstraint(finalSummaryExpression));
         if (!boostPerf) {
@@ -273,6 +297,26 @@ public class VeritestingListener extends PropertyListenerAdapter implements Publ
         }
         return finalSummaryExpression;
     }
+
+    private void exitTransitionsFillASTHoles(HashMap<Expression, Expression> holeHashMap) {
+        //go through all regions and find existTransitions in them.
+        //call fillASTHoles on the its pathConstraint
+        assert (veritestingRegions != null);
+        Collection<VeritestingRegion> regions = veritestingRegions.values();
+        for (VeritestingRegion region : regions) {
+            Collection<ExitTransition> exitTransitions = region.getExitTransitionHashMap();
+            if (exitTransitions != null)
+                for (ExitTransition exitTransition : exitTransitions) {
+                    Expression newPathConstraint = fillASTHoles(exitTransition.getPathConstraint(), holeHashMap);
+                    exitTransition.setPathConstraint(newPathConstraint);
+                    Expression newNegConstraint = fillASTHoles(exitTransition.getNegNominalConstraint(), holeHashMap);
+                    exitTransition.setNegNominalConstraint(newNegConstraint);
+                    Expression newNominalConstraint = fillASTHoles(exitTransition.getNominalConstraint(), holeHashMap);
+                    exitTransition.setNominalConstraint(newNominalConstraint);
+                }
+        }
+    }
+
 
     private void discoverRegions(ThreadInfo ti) {
         Config conf = ti.getVM().getConfig();
@@ -289,7 +333,7 @@ public class VeritestingListener extends PropertyListenerAdapter implements Publ
         System.out.println("Number of veritesting regions = " + veritestingRegions.size());
     }
 
-    private String ASTToString(Expression expression) {
+    public static String ASTToString(Expression expression) {
         if (expression instanceof Operation) {
             Operation operation = (Operation) expression;
             String str = new String();
@@ -303,78 +347,79 @@ public class VeritestingListener extends PropertyListenerAdapter implements Publ
             return expression.toString();
     }
 
-    public void publishFinished(Publisher publisher) {
-        PrintWriter pw = publisher.getOut();
-        publisher.publishTopicStart("VeritestingListener report (boostPerf = " + boostPerf + ", veritestingMode = " + veritestingMode + ")");
-        pw.println("static analysis time = " + staticAnalysisTime/1000000);
-        pw.println("totalSolverTime = " + totalSolverTime/1000000);
-        pw.println("z3Time = " + z3Time/1000000);
-        pw.println("parsingTime = " + parseTime/1000000);
-        pw.println("solverAllocTime = " + solverAllocTime/1000000);
-        pw.println("cleanupTime = " + cleanupTime/1000000);
-        pw.println("solverCount = " + solverCount);
-        pw.println("(fieldReadAfterWrite, fieldWriteAfterRead, fieldWriteAfterWrite = (" + fieldReadAfterWrite + ", " +
-                VeritestingListener.fieldWriteAfterRead + ", " + fieldWriteAfterWrite + ")");
-        pw.println("methodSummaryRWInterference = " + methodSummaryRWInterference);
-        if(veritestingMode > 0) {
-            pw.println("# regions = " + VeritestingListener.veritestingRegions.size());
-            int maxSummarizedBranches = getMaxSummarizedBranch(false);
-            ArrayList<Integer> ranIntoByBranch = new ArrayList<>();
-            ArrayList<Integer> usedByBranch = new ArrayList<>();
-            ranIntoByBranch.add(0);
-            usedByBranch.add(0);
-            for (int i = 0; i <= maxSummarizedBranches; i++) {
+
+        public void publishFinished(Publisher publisher) {
+            PrintWriter pw = publisher.getOut();
+            publisher.publishTopicStart("VeritestingListener report (boostPerf = " + boostPerf + ", veritestingMode = " + veritestingMode + ")");
+            pw.println("static analysis time = " + staticAnalysisTime / 1000000);
+            pw.println("totalSolverTime = " + totalSolverTime / 1000000);
+            pw.println("z3Time = " + z3Time / 1000000);
+            pw.println("parsingTime = " + parseTime / 1000000);
+            pw.println("solverAllocTime = " + solverAllocTime / 1000000);
+            pw.println("cleanupTime = " + cleanupTime / 1000000);
+            pw.println("solverCount = " + solverCount);
+            pw.println("(fieldReadAfterWrite, fieldWriteAfterRead, fieldWriteAfterWrite = (" + fieldReadAfterWrite + ", " +
+                    VeritestingListener.fieldWriteAfterRead + ", " + fieldWriteAfterWrite + ")");
+            pw.println("methodSummaryRWInterference = " + methodSummaryRWInterference);
+            if (veritestingMode > 0) {
+                pw.println("# regions = " + VeritestingListener.veritestingRegions.size());
+                int maxSummarizedBranches = getMaxSummarizedBranch(false);
+                ArrayList<Integer> ranIntoByBranch = new ArrayList<>();
+                ArrayList<Integer> usedByBranch = new ArrayList<>();
                 ranIntoByBranch.add(0);
                 usedByBranch.add(0);
-                ArrayList<VeritestingRegion> regions = getRegionsForSummarizedBranchNum(i, false);
-                for (int j = 0; j < regions.size(); j++) {
-                    VeritestingRegion region = regions.get(j);
-                    ranIntoByBranch.set(i, ranIntoByBranch.get(i) + (region.ranIntoCount != 0 ? 1 : 0));
-                    usedByBranch.set(i, usedByBranch.get(i) + (region.usedCount != 0 ? 1 : 0));
+                for (int i = 0; i <= maxSummarizedBranches; i++) {
+                    ranIntoByBranch.add(0);
+                    usedByBranch.add(0);
+                    ArrayList<VeritestingRegion> regions = getRegionsForSummarizedBranchNum(i, false);
+                    for (int j = 0; j < regions.size(); j++) {
+                        VeritestingRegion region = regions.get(j);
+                        ranIntoByBranch.set(i, ranIntoByBranch.get(i) + (region.ranIntoCount != 0 ? 1 : 0));
+                        usedByBranch.set(i, usedByBranch.get(i) + (region.usedCount != 0 ? 1 : 0));
+                    }
                 }
-            }
-            pw.println("# summarized branches: # regions (#run into, #used)");
-            for (int i = 0; i <= maxSummarizedBranches; i++) {
-                if (getRegionsForSummarizedBranchNum(i, false).size() != 0) {
-                    pw.println(i + " branches: " + getRegionsForSummarizedBranchNum(i, false).size() + " (" +
-                            ranIntoByBranch.get(i) + ", " + usedByBranch.get(i) + ") ");
+                pw.println("# summarized branches: # regions (#run into, #used)");
+                for (int i = 0; i <= maxSummarizedBranches; i++) {
+                    if (getRegionsForSummarizedBranchNum(i, false).size() != 0) {
+                        pw.println(i + " branches: " + getRegionsForSummarizedBranchNum(i, false).size() + " (" +
+                                ranIntoByBranch.get(i) + ", " + usedByBranch.get(i) + ") ");
+                    }
                 }
-            }
-            maxSummarizedBranches = getMaxSummarizedBranch(true);
-            ranIntoByBranch = new ArrayList<>();
-            usedByBranch = new ArrayList<>();
-            ranIntoByBranch.add(0);
-            usedByBranch.add(0);
-            for (int i = 0; i <= maxSummarizedBranches; i++) {
+                maxSummarizedBranches = getMaxSummarizedBranch(true);
+                ranIntoByBranch = new ArrayList<>();
+                usedByBranch = new ArrayList<>();
                 ranIntoByBranch.add(0);
                 usedByBranch.add(0);
-                ArrayList<VeritestingRegion> regions = getRegionsForSummarizedBranchNum(i, true);
-                for (int j = 0; j < regions.size(); j++) {
-                    VeritestingRegion region = regions.get(j);
-                    ranIntoByBranch.set(i, ranIntoByBranch.get(i) + (region.ranIntoCount != 0 ? 1 : 0));
-                    usedByBranch.set(i, usedByBranch.get(i) + (region.usedCount != 0 ? 1 : 0));
+                for (int i = 0; i <= maxSummarizedBranches; i++) {
+                    ranIntoByBranch.add(0);
+                    usedByBranch.add(0);
+                    ArrayList<VeritestingRegion> regions = getRegionsForSummarizedBranchNum(i, true);
+                    for (int j = 0; j < regions.size(); j++) {
+                        VeritestingRegion region = regions.get(j);
+                        ranIntoByBranch.set(i, ranIntoByBranch.get(i) + (region.ranIntoCount != 0 ? 1 : 0));
+                        usedByBranch.set(i, usedByBranch.get(i) + (region.usedCount != 0 ? 1 : 0));
+                    }
                 }
-            }
-            pw.println("# summarized methods: # regions (#run into, #used)");
-            for (int i = 0; i <= maxSummarizedBranches; i++) {
-                if (getRegionsForSummarizedBranchNum(i, true).size() != 0) {
-                    pw.println(i + " branches: " + getRegionsForSummarizedBranchNum(i, true).size() + " (" +
-                            ranIntoByBranch.get(i) + ", " + usedByBranch.get(i) + ") ");
+                pw.println("# summarized methods: # regions (#run into, #used)");
+                for (int i = 0; i <= maxSummarizedBranches; i++) {
+                    if (getRegionsForSummarizedBranchNum(i, true).size() != 0) {
+                        pw.println(i + " branches: " + getRegionsForSummarizedBranchNum(i, true).size() + " (" +
+                                ranIntoByBranch.get(i) + ", " + usedByBranch.get(i) + ") ");
+                    }
                 }
-            }
-            ArrayList<String> regions = new ArrayList<>();
-            for (HashMap.Entry<String, VeritestingRegion> entry : veritestingRegions.entrySet()) {
-                regions.add(entry.getKey());
+                ArrayList<String> regions = new ArrayList<>();
+                for (HashMap.Entry<String, VeritestingRegion> entry : veritestingRegions.entrySet()) {
+                    regions.add(entry.getKey());
+                }
+
+                System.out.println("Sorted regions:");
+                regions.sort(String::compareTo);
+                for (int i = 0; i < regions.size(); i++) {
+                    System.out.println(regions.get(i));
+                }
             }
 
-            System.out.println("Sorted regions:");
-            regions.sort(String::compareTo);
-            for (int i = 0; i < regions.size(); i++) {
-                System.out.println(regions.get(i));
-            }
         }
-
-    }
 
     private ArrayList<VeritestingRegion> getRegionsForSummarizedBranchNum(int numBranch, boolean methodSummary) {
         ArrayList<VeritestingRegion> ret = new ArrayList<>();
@@ -454,7 +499,7 @@ public class VeritestingListener extends PropertyListenerAdapter implements Publ
                     stackFrame.setSlotAttr(holeExpression.getLocalStackSlot(), GreenToSPFExpression(finalValue));
                     break;
                 case FIELD_OUTPUT:
-                    if(holeExpression.isLatestWrite) {
+                    if (holeExpression.isLatestWrite) {
                         HoleExpression.FieldInfo fieldInfo = holeExpression.getFieldInfo();
                         assert (fieldInfo != null);
                         finalValue = holeHashMap.get(fieldInfo.writeValue);
@@ -516,11 +561,15 @@ public class VeritestingListener extends PropertyListenerAdapter implements Publ
         HashMap<Expression, Expression> holeHashMap = region.getHoleHashMap();
         HashMap<Expression, Expression> retHoleHashMap = new HashMap<>();
         Expression additionalAST = null;
-       retHoleHashMap = fillNonInputHoles(holeHashMap, instructionInfo, retHoleHashMap);
+        retHoleHashMap = fillNonInputHoles(holeHashMap, instructionInfo, retHoleHashMap);
         retHoleHashMap = fillInputHoles(holeHashMap, stackFrame, ti, retHoleHashMap);
 
         // resolve all invoke holes in the current region's summary expression
-        for(HashMap.Entry<Expression, Expression> entry : holeHashMap.entrySet()) {
+        boolean concreteException = fillArrayLoadHoles(region, holeHashMap, instructionInfo, stackFrame, ti, retHoleHashMap);
+        if (concreteException)
+            return null;
+
+        for (HashMap.Entry<Expression, Expression> entry : holeHashMap.entrySet()) {
             Expression key = entry.getKey(), greenExpr = null;
             gov.nasa.jpf.symbc.numeric.Expression spfExpr;
             assert (key instanceof HoleExpression);
@@ -539,7 +588,7 @@ public class VeritestingListener extends PropertyListenerAdapter implements Publ
                     }
 
                     // if ci failure null, that means either MyIVisitor.visitInvoke has a bug or we failed to load the class
-                    assert(ci != null);
+                    assert (ci != null);
                     //Change the class name based on the call site object reference
                     callSiteInfo.className = ci.getName();
                     //If there exists a invokeVirtual for a method that we weren't able to summarize, skip veritesting
@@ -547,9 +596,9 @@ public class VeritestingListener extends PropertyListenerAdapter implements Publ
                     FNV1 fnv = new FNV1a64();
                     fnv.init(key1);
                     long hash = fnv.getHash();
-                    if(!veritestingRegions.containsKey(key1)) {
+                    if (!veritestingRegions.containsKey(key1)) {
                         System.out.println("Could not find method summary for " +
-                                callSiteInfo.className+"."+callSiteInfo.methodName+"#0");
+                                callSiteInfo.className + "." + callSiteInfo.methodName + "#0");
                         return null;
                     }
                     //All holes in callSiteInfo.paramList will also be present in holeHashmap and will be filled up here
@@ -558,12 +607,12 @@ public class VeritestingListener extends PropertyListenerAdapter implements Publ
                     }
                     VeritestingRegion methodSummary = veritestingRegions.get(key1);
                     HashMap<Expression, Expression> methodHoles = methodSummary.getHoleHashMap();
-                    if(hasRWInterference(holeHashMap, methodHoles)) {
+                    if (hasRWInterference(holeHashMap, methodHoles)) {
                         methodSummaryRWInterference++;
                         System.out.println("method summary hole interferes with outer region");
                         return null;
                     }
-                   FillNonInputHolesMS fillNonInputHolesMS =
+                    FillNonInputHolesMS fillNonInputHolesMS =
                             new FillNonInputHolesMS(retHoleHashMap, callSiteInfo, methodHoles);
                     if (fillNonInputHolesMS.invoke()) return null;
                     retHoleHashMap = fillNonInputHolesMS.retHoleHashMap;
@@ -577,7 +626,7 @@ public class VeritestingListener extends PropertyListenerAdapter implements Publ
                     if (methodSummary.retVal != null)
                         retValEq = new Operation(Operation.Operator.EQ, methodSummary.retVal, keyHoleExpression);
                     Expression mappingOperation = retValEq;
-                    for(int i=0; i < paramEqList.size(); i++) {
+                    for (int i = 0; i < paramEqList.size(); i++) {
                         //paramList.length-1 because there won't be a constraint created for the object reference which failure always
                         //parameter 0
                         if (mappingOperation != null)
@@ -598,8 +647,8 @@ public class VeritestingListener extends PropertyListenerAdapter implements Publ
         }
         return new FillHolesOutput(retHoleHashMap, additionalAST);
     }
-    
-private boolean fillArrayLoadHoles(VeritestingRegion region, HashMap<Expression, Expression> holeHashMap, InstructionInfo instructionInfo,
+
+    private boolean fillArrayLoadHoles(VeritestingRegion region, HashMap<Expression, Expression> holeHashMap, InstructionInfo instructionInfo,
                                        StackFrame stackFrame, ThreadInfo ti, HashMap<Expression, Expression> retHoleHashMap) {
         for (HashMap.Entry<Expression, Expression> entry : holeHashMap.entrySet()) {
             Expression key = entry.getKey(), finalValueGreen;
@@ -619,10 +668,8 @@ private boolean fillArrayLoadHoles(VeritestingRegion region, HashMap<Expression,
                             ElementInfo ei = ti.getElementInfo(arrayRef);
                             int arrayLength = ((ArrayFields) ei.getFields()).arrayLength();
                             TypeReference arrayType = arrayInfoHole.arrayType;
-                            String holePathLabelString = arrayInfoHole.getPathLabelString();
-                            int holePathLabel = arrayInfoHole.getPathLabel();
-                            Expression pathLabelConstraint = new Operation(Operation.Operator.EQ, SPFToGreenExpr(new SymbolicInteger(holePathLabelString)), new IntConstant(holePathLabel));
-                            Expression inBoundConstraint = null;
+                            Expression pathLabelConstraint = arrayInfoHole.getPathLabelHole();
+                            Expression arrayConstraint = null;
                             if (indexAttr == null) //attribute is null so index is concrete
                             {
                                 int indexVal = stackFrame.getLocalVariable(((HoleExpression) arrayInfoHole.arrayIndexHole).getLocalStackSlot());
@@ -639,21 +686,21 @@ private boolean fillArrayLoadHoles(VeritestingRegion region, HashMap<Expression,
                                     Expression exp1 = new Operation(Operation.Operator.EQ, finalValueGreen, new IntConstant(i));
                                     int value = ei.getIntElement(i);
                                     Expression exp2 = new Operation(Operation.Operator.EQ, arrayLoadResult, new IntConstant(value)); //loadArrayElement(ei, arrayType)
-                                    arraySymbConstraint[i] = new Operation(Operation.Operator.AND, exp1, exp2);
+                                    arraySymbConstraint[i] = new Operation(Operation.Operator.IMPLIES, exp1, exp2);
                                 }
-                                inBoundConstraint = unrollGreenOrConstraint(arraySymbConstraint);
-                                inBoundConstraint = new Operation(Operation.Operator.IMPLIES, pathLabelConstraint, inBoundConstraint);
-                                retHoleHashMap.put(keyHoleExpression, inBoundConstraint); //covers non exception case
+                                arrayConstraint = unrollGreenOrConstraint(arraySymbConstraint);
+                                arrayConstraint = new Operation(Operation.Operator.IMPLIES, pathLabelConstraint, arrayConstraint);
+                                retHoleHashMap.put(keyHoleExpression, arrayConstraint);
 
                                 if (outOfBound(arraySymbConstraint, finalValueGreen, ti)) {//outOfBoundException is possible
-                                    VeritestingTransition outOfBoundException = new VeritestingTransition(inBoundConstraint, ((HoleExpression) key).getHoleVarName(), holePathLabelString, holePathLabel);
-                                    if (veritestingTransitions == null)
-                                        veritestingTransitions = new HashMap<VeritestingTransition, VeritestingRegion>();
-                                    veritestingTransitions.put(outOfBoundException, region); //covers exceptional case
+                                    Expression lowerBoundConstraint = new Operation(Operation.Operator.GE, finalValueGreen, new IntConstant(0));
+                                    Expression upperBoundConstraint = new Operation(Operation.Operator.LT, finalValueGreen, new IntConstant(arraySymbConstraint.length));
+                                    Expression inBoundConstraint = new Operation(Operation.Operator.AND, lowerBoundConstraint, upperBoundConstraint);
+                                    ExitTransition outOfBoundExit = new ExitTransition(inBoundConstraint, ((HoleExpression) key).getHoleVarName(), pathLabelConstraint);
+                                    region.putExitTransition(outOfBoundExit);
                                 }
                             }
                             break;
-
                         case FIELD_INPUT:
                             break;
                         default:
@@ -670,125 +717,125 @@ private boolean fillArrayLoadHoles(VeritestingRegion region, HashMap<Expression,
     }
 
 
-private HashMap<Expression, Expression> fillInputHoles(HashMap<Expression, Expression> holeHashMap, StackFrame stackFrame, ThreadInfo ti, HashMap<Expression, Expression> retHoleHashMap) {
-    //resolve all input holes inside the current region's summary
-    for(HashMap.Entry<Expression, Expression> entry : holeHashMap.entrySet()) {
-        Expression key = entry.getKey(), finalValueGreen;
-        gov.nasa.jpf.symbc.numeric.Expression finalValueSPF;
-        assert (key instanceof HoleExpression);
-        HoleExpression keyHoleExpression = (HoleExpression) key;
-        assert (keyHoleExpression.isHole());
-        switch (keyHoleExpression.getHoleType()) {
-            case FIELD_INPUT:
-                //get the latest value written into this field, not the value in the field at the beginning of
-                //this region
-                if(keyHoleExpression.dependsOn != null) {
-                    HoleExpression holeExpression = (HoleExpression) keyHoleExpression.dependsOn;
-                    assert(holeExpression.getHoleType() == HoleExpression.HoleType.FIELD_OUTPUT);
-                    assert(holeExpression.isLatestWrite);
-                    assert(retHoleHashMap.containsKey(holeExpression.getFieldInfo().writeValue));
-                    retHoleHashMap.put(keyHoleExpression, retHoleHashMap.get(holeExpression.getFieldInfo().writeValue));
-                } else {
-                    HoleExpression.FieldInfo fieldInfo = keyHoleExpression.getFieldInfo();
-                    assert (fieldInfo != null);
-                    finalValueSPF = fillFieldInputHole(ti, stackFrame, fieldInfo);
-                    assert(finalValueSPF != null);
-                    finalValueGreen = SPFToGreenExpr(finalValueSPF);
-                    retHoleHashMap.put(keyHoleExpression, finalValueGreen);
-                }
-                break;
-            case LOCAL_INPUT:
-                //get the latest value written into this local, not the value in the local at the beginning of
-                //this region
-                if(keyHoleExpression.dependsOn != null) {
-                    HoleExpression holeExpression = (HoleExpression) keyHoleExpression.dependsOn;
-                    assert(holeExpression.getHoleType() == HoleExpression.HoleType.LOCAL_OUTPUT);
-                    assert(holeExpression.isLatestWrite);
-                    assert(retHoleHashMap.containsKey(holeExpression));
-                    retHoleHashMap.put(keyHoleExpression, retHoleHashMap.get(holeExpression));
-                } else {
-                    finalValueSPF =
-                            (gov.nasa.jpf.symbc.numeric.Expression) stackFrame.getLocalAttr(keyHoleExpression.getLocalStackSlot());
-                    if (finalValueSPF == null)
-                        finalValueSPF = new IntegerConstant(stackFrame.getLocalVariable(keyHoleExpression.getLocalStackSlot()));
-                    finalValueGreen = SPFToGreenExpr(finalValueSPF);
-                    retHoleHashMap.put(keyHoleExpression, finalValueGreen);
-                }
-                break;
-            default: break;
+    private HashMap<Expression, Expression> fillInputHoles(HashMap<Expression, Expression> holeHashMap, StackFrame stackFrame, ThreadInfo ti, HashMap<Expression, Expression> retHoleHashMap) {
+        //resolve all input holes inside the current region's summary
+        for (HashMap.Entry<Expression, Expression> entry : holeHashMap.entrySet()) {
+            Expression key = entry.getKey(), finalValueGreen;
+            gov.nasa.jpf.symbc.numeric.Expression finalValueSPF;
+            assert (key instanceof HoleExpression);
+            HoleExpression keyHoleExpression = (HoleExpression) key;
+            assert (keyHoleExpression.isHole());
+            switch (keyHoleExpression.getHoleType()) {
+                case FIELD_INPUT:
+                    //get the latest value written into this field, not the value in the field at the beginning of
+                    //this region
+                    if (keyHoleExpression.dependsOn != null) {
+                        HoleExpression holeExpression = (HoleExpression) keyHoleExpression.dependsOn;
+                        assert (holeExpression.getHoleType() == HoleExpression.HoleType.FIELD_OUTPUT);
+                        assert (holeExpression.isLatestWrite);
+                        assert (retHoleHashMap.containsKey(holeExpression.getFieldInfo().writeValue));
+                        retHoleHashMap.put(keyHoleExpression, retHoleHashMap.get(holeExpression.getFieldInfo().writeValue));
+                    } else {
+                        HoleExpression.FieldInfo fieldInfo = keyHoleExpression.getFieldInfo();
+                        assert (fieldInfo != null);
+                        finalValueSPF = fillFieldInputHole(ti, stackFrame, fieldInfo);
+                        assert (finalValueSPF != null);
+                        finalValueGreen = SPFToGreenExpr(finalValueSPF);
+                        retHoleHashMap.put(keyHoleExpression, finalValueGreen);
+                    }
+                    break;
+                case LOCAL_INPUT:
+                    //get the latest value written into this local, not the value in the local at the beginning of
+                    //this region
+                    if (keyHoleExpression.dependsOn != null) {
+                        HoleExpression holeExpression = (HoleExpression) keyHoleExpression.dependsOn;
+                        assert (holeExpression.getHoleType() == HoleExpression.HoleType.LOCAL_OUTPUT);
+                        assert (holeExpression.isLatestWrite);
+                        assert (retHoleHashMap.containsKey(holeExpression));
+                        retHoleHashMap.put(keyHoleExpression, retHoleHashMap.get(holeExpression));
+                    } else {
+                        finalValueSPF =
+                                (gov.nasa.jpf.symbc.numeric.Expression) stackFrame.getLocalAttr(keyHoleExpression.getLocalStackSlot());
+                        if (finalValueSPF == null)
+                            finalValueSPF = new IntegerConstant(stackFrame.getLocalVariable(keyHoleExpression.getLocalStackSlot()));
+                        finalValueGreen = SPFToGreenExpr(finalValueSPF);
+                        retHoleHashMap.put(keyHoleExpression, finalValueGreen);
+                    }
+                    break;
+                default:
+                    break;
+            }
         }
+        return retHoleHashMap;
     }
-    return retHoleHashMap;
-}
 
-private HashMap<Expression, Expression> fillNonInputHoles(HashMap<Expression, Expression> holeHashMap,
-                                                          InstructionInfo instructionInfo,
-                                                          HashMap<Expression, Expression> retHoleHashMap) {
-    //resolve all non-input holes inside the current region's summary
-    for(HashMap.Entry<Expression, Expression> entry : holeHashMap.entrySet()) {
-        Expression key = entry.getKey(), finalValueGreen;
-        gov.nasa.jpf.symbc.numeric.Expression finalValueSPF;
-        assert (key instanceof HoleExpression);
-        HoleExpression keyHoleExpression = (HoleExpression) key;
-        assert (keyHoleExpression.isHole());
-        switch (keyHoleExpression.getHoleType()) {
-            case LOCAL_OUTPUT:
-            case INTERMEDIATE:
-                finalValueSPF =
-                        makeSymbolicInteger(keyHoleExpression.getHoleVarName() + pathLabelCount);
-                finalValueGreen = SPFToGreenExpr(finalValueSPF);
-                retHoleHashMap.put(keyHoleExpression, finalValueGreen);
-                break;
-            case FIELD_OUTPUT:
+    private HashMap<Expression, Expression> fillNonInputHoles(HashMap<Expression, Expression> holeHashMap,
+                                                              InstructionInfo instructionInfo,
+                                                              HashMap<Expression, Expression> retHoleHashMap) {
+        //resolve all non-input holes inside the current region's summary
+        for (HashMap.Entry<Expression, Expression> entry : holeHashMap.entrySet()) {
+            Expression key = entry.getKey(), finalValueGreen;
+            gov.nasa.jpf.symbc.numeric.Expression finalValueSPF;
+            assert (key instanceof HoleExpression);
+            HoleExpression keyHoleExpression = (HoleExpression) key;
+            assert (keyHoleExpression.isHole());
+            switch (keyHoleExpression.getHoleType()) {
+                case LOCAL_OUTPUT:
+                case INTERMEDIATE:
+                    finalValueSPF =
+                            makeSymbolicInteger(keyHoleExpression.getHoleVarName() + pathLabelCount);
+                    finalValueGreen = SPFToGreenExpr(finalValueSPF);
+                    retHoleHashMap.put(keyHoleExpression, finalValueGreen);
+                    break;
+                case FIELD_OUTPUT:
                 /*HoleExpression.FieldInfo fieldInfo = keyHoleExpression.getFieldInfo();
                 finalValueSPF =
                         makeSymbolicInteger(((HoleExpression)fieldInfo.writeValue).getHoleVarName() + pathLabelCount);
                 finalValueGreen = SPFToGreenExpr(finalValueSPF);*/
-                retHoleHashMap.put(keyHoleExpression, null);
-                break;
-            case NONE:
-                System.out.println("expression marked as hole with NONE hole type: " +
-                        keyHoleExpression.toString());
-                assert (false);
-                break;
-            case CONDITION:
-                assert(instructionInfo != null);
-                finalValueGreen = instructionInfo.getCondition();
-                assert (finalValueGreen != null);
-                retHoleHashMap.put(keyHoleExpression, finalValueGreen);
-                break;
-            case NEGCONDITION:
-                assert (instructionInfo != null);
-                finalValueGreen = instructionInfo.getNegCondition();
-                assert (finalValueGreen != null);
-                retHoleHashMap.put(keyHoleExpression, finalValueGreen);
-                break;
-            case FIELD_INPUT:
-            case LOCAL_INPUT:
-                break;
+                    retHoleHashMap.put(keyHoleExpression, null);
+                    break;
+                case NONE:
+                    System.out.println("expression marked as hole with NONE hole type: " +
+                            keyHoleExpression.toString());
+                    assert (false);
+                    break;
+                case CONDITION:
+                    assert (instructionInfo != null);
+                    finalValueGreen = instructionInfo.getCondition();
+                    assert (finalValueGreen != null);
+                    retHoleHashMap.put(keyHoleExpression, finalValueGreen);
+                    break;
+                case NEGCONDITION:
+                    assert (instructionInfo != null);
+                    finalValueGreen = instructionInfo.getNegCondition();
+                    assert (finalValueGreen != null);
+                    retHoleHashMap.put(keyHoleExpression, finalValueGreen);
+                    break;
+                case FIELD_INPUT:
+                case LOCAL_INPUT:
+                    break;
+            }
         }
+        return retHoleHashMap;
     }
-    return retHoleHashMap;
-}
 
 
-
-/*
-    Checks if a method's holeHashMap has a read-write interference with the outer region's holeHashmap.
-    The only kind of interference allowed failure a both the outer region and the method reading the same field.
-     */
+    /*
+        Checks if a method's holeHashMap has a read-write interference with the outer region's holeHashmap.
+        The only kind of interference allowed failure a both the outer region and the method reading the same field.
+         */
     private boolean hasRWInterference(HashMap<Expression, Expression> holeHashMap, HashMap<Expression, Expression> methodHoles) {
-        for(HashMap.Entry<Expression, Expression> entry: methodHoles.entrySet()) {
+        for (HashMap.Entry<Expression, Expression> entry : methodHoles.entrySet()) {
             HoleExpression holeExpression = (HoleExpression) entry.getKey();
-            if(!(holeExpression.getHoleType() == HoleExpression.HoleType.FIELD_INPUT ||
+            if (!(holeExpression.getHoleType() == HoleExpression.HoleType.FIELD_INPUT ||
                     holeExpression.getHoleType() == HoleExpression.HoleType.FIELD_OUTPUT)) continue;
-            if(holeExpression.getHoleType() == HoleExpression.HoleType.FIELD_OUTPUT) {
-                if(VarUtil.fieldHasRWOperation(holeExpression, HoleExpression.HoleType.FIELD_OUTPUT, holeHashMap) ||
+            if (holeExpression.getHoleType() == HoleExpression.HoleType.FIELD_OUTPUT) {
+                if (VarUtil.fieldHasRWOperation(holeExpression, HoleExpression.HoleType.FIELD_OUTPUT, holeHashMap) ||
                         VarUtil.fieldHasRWOperation(holeExpression, HoleExpression.HoleType.FIELD_INPUT, holeHashMap))
                     return true;
             }
-            if(holeExpression.getHoleType() == HoleExpression.HoleType.FIELD_INPUT) {
-                if(VarUtil.fieldHasRWOperation(holeExpression, HoleExpression.HoleType.FIELD_INPUT, holeHashMap))
+            if (holeExpression.getHoleType() == HoleExpression.HoleType.FIELD_INPUT) {
+                if (VarUtil.fieldHasRWOperation(holeExpression, HoleExpression.HoleType.FIELD_INPUT, holeHashMap))
                     return true;
             }
         }
@@ -797,21 +844,23 @@ private HashMap<Expression, Expression> fillNonInputHoles(HashMap<Expression, Ex
 
     private boolean outOfBound(Expression[] arraySymbConstraint, Expression finalValueGreen, ThreadInfo ti) {
         PCChoiceGenerator lastCG = ti.getVM().getSystemState().getLastChoiceGeneratorOfType(PCChoiceGenerator.class);
-        PathCondition pc;
+        PathCondition pcCopy;
         if (lastCG == null)
-            pc = new PathCondition();
+            pcCopy = new PathCondition();
         else
-            pc = ((PCChoiceGenerator) lastCG).getCurrentPC();
-        Expression outOfBoundConstraint = new Operation(Operation.Operator.GE, finalValueGreen, new IntConstant(arraySymbConstraint.length));
-        pc._addDet(new GreenConstraint(outOfBoundConstraint));
-        return pc.simplify();
+            pcCopy = ((PCChoiceGenerator) lastCG).getCurrentPC().make_copy();
+        Expression lowerOutOfBoundConstraint = new Operation(Operation.Operator.GE, finalValueGreen, new IntConstant(arraySymbConstraint.length));
+        Expression upperOutOfBoundConstraint = new Operation(Operation.Operator.LT, finalValueGreen, new IntConstant(0));
+        Expression outOfBoundConstraint = new Operation(Operation.Operator.OR, lowerOutOfBoundConstraint, upperOutOfBoundConstraint);
+        pcCopy._addDet(new GreenConstraint(outOfBoundConstraint));
+        return pcCopy.simplify();
     }
 
     private Expression unrollGreenOrConstraint(Expression[] arraySymbConstraint) {
         assert (arraySymbConstraint != null);
         Expression unrolledConstraint = arraySymbConstraint[0];
         for (int i = 1; i < arraySymbConstraint.length; i++) {
-            unrolledConstraint = new Operation(Operation.Operator.OR, arraySymbConstraint[i], unrolledConstraint);
+            unrolledConstraint = new Operation(Operation.Operator.AND, arraySymbConstraint[i], unrolledConstraint);
         }
         return unrolledConstraint;
     }
@@ -1040,7 +1089,7 @@ private HashMap<Expression, Expression> fillNonInputHoles(HashMap<Expression, Ex
 
     }
 
-    Expression SPFToGreenExpr(gov.nasa.jpf.symbc.numeric.Expression spfExp) {
+    public static Expression SPFToGreenExpr(gov.nasa.jpf.symbc.numeric.Expression spfExp) {
         SolverTranslator.Translator toGreenTranslator = new SolverTranslator.Translator();
         spfExp.accept(toGreenTranslator);
         return toGreenTranslator.getExpression();
@@ -1058,13 +1107,14 @@ private HashMap<Expression, Expression> fillNonInputHoles(HashMap<Expression, Ex
         }
 
         public boolean invoke() {
-            gov.nasa.jpf.symbc.numeric.Expression spfExpr;Expression greenExpr;//fill all holes inside the method summary
-            for(HashMap.Entry<Expression, Expression> entry1 : methodHoles.entrySet()) {
+            gov.nasa.jpf.symbc.numeric.Expression spfExpr;
+            Expression greenExpr;//fill all holes inside the method summary
+            for (HashMap.Entry<Expression, Expression> entry1 : methodHoles.entrySet()) {
                 Expression methodKeyExpr = entry1.getKey();
-                assert(methodKeyExpr instanceof HoleExpression);
+                assert (methodKeyExpr instanceof HoleExpression);
                 HoleExpression methodKeyHole = (HoleExpression) methodKeyExpr;
-                assert(methodKeyHole.isHole());
-                switch(methodKeyHole.getHoleType()) {
+                assert (methodKeyHole.isHole());
+                switch (methodKeyHole.getHoleType()) {
                     case CONDITION:
                         System.out.println("unsupported condition hole in method summary");
                         return true;
@@ -1084,9 +1134,9 @@ private HashMap<Expression, Expression> fillNonInputHoles(HashMap<Expression, Ex
                         break;
                     case FIELD_OUTPUT:
                         HoleExpression.FieldInfo methodKeyHoleFieldInfo = methodKeyHole.getFieldInfo();
-                        if(!methodKeyHoleFieldInfo.isStaticField) {
-                            if(methodKeyHoleFieldInfo.localStackSlot == 0) {
-                                assert(callSiteInfo.paramList.size() > 0);
+                        if (!methodKeyHoleFieldInfo.isStaticField) {
+                            if (methodKeyHoleFieldInfo.localStackSlot == 0) {
+                                assert (callSiteInfo.paramList.size() > 0);
                                 methodKeyHoleFieldInfo.callSiteStackSlot = ((HoleExpression) callSiteInfo.paramList.get(0)).getLocalStackSlot();
                                 methodKeyHole.setFieldInfo(methodKeyHoleFieldInfo.className, methodKeyHoleFieldInfo.fieldName,
                                         methodKeyHoleFieldInfo.localStackSlot, methodKeyHoleFieldInfo.callSiteStackSlot, methodKeyHoleFieldInfo.writeValue,
@@ -1133,22 +1183,22 @@ private HashMap<Expression, Expression> fillNonInputHoles(HashMap<Expression, Ex
             gov.nasa.jpf.symbc.numeric.Expression spfExpr;
             Expression greenExpr;
             paramEqList = new ArrayList<>();
-            for(HashMap.Entry<Expression, Expression> entry1 : methodHoles.entrySet()) {
+            for (HashMap.Entry<Expression, Expression> entry1 : methodHoles.entrySet()) {
                 Expression methodKeyExpr = entry1.getKey();
-                assert(methodKeyExpr instanceof HoleExpression);
+                assert (methodKeyExpr instanceof HoleExpression);
                 HoleExpression methodKeyHole = (HoleExpression) methodKeyExpr;
-                assert(methodKeyHole.isHole());
-                switch(methodKeyHole.getHoleType()) {
+                assert (methodKeyHole.isHole());
+                switch (methodKeyHole.getHoleType()) {
                     //LOCAL_INPUTs can be mapped to parameters at the call site, non-parameter local inputs
                     // need to be mapped to intermediate variables since we cannot create a stack for the summarized method
                     case LOCAL_INPUT:
                         //get the latest value written into this local, not the value in the local at the beginning of
                         //this region
-                        if(methodKeyHole.dependsOn != null) {
+                        if (methodKeyHole.dependsOn != null) {
                             HoleExpression holeExpression = (HoleExpression) methodKeyHole.dependsOn;
-                            assert(holeExpression.getHoleType() == HoleExpression.HoleType.LOCAL_OUTPUT);
-                            assert(holeExpression.isLatestWrite);
-                            assert(retHoleHashMap.containsKey(holeExpression));
+                            assert (holeExpression.getHoleType() == HoleExpression.HoleType.LOCAL_OUTPUT);
+                            assert (holeExpression.isLatestWrite);
+                            assert (retHoleHashMap.containsKey(holeExpression));
                             retHoleHashMap.put(methodKeyHole, retHoleHashMap.get(holeExpression));
                         } else {
                             //local inputs used in method summary have to come from the filled-up holes in paramList
@@ -1173,20 +1223,20 @@ private HashMap<Expression, Expression> fillNonInputHoles(HashMap<Expression, Ex
                         }
                         break;
                     case FIELD_INPUT:
-                        if(methodKeyHole.dependsOn != null) {
+                        if (methodKeyHole.dependsOn != null) {
                             //get the latest value written into this field, not the value in the field at the beginning of
                             //this region
                             HoleExpression holeExpression = (HoleExpression) methodKeyHole.dependsOn;
-                            assert(holeExpression.getHoleType() == HoleExpression.HoleType.FIELD_OUTPUT);
-                            assert(holeExpression.isLatestWrite);
-                            assert(retHoleHashMap.containsKey(holeExpression.getFieldInfo().writeValue));
+                            assert (holeExpression.getHoleType() == HoleExpression.HoleType.FIELD_OUTPUT);
+                            assert (holeExpression.isLatestWrite);
+                            assert (retHoleHashMap.containsKey(holeExpression.getFieldInfo().writeValue));
                             retHoleHashMap.put(methodKeyHole, retHoleHashMap.get(holeExpression.getFieldInfo().writeValue));
                         } else {
                             HoleExpression.FieldInfo methodKeyHoleFieldInfo = methodKeyHole.getFieldInfo();
                             assert (methodKeyHoleFieldInfo != null);
                             if (!methodKeyHoleFieldInfo.isStaticField) {
-                                if(methodKeyHoleFieldInfo.localStackSlot == 0) {
-                                    assert(callSiteInfo.paramList.size() > 0);
+                                if (methodKeyHoleFieldInfo.localStackSlot == 0) {
+                                    assert (callSiteInfo.paramList.size() > 0);
                                     int callSiteStackSlot = ((HoleExpression) callSiteInfo.paramList.get(0)).getLocalStackSlot();
                                     methodKeyHoleFieldInfo.callSiteStackSlot = callSiteStackSlot;
                                 } else {
@@ -1206,7 +1256,8 @@ private HashMap<Expression, Expression> fillNonInputHoles(HashMap<Expression, Ex
                             retHoleHashMap.put(methodKeyHole, greenExpr);
                         }
                         break;
-                    default: break;
+                    default:
+                        break;
                 }
             }
             failure = false;

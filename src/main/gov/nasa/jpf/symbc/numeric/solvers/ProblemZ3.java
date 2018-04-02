@@ -222,6 +222,19 @@ public class ProblemZ3 extends ProblemGeneral {
 	    }
 	}
 
+
+	public Object logical_implies(Object exp1, Object exp2){
+		try{
+			if((exp1 instanceof BoolExpr) && (exp2 instanceof BoolExpr))
+				return ctx.mkImplies((BoolExpr)exp1, (BoolExpr)exp2);
+			else throw new RuntimeException("## Error Z3: logical_implies(Object,Object) expected a BoolExpr.\n");
+		} catch (Exception e) {
+			e.printStackTrace();
+			throw new RuntimeException("## Error Z3: logical_implies(Object, Object) failed.\n" + e);
+		}
+	}
+
+
 	// TODO: convert doubles to rationals
 //	public Object neq(double value, Object exp){
 //		try{

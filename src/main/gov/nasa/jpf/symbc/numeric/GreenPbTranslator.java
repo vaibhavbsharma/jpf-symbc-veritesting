@@ -156,11 +156,9 @@ class GreenPbTranslator extends Visitor {
                 case OR:
                     stack.push((Expr) context.logical_or( l, r));
                     break;
-/* Soha: not currently supported in Z3BitVectorProblem in SPF
-			case IMPLIES:
-				stack.push(context.mkImplies((BoolExpr) l, (BoolExpr) r));
-				break;
-		*/
+                case IMPLIES:
+				    stack.push((Expr) context.logical_implies(l, r));
+				    break;
                 case ADD:
                     stack.push((Expr) context.plus( l, r));
                     break;
@@ -200,7 +198,6 @@ class GreenPbTranslator extends Visitor {
                 case NOT:
                     stack.push((Expr) context.logical_not(l));
                     break;
-                case IMPLIES:
                 case BIT_CONCAT:
                 case SIN:
                 case COS:

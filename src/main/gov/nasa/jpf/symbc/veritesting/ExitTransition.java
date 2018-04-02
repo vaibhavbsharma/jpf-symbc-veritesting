@@ -1,22 +1,36 @@
 package gov.nasa.jpf.symbc.veritesting;
 
+import gov.nasa.jpf.symbc.VeritestingListener;
+import gov.nasa.jpf.symbc.numeric.SymbolicInteger;
 import za.ac.sun.cs.green.expr.Expression;
+import za.ac.sun.cs.green.expr.IntConstant;
+import za.ac.sun.cs.green.expr.Operation;
 
-public class NominalTransition {
-    public int pathLabel;
-    public String pathLabelString;
-    public Expression nominalConstraint;
-    public Expression negNominalConstraint;
+
+public class ExitTransition {
+    private Expression nominalConstraint;
+    private Expression negNominalConstraint;
     private Expression nominalRHS;
     private Expression negNominalRHS;
-    public String instructionName;
+    private Expression pathConstraint;
+    private String instructionName;
 
+// pathConstraint is (pathLabelString = pathLabel)
+// nominalConstraint is  pathConstraint => nominalRHS
+// negNominalConstraint is pathconstraint => negNominalRHS
 
-    public NominalTransition(Expression Constraint, String instructionName, String pathLabelString, int pathLabel){
-        this.pathLabelString = pathLabelString;
-        this.pathLabel = pathLabel;
-        this.nominalConstraint = nominalConstraint;
+    public ExitTransition(Expression nominalRHS, String instructionName, Expression pathLabel){
+        this.nominalRHS = nominalRHS;
+        //this.negNominalRHS = new Operation(Operation.Operator.NOT, nominalRHS);
+        this.negNominalRHS = new Operation(Operation.Operator.IMPLIES, nominalRHS, Operation.FALSE);
+        this.pathConstraint = pathLabel;
+        this.nominalConstraint = new Operation(Operation.Operator.IMPLIES, pathConstraint, nominalRHS);
+        this.negNominalConstraint = new Operation(Operation.Operator.AND, pathConstraint, negNominalRHS);
         this.instructionName = instructionName;
+    }
+
+    public void setPathConstraint(Expression pathConstraint){
+        this.pathConstraint = pathConstraint;
     }
 
     public Expression getNegNominalConstraint() {
@@ -32,32 +46,30 @@ public class NominalTransition {
         return nominalConstraint;
     }
 
-    public int getPathLabel() {
-        return pathLabel;
+    public Expression getNegNominalRHS() {
+        return negNominalRHS;
     }
 
-    public String getPathLabelString() {
-        return pathLabelString;
+
+    public Expression getNominalRHS() {
+        return nominalRHS;
     }
 
-    public void setNominalConstraint(Expression nominalConstraint) {
-        this.nominalConstraint = nominalConstraint;
-    }
 
-    public void setPathLabel(int exceptionPathLabel) {
-        this.pathLabel = exceptionPathLabel;
-    }
-
-    public void setInstructionName(String instructionName) {
-        this.instructionName = instructionName;
-    }
-
-    public void setPathLabelString(String pathLabelString) {
-        this.pathLabelString = pathLabelString;
+    public Expression getPathConstraint() {
+        return pathConstraint;
     }
 
     @Override
     public String toString() {
-        return("instruction = " + instructionName + ", "+ pathLabelString + " = " + pathLabel +", nominalConstraint = " + nominalConstraint.toString() );
+        return("instruction = " + instructionName + ", pathConstraint = "+ pathConstraint + " = " +", nominalConstraint = " + nominalConstraint.toString() );
+    }
+
+    public void setNegNominalConstraint(Expression newConstraint) {
+        this.negNominalConstraint = newConstraint;
+    }
+
+    public void setNominalConstraint(Expression nominalConstraint) {
+        this.nominalConstraint = nominalConstraint;
     }
 }

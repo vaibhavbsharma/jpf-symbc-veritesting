@@ -1,0 +1,1437 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="ChangeListManager">
+    <list default="true" id="d0da180d-3f02-49f4-af73-ea191133e8f7" name="Default" comment="Adding .properties configuration setup">
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/examples/TestPaths.java" afterPath="$PROJECT_DIR$/src/examples/TestPaths.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/examples/TestPaths.jpf" afterPath="$PROJECT_DIR$/src/examples/TestPaths.jpf" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/examples/VeritestingPerf.java" afterPath="$PROJECT_DIR$/src/examples/VeritestingPerf.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/examples/VeritestingPerf.jpf" afterPath="$PROJECT_DIR$/src/examples/VeritestingPerf.jpf" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/main/gov/nasa/jpf/symbc/SymbolicChoiceChangingListener2.java" afterPath="$PROJECT_DIR$/src/main/gov/nasa/jpf/symbc/SymbolicChoiceChangingListener2.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/main/gov/nasa/jpf/symbc/SymbolicListener.java" afterPath="$PROJECT_DIR$/src/main/gov/nasa/jpf/symbc/SymbolicListener.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/main/gov/nasa/jpf/symbc/VeritestingListener.java" afterPath="$PROJECT_DIR$/src/main/gov/nasa/jpf/symbc/VeritestingListener.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/main/gov/nasa/jpf/symbc/numeric/GreenConstraint.java" afterPath="$PROJECT_DIR$/src/main/gov/nasa/jpf/symbc/numeric/GreenConstraint.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/main/gov/nasa/jpf/symbc/numeric/GreenPbTranslator.java" afterPath="$PROJECT_DIR$/src/main/gov/nasa/jpf/symbc/numeric/GreenPbTranslator.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/main/gov/nasa/jpf/symbc/numeric/PathCondition.java" afterPath="$PROJECT_DIR$/src/main/gov/nasa/jpf/symbc/numeric/PathCondition.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/main/gov/nasa/jpf/symbc/numeric/SymbolicConstraintsGeneral.java" afterPath="$PROJECT_DIR$/src/main/gov/nasa/jpf/symbc/numeric/SymbolicConstraintsGeneral.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/main/gov/nasa/jpf/symbc/numeric/VeriPCChoiceGenerator.java" afterPath="$PROJECT_DIR$/src/main/gov/nasa/jpf/symbc/numeric/VeriPCChoiceGenerator.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/main/gov/nasa/jpf/symbc/numeric/solvers/DebugSolvers.java" afterPath="$PROJECT_DIR$/src/main/gov/nasa/jpf/symbc/numeric/solvers/DebugSolvers.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/main/gov/nasa/jpf/symbc/numeric/solvers/ProblemCVC3.java" afterPath="$PROJECT_DIR$/src/main/gov/nasa/jpf/symbc/numeric/solvers/ProblemCVC3.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/main/gov/nasa/jpf/symbc/numeric/solvers/ProblemChoco.java" afterPath="$PROJECT_DIR$/src/main/gov/nasa/jpf/symbc/numeric/solvers/ProblemChoco.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/main/gov/nasa/jpf/symbc/numeric/solvers/ProblemChoco2.java" afterPath="$PROJECT_DIR$/src/main/gov/nasa/jpf/symbc/numeric/solvers/ProblemChoco2.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/main/gov/nasa/jpf/symbc/numeric/solvers/ProblemCompare.java" afterPath="$PROJECT_DIR$/src/main/gov/nasa/jpf/symbc/numeric/solvers/ProblemCompare.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/main/gov/nasa/jpf/symbc/numeric/solvers/ProblemCoral.java" afterPath="$PROJECT_DIR$/src/main/gov/nasa/jpf/symbc/numeric/solvers/ProblemCoral.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/main/gov/nasa/jpf/symbc/numeric/solvers/ProblemDReal.java" afterPath="$PROJECT_DIR$/src/main/gov/nasa/jpf/symbc/numeric/solvers/ProblemDReal.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/main/gov/nasa/jpf/symbc/numeric/solvers/ProblemGeneral.java" afterPath="$PROJECT_DIR$/src/main/gov/nasa/jpf/symbc/numeric/solvers/ProblemGeneral.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/main/gov/nasa/jpf/symbc/numeric/solvers/ProblemIAsolver.java" afterPath="$PROJECT_DIR$/src/main/gov/nasa/jpf/symbc/numeric/solvers/ProblemIAsolver.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/main/gov/nasa/jpf/symbc/numeric/solvers/ProblemYices.java" afterPath="$PROJECT_DIR$/src/main/gov/nasa/jpf/symbc/numeric/solvers/ProblemYices.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/main/gov/nasa/jpf/symbc/numeric/solvers/ProblemZ3.java" afterPath="$PROJECT_DIR$/src/main/gov/nasa/jpf/symbc/numeric/solvers/ProblemZ3.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/main/gov/nasa/jpf/symbc/numeric/solvers/ProblemZ3BitVector.java" afterPath="$PROJECT_DIR$/src/main/gov/nasa/jpf/symbc/numeric/solvers/ProblemZ3BitVector.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/main/gov/nasa/jpf/symbc/numeric/solvers/ProblemZ3BitVectorIncremental.java" afterPath="$PROJECT_DIR$/src/main/gov/nasa/jpf/symbc/numeric/solvers/ProblemZ3BitVectorIncremental.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/main/gov/nasa/jpf/symbc/numeric/solvers/ProblemZ3Incremental.java" afterPath="$PROJECT_DIR$/src/main/gov/nasa/jpf/symbc/numeric/solvers/ProblemZ3Incremental.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/main/gov/nasa/jpf/symbc/veritesting/ExitTransition.java" afterPath="$PROJECT_DIR$/src/main/gov/nasa/jpf/symbc/veritesting/ExitTransition.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/main/gov/nasa/jpf/symbc/veritesting/HoleExpression.java" afterPath="$PROJECT_DIR$/src/main/gov/nasa/jpf/symbc/veritesting/HoleExpression.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/main/gov/nasa/jpf/symbc/veritesting/MyIVisitor.java" afterPath="$PROJECT_DIR$/src/main/gov/nasa/jpf/symbc/veritesting/MyIVisitor.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/main/gov/nasa/jpf/symbc/veritesting/VarUtil.java" afterPath="$PROJECT_DIR$/src/main/gov/nasa/jpf/symbc/veritesting/VarUtil.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/main/gov/nasa/jpf/symbc/veritesting/VeritestingMain.java" afterPath="$PROJECT_DIR$/src/main/gov/nasa/jpf/symbc/veritesting/VeritestingMain.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/main/gov/nasa/jpf/symbc/veritesting/VeritestingRegion.java" afterPath="$PROJECT_DIR$/src/main/gov/nasa/jpf/symbc/veritesting/VeritestingRegion.java" />
+    </list>
+    <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
+    <option name="TRACKING_ENABLED" value="true" />
+    <option name="SHOW_DIALOG" value="false" />
+    <option name="HIGHLIGHT_CONFLICTS" value="true" />
+    <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
+    <option name="LAST_RESOLUTION" value="IGNORE" />
+  </component>
+  <component name="CoverageDataManager">
+    <SUITE FILE_PATH="coverage/jpf_symbc_veritesting$Veritesting.coverage" NAME="Veritesting Coverage Results" MODIFIED="1518525607076" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="idea" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" />
+  </component>
+  <component name="DatabaseView">
+    <option name="SHOW_INTERMEDIATE" value="true" />
+    <option name="GROUP_SCHEMA" value="true" />
+    <option name="GROUP_CONTENTS" value="false" />
+    <option name="SORT_POSITIONED" value="false" />
+    <option name="SHOW_TABLE_DETAILS" value="true" />
+    <option name="SHOW_EMPTY_GROUPS" value="false" />
+    <option name="AUTO_SCROLL_FROM_SOURCE" value="false" />
+    <expand />
+    <select />
+  </component>
+  <component name="FavoritesManager">
+    <favorites_list name="jpf-symbc-veritesting" />
+  </component>
+  <component name="FileEditorManager">
+    <leaf SIDE_TABS_SIZE_LIMIT_KEY="300">
+      <file leaf-file-name="VeritestingListener.java" pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/src/main/gov/nasa/jpf/symbc/VeritestingListener.java">
+          <provider selected="true" editor-type-id="text-editor">
+            <state relative-caret-position="220">
+              <caret line="86" column="0" lean-forward="true" selection-start-line="86" selection-start-column="0" selection-end-line="86" selection-end-column="0" />
+              <folding />
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file leaf-file-name="IFEQ.java" pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/src/main/gov/nasa/jpf/symbc/bytecode/IFEQ.java">
+          <provider selected="true" editor-type-id="text-editor">
+            <state relative-caret-position="518">
+              <caret line="63" column="58" lean-forward="false" selection-start-line="63" selection-start-column="58" selection-end-line="63" selection-end-column="58" />
+              <folding />
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file leaf-file-name="VeritestingPerf.java" pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/src/examples/VeritestingPerf.java">
+          <provider selected="true" editor-type-id="text-editor">
+            <state relative-caret-position="14">
+              <caret line="18" column="8" lean-forward="false" selection-start-line="18" selection-start-column="8" selection-end-line="18" selection-end-column="8" />
+              <folding />
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file leaf-file-name="VeritestingPerf.jpf" pinned="false" current-in-tab="true">
+        <entry file="file://$PROJECT_DIR$/src/examples/VeritestingPerf.jpf">
+          <provider selected="true" editor-type-id="text-editor">
+            <state relative-caret-position="182">
+              <caret line="15" column="0" lean-forward="true" selection-start-line="15" selection-start-column="0" selection-end-line="15" selection-end-column="0" />
+              <folding />
+            </state>
+          </provider>
+        </entry>
+      </file>
+    </leaf>
+  </component>
+  <component name="FileTemplateManagerImpl">
+    <option name="RECENT_TEMPLATES">
+      <list>
+        <option value="Class" />
+      </list>
+    </option>
+  </component>
+  <component name="FindInProjectRecents">
+    <findStrings>
+      <find>fillarray</find>
+      <find>fillast</find>
+      <find>veritesting</find>
+      <find>construct</find>
+      <find>ASTTO</find>
+      <find>verittest</find>
+      <find>inside</find>
+      <find>side</find>
+      <find>deb</find>
+      <find>veritesting on</find>
+      <find>verit</find>
+      <find>Veritt</find>
+      <find>debug</find>
+      <find>veritt</find>
+      <find>exp</find>
+      <find>constriant on</find>
+      <find>explo</find>
+      <find>post``</find>
+      <find>getmo</find>
+      <find>constriant on pc</find>
+      <find>cannot reference out of bound arrays</find>
+      <find>publish</find>
+      <find>program</find>
+      <find>exit</find>
+      <find>setcurre</find>
+      <find>tostrin</find>
+      <find>setup</find>
+      <find>nominal</find>
+      <find>fillarra</find>
+      <find>arrayload</find>
+    </findStrings>
+    <dirStrings>
+      <dir>$PROJECT_DIR$</dir>
+    </dirStrings>
+  </component>
+  <component name="Git.Settings">
+    <option name="UPDATE_TYPE" value="MERGE" />
+    <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
+    <option name="RECENT_BRANCH_BY_REPOSITORY">
+      <map>
+        <entry key="$PROJECT_DIR$" value="5a0b826bc94ed5ac5af7219b9a4ec11acc82f5b8" />
+      </map>
+    </option>
+    <option name="RESET_MODE" value="HARD" />
+  </component>
+  <component name="GradleLocalSettings">
+    <option name="externalProjectsViewState">
+      <projects_view />
+    </option>
+  </component>
+  <component name="IdeDocumentHistory">
+    <option name="CHANGED_PATHS">
+      <list>
+        <option value="$PROJECT_DIR$/src/examples/WBSV.java" />
+        <option value="$PROJECT_DIR$/src/main/gov/nasa/jpf/symbc/numeric/SymbolicConstraintsGeneral.java" />
+        <option value="$PROJECT_DIR$/src/examples/WBSV.jpf" />
+        <option value="$PROJECT_DIR$/src/examples/tcas.jpf" />
+        <option value="$PROJECT_DIR$/src/examples/tcas.java" />
+        <option value="$USER_HOME$/Library/Containers/com.apple.mail/Data/Library/Mail Downloads/7C351062-FA0E-4D89-950E-EE6B7E8CDEA9/tcas.java" />
+        <option value="$PROJECT_DIR$/src/examples/tcasv.java" />
+        <option value="$PROJECT_DIR$/src/examples/WBS.jpf" />
+        <option value="$PROJECT_DIR$/src/main/gov/nasa/jpf/symbc/SymbolicListener.java" />
+        <option value="$PROJECT_DIR$/src/examples/testExceptions.java" />
+        <option value="$PROJECT_DIR$/src/main/gov/nasa/jpf/symbc/numeric/GreenConstraint.java" />
+        <option value="$PROJECT_DIR$/src/main/gov/nasa/jpf/symbc/veritesting/RegionException.java" />
+        <option value="$PROJECT_DIR$/src/main/gov/nasa/jpf/symbc/veritesting/VeritestingForks.java" />
+        <option value="$PROJECT_DIR$/src/main/gov/nasa/jpf/symbc/bytecode/IFEQ.java" />
+        <option value="$PROJECT_DIR$/src/main/gov/nasa/jpf/symbc/numeric/PCChoiceGenerator.java" />
+        <option value="$PROJECT_DIR$/src/main/gov/nasa/jpf/symbc/veritesting/VeritestingTransition.java" />
+        <option value="$PROJECT_DIR$/src/main/gov/nasa/jpf/symbc/veritesting/VeriPCChoiceGenerator.java" />
+        <option value="$PROJECT_DIR$/src/main/gov/nasa/jpf/symbc/veritesting/NominalTransition.java" />
+        <option value="$PROJECT_DIR$/src/main/gov/nasa/jpf/symbc/numeric/solvers/ProblemZ3BitVector.java" />
+        <option value="$PROJECT_DIR$/src/main/gov/nasa/jpf/symbc/numeric/solvers/ProblemGeneral.java" />
+        <option value="$PROJECT_DIR$/src/main/gov/nasa/jpf/symbc/numeric/solvers/ProblemChoco.java" />
+        <option value="$PROJECT_DIR$/src/main/gov/nasa/jpf/symbc/numeric/GreenPbTranslator.java" />
+        <option value="$PROJECT_DIR$/src/main/gov/nasa/jpf/symbc/numeric/solvers/ProblemZ3BitVectorIncremental.java" />
+        <option value="$PROJECT_DIR$/src/main/gov/nasa/jpf/symbc/numeric/solvers/ProblemZ3Incremental.java" />
+        <option value="$PROJECT_DIR$/src/main/gov/nasa/jpf/symbc/numeric/solvers/ProblemZ3.java" />
+        <option value="$PROJECT_DIR$/src/main/gov/nasa/jpf/symbc/numeric/solvers/ProblemYices.java" />
+        <option value="$PROJECT_DIR$/src/main/gov/nasa/jpf/symbc/numeric/solvers/ProblemIAsolver.java" />
+        <option value="$PROJECT_DIR$/src/main/gov/nasa/jpf/symbc/numeric/solvers/ProblemDReal.java" />
+        <option value="$PROJECT_DIR$/src/main/gov/nasa/jpf/symbc/numeric/solvers/ProblemCVC3.java" />
+        <option value="$PROJECT_DIR$/src/main/gov/nasa/jpf/symbc/numeric/solvers/ProblemCoral.java" />
+        <option value="$PROJECT_DIR$/src/main/gov/nasa/jpf/symbc/numeric/solvers/ProblemCompare.java" />
+        <option value="$PROJECT_DIR$/src/main/gov/nasa/jpf/symbc/numeric/solvers/ProblemChoco2.java" />
+        <option value="$PROJECT_DIR$/src/main/gov/nasa/jpf/symbc/numeric/solvers/DebugSolvers.java" />
+        <option value="$PROJECT_DIR$/src/main/gov/nasa/jpf/symbc/veritesting/HoleExpression.java" />
+        <option value="$PROJECT_DIR$/src/main/gov/nasa/jpf/symbc/veritesting/VarUtil.java" />
+        <option value="$PROJECT_DIR$/src/main/gov/nasa/jpf/symbc/veritesting/FillHolesOutput.java" />
+        <option value="$PROJECT_DIR$/src/main/gov/nasa/jpf/symbc/veritesting/VeritestingMain.java" />
+        <option value="$PROJECT_DIR$/src/main/gov/nasa/jpf/symbc/veritesting/VeritestingRegion.java" />
+        <option value="$PROJECT_DIR$/src/main/gov/nasa/jpf/symbc/veritesting/ExitTransition.java" />
+        <option value="$PROJECT_DIR$/src/main/SymbolicChoiceChangingListener.java" />
+        <option value="$PROJECT_DIR$/src/main/gov/nasa/jpf/symbc/SymbolicChoiceChangingListener2.java" />
+        <option value="$PROJECT_DIR$/src/examples/TestPaths.jpf" />
+        <option value="$PROJECT_DIR$/src/examples/TestPaths.java" />
+        <option value="$PROJECT_DIR$/src/main/gov/nasa/jpf/symbc/SymbolicChoiceChangingListener.java" />
+        <option value="$PROJECT_DIR$/src/main/gov/nasa/jpf/symbc/bytecode/IFGE.java" />
+        <option value="$PROJECT_DIR$/src/main/gov/nasa/jpf/symbc/numeric/PathCondition.java" />
+        <option value="$PROJECT_DIR$/src/main/gov/nasa/jpf/symbc/VeritestingListener.java" />
+        <option value="$PROJECT_DIR$/src/main/gov/nasa/jpf/symbc/veritesting/MyIVisitor.java" />
+        <option value="$PROJECT_DIR$/src/main/gov/nasa/jpf/symbc/numeric/VeriPCChoiceGenerator.java" />
+        <option value="$PROJECT_DIR$/src/examples/VeritestingPerf.java" />
+        <option value="$PROJECT_DIR$/src/examples/VeritestingPerf.jpf" />
+      </list>
+    </option>
+  </component>
+  <component name="JsBuildToolGruntFileManager" detection-done="true" sorting="DEFINITION_ORDER" />
+  <component name="JsBuildToolPackageJson" detection-done="true" sorting="DEFINITION_ORDER" />
+  <component name="JsGulpfileManager">
+    <detection-done>true</detection-done>
+    <sorting>DEFINITION_ORDER</sorting>
+  </component>
+  <component name="LogFilters">
+    <option name="FILTER_ERRORS" value="false" />
+    <option name="FILTER_WARNINGS" value="false" />
+    <option name="FILTER_INFO" value="true" />
+    <option name="FILTER_DEBUG" value="true" />
+    <option name="CUSTOM_FILTER" />
+  </component>
+  <component name="MavenProjectNavigator">
+    <treeState>
+      <expand />
+      <select />
+    </treeState>
+  </component>
+  <component name="ProjectFrameBounds" extendedState="6">
+    <option name="y" value="23" />
+    <option name="width" value="1280" />
+    <option name="height" value="709" />
+  </component>
+  <component name="ProjectLevelVcsManager" settingsEditedManually="true" />
+  <component name="ProjectView">
+    <navigator currentView="ProjectPane" proportions="" version="1">
+      <flattenPackages />
+      <showMembers />
+      <showModules />
+      <showLibraryContents />
+      <hideEmptyPackages />
+      <abbreviatePackageNames />
+      <autoscrollToSource />
+      <autoscrollFromSource />
+      <sortByType />
+      <manualOrder />
+      <foldersAlwaysOnTop value="true" />
+    </navigator>
+    <panes>
+      <pane id="ProjectPane">
+        <subPane>
+          <expand>
+            <path>
+              <item name="jpf-symbc-veritesting" type="b2602c69:ProjectViewProjectNode" />
+              <item name="src" type="462c0819:PsiDirectoryNode" />
+            </path>
+            <path>
+              <item name="jpf-symbc-veritesting" type="b2602c69:ProjectViewProjectNode" />
+              <item name="src" type="462c0819:PsiDirectoryNode" />
+              <item name="examples" type="462c0819:PsiDirectoryNode" />
+            </path>
+            <path>
+              <item name="jpf-symbc-veritesting" type="b2602c69:ProjectViewProjectNode" />
+              <item name="src" type="462c0819:PsiDirectoryNode" />
+              <item name="examples" type="462c0819:PsiDirectoryNode" />
+              <item name="VeritestingPerf.java" type="529ef68f:ClassesTreeStructureProvider$PsiClassOwnerTreeNode" />
+            </path>
+            <path>
+              <item name="jpf-symbc-veritesting" type="b2602c69:ProjectViewProjectNode" />
+              <item name="src" type="462c0819:PsiDirectoryNode" />
+              <item name="main" type="462c0819:PsiDirectoryNode" />
+            </path>
+            <path>
+              <item name="jpf-symbc-veritesting" type="b2602c69:ProjectViewProjectNode" />
+              <item name="src" type="462c0819:PsiDirectoryNode" />
+              <item name="main" type="462c0819:PsiDirectoryNode" />
+              <item name="symbc" type="462c0819:PsiDirectoryNode" />
+            </path>
+            <path>
+              <item name="jpf-symbc-veritesting" type="b2602c69:ProjectViewProjectNode" />
+              <item name="src" type="462c0819:PsiDirectoryNode" />
+              <item name="main" type="462c0819:PsiDirectoryNode" />
+              <item name="symbc" type="462c0819:PsiDirectoryNode" />
+              <item name="bytecode" type="462c0819:PsiDirectoryNode" />
+            </path>
+            <path>
+              <item name="jpf-symbc-veritesting" type="b2602c69:ProjectViewProjectNode" />
+              <item name="src" type="462c0819:PsiDirectoryNode" />
+              <item name="main" type="462c0819:PsiDirectoryNode" />
+              <item name="symbc" type="462c0819:PsiDirectoryNode" />
+              <item name="numeric" type="462c0819:PsiDirectoryNode" />
+            </path>
+            <path>
+              <item name="jpf-symbc-veritesting" type="b2602c69:ProjectViewProjectNode" />
+              <item name="src" type="462c0819:PsiDirectoryNode" />
+              <item name="main" type="462c0819:PsiDirectoryNode" />
+              <item name="symbc" type="462c0819:PsiDirectoryNode" />
+              <item name="veritesting" type="462c0819:PsiDirectoryNode" />
+            </path>
+            <path>
+              <item name="jpf-symbc-veritesting" type="b2602c69:ProjectViewProjectNode" />
+              <item name="src" type="462c0819:PsiDirectoryNode" />
+              <item name="peers" type="462c0819:PsiDirectoryNode" />
+            </path>
+            <path>
+              <item name="jpf-symbc-veritesting" type="b2602c69:ProjectViewProjectNode" />
+              <item name="src" type="462c0819:PsiDirectoryNode" />
+              <item name="peers" type="462c0819:PsiDirectoryNode" />
+              <item name="symbc" type="462c0819:PsiDirectoryNode" />
+            </path>
+          </expand>
+          <select />
+        </subPane>
+      </pane>
+      <pane id="PackagesPane" />
+      <pane id="Scratches" />
+      <pane id="Scope" />
+      <pane id="AndroidView" />
+    </panes>
+  </component>
+  <component name="PropertiesComponent">
+    <property name="WebServerToolWindowFactoryState" value="false" />
+    <property name="aspect.path.notification.shown" value="true" />
+    <property name="project.structure.last.edited" value="Project" />
+    <property name="project.structure.proportion" value="0.15" />
+    <property name="project.structure.side.proportion" value="0.2" />
+    <property name="settings.editor.selected.configurable" value="preferences.pluginManager" />
+    <property name="last_opened_file_path" value="$PROJECT_DIR$" />
+    <property name="SearchEverywhereHistoryKey" value="&#9;FILE&#9;file:///Users/sohanabel/git/veritesting/jpf-symbc-veritesting/src/main/gov/nasa/jpf/symbc/SymbolicChoiceChangingListener.java" />
+  </component>
+  <component name="RecentsManager">
+    <key name="MoveClassesOrPackagesDialog.RECENTS_KEY">
+      <recent name="gov.nasa.jpf.symbc" />
+    </key>
+    <key name="CopyFile.RECENT_KEYS">
+      <recent name="$PROJECT_DIR$/src/examples" />
+      <recent name="$PROJECT_DIR$/src/main" />
+    </key>
+    <key name="CopyClassDialog.RECENTS_KEY">
+      <recent name="gov.nasa.jpf.symbc" />
+      <recent name="gov.nasa.jpf.symbc.veritesting" />
+    </key>
+    <key name="CreateClassDialog.RecentsKey">
+      <recent name="gov.nasa.jpf.symbc.veritesting" />
+    </key>
+  </component>
+  <component name="RunDashboard">
+    <option name="ruleStates">
+      <list>
+        <RuleState>
+          <option name="name" value="ConfigurationTypeDashboardGroupingRule" />
+        </RuleState>
+        <RuleState>
+          <option name="name" value="StatusDashboardGroupingRule" />
+        </RuleState>
+      </list>
+    </option>
+  </component>
+  <component name="RunManager" selected="JAR Application.Veritesting">
+    <configuration name="SPFWBSBenchmark" type="JarApplication" factoryName="JAR Application">
+      <output_file path="$PROJECT_DIR$/../results/WBS.txt" is_save="true" />
+      <extension name="coverage" enabled="false" merge="false" sample_coverage="true" runner="idea" />
+      <option name="JAR_PATH" value="$PROJECT_DIR$/../jpf-core-veritesting/build/RunJPF.jar" />
+      <option name="VM_PARAMETERS" value="-Djava.library.path=&quot;$PROJECT_DIR$/lib&quot; -Xmx1024m -ea " />
+      <option name="PROGRAM_PARAMETERS" value="$PROJECT_DIR$/src/examples/WBS.jpf " />
+      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$/lib" />
+      <option name="ALTERNATIVE_JRE_PATH_ENABLED" value="true" />
+      <option name="ALTERNATIVE_JRE_PATH" value="1.8" />
+      <envs>
+        <env name="TARGET_CLASSPATH_WALA" value="/Users/sohanabel/git/veritesting/jpf-symbc-veritesting/build/examples/" />
+      </envs>
+    </configuration>
+    <configuration name="SPFWBSV" type="JarApplication" factoryName="JAR Application">
+      <extension name="coverage" enabled="false" merge="false" sample_coverage="true" runner="idea" />
+      <option name="JAR_PATH" value="$PROJECT_DIR$/../jpf-core-veritesting/build/RunJPF.jar" />
+      <option name="VM_PARAMETERS" value="-Djava.library.path=&quot;$PROJECT_DIR$/lib&quot; -Xmx1024m -ea " />
+      <option name="PROGRAM_PARAMETERS" value="$PROJECT_DIR$/src/examples/WBSV.jpf " />
+      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$/lib" />
+      <option name="ALTERNATIVE_JRE_PATH_ENABLED" value="true" />
+      <option name="ALTERNATIVE_JRE_PATH" value="1.8" />
+      <envs>
+        <env name="TARGET_CLASSPATH_WALA" value="/Users/sohanabel/git/veritesting/jpf-symbc-veritesting/build/examples/" />
+      </envs>
+    </configuration>
+    <configuration name="Schedule2_3S" type="JarApplication" factoryName="JAR Application">
+      <log_file path="$PROJECT_DIR$/../results" checked="true" skipped="true" show_all="false" alias="Schedule2_3S" />
+      <output_file path="$PROJECT_DIR$/../results/Schedule2_3S" is_save="true" />
+      <extension name="coverage" enabled="false" merge="false" sample_coverage="true" runner="idea" />
+      <option name="JAR_PATH" value="$PROJECT_DIR$/../jpf-core-veritesting/build/RunJPF.jar" />
+      <option name="VM_PARAMETERS" value="-Djava.library.path=&quot;$PROJECT_DIR$/lib&quot; -Xmx1024m -ea " />
+      <option name="PROGRAM_PARAMETERS" value="$PROJECT_DIR$/../benchmarks/Schedule2_3/src/Schedule2_3S.jpf" />
+      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$/lib" />
+      <option name="ALTERNATIVE_JRE_PATH_ENABLED" value="true" />
+      <option name="ALTERNATIVE_JRE_PATH" value="1.8" />
+      <envs>
+        <env name="TARGET_CLASSPATH_WALA" value="/Users/sohanabel/git/veritesting/benchmarks/Schedule2_3" />
+      </envs>
+    </configuration>
+    <configuration name="Schedule2_3V" type="JarApplication" factoryName="JAR Application">
+      <log_file path="$PROJECT_DIR$/../results" checked="true" skipped="true" show_all="false" alias="Schedule2_3V" />
+      <output_file path="$PROJECT_DIR$/../results/Schedule2_3V" is_save="true" />
+      <extension name="coverage" enabled="false" merge="false" sample_coverage="true" runner="idea" />
+      <option name="JAR_PATH" value="$PROJECT_DIR$/../jpf-core-veritesting/build/RunJPF.jar" />
+      <option name="VM_PARAMETERS" value="-Djava.library.path=&quot;$PROJECT_DIR$/lib&quot; -Xmx1024m -ea " />
+      <option name="PROGRAM_PARAMETERS" value="$PROJECT_DIR$/../benchmarks/Schedule2_3/src/Schedule2_3V.jpf" />
+      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$/lib" />
+      <option name="ALTERNATIVE_JRE_PATH_ENABLED" value="true" />
+      <option name="ALTERNATIVE_JRE_PATH" value="1.8" />
+      <envs>
+        <env name="TARGET_CLASSPATH_WALA" value="/Users/sohanabel/git/veritesting/benchmarks/Schedule2_3" />
+      </envs>
+    </configuration>
+    <configuration name="Schedule2_6S" type="JarApplication" factoryName="JAR Application">
+      <log_file path="$PROJECT_DIR$/../results" checked="true" skipped="true" show_all="false" alias="Schedule2_6S" />
+      <output_file path="$PROJECT_DIR$/../results/Schedule2_6S" is_save="true" />
+      <extension name="coverage" enabled="false" merge="false" sample_coverage="true" runner="idea" />
+      <option name="JAR_PATH" value="$PROJECT_DIR$/../jpf-core-veritesting/build/RunJPF.jar" />
+      <option name="VM_PARAMETERS" value="-Djava.library.path=&quot;$PROJECT_DIR$/lib&quot; -Xmx1024m -ea " />
+      <option name="PROGRAM_PARAMETERS" value="$PROJECT_DIR$/../benchmarks/Schedule2_6/src/Schedule2_6S.jpf" />
+      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$/lib" />
+      <option name="ALTERNATIVE_JRE_PATH_ENABLED" value="true" />
+      <option name="ALTERNATIVE_JRE_PATH" value="1.8" />
+      <envs>
+        <env name="TARGET_CLASSPATH_WALA" value="/Users/sohanabel/git/veritesting/benchmarks/Schedule2_6" />
+      </envs>
+    </configuration>
+    <configuration name="Schedule2_6V" type="JarApplication" factoryName="JAR Application">
+      <log_file path="$PROJECT_DIR$/../results" checked="true" skipped="true" show_all="false" alias="Schedule2_6V" />
+      <output_file path="$PROJECT_DIR$/../results/Schedule2_6V" is_save="true" />
+      <extension name="coverage" enabled="false" merge="false" sample_coverage="true" runner="idea" />
+      <option name="JAR_PATH" value="$PROJECT_DIR$/../jpf-core-veritesting/build/RunJPF.jar" />
+      <option name="VM_PARAMETERS" value="-Djava.library.path=&quot;$PROJECT_DIR$/lib&quot; -Xmx1024m -ea " />
+      <option name="PROGRAM_PARAMETERS" value="$PROJECT_DIR$/../benchmarks/Schedule2_6/src/Schedule2_6V.jpf" />
+      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$/lib" />
+      <option name="ALTERNATIVE_JRE_PATH_ENABLED" value="true" />
+      <option name="ALTERNATIVE_JRE_PATH" value="1.8" />
+      <envs>
+        <env name="TARGET_CLASSPATH_WALA" value="/Users/sohanabel/git/veritesting/benchmarks/Schedule2_6" />
+      </envs>
+    </configuration>
+    <configuration name="Schedule_3S" type="JarApplication" factoryName="JAR Application">
+      <log_file path="$PROJECT_DIR$/../results" checked="true" skipped="true" show_all="false" alias="Schedule_3S" />
+      <output_file path="$PROJECT_DIR$/../results/Schedule_3S" is_save="true" />
+      <extension name="coverage" enabled="false" merge="false" sample_coverage="true" runner="idea" />
+      <option name="JAR_PATH" value="$PROJECT_DIR$/../jpf-core-veritesting/build/RunJPF.jar" />
+      <option name="VM_PARAMETERS" value="-Djava.library.path=&quot;$PROJECT_DIR$/lib&quot; -Xmx1024m -ea " />
+      <option name="PROGRAM_PARAMETERS" value="$PROJECT_DIR$/../benchmarks/Schedule_3/src/Schedule_3S.jpf" />
+      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$/lib" />
+      <option name="ALTERNATIVE_JRE_PATH_ENABLED" value="true" />
+      <option name="ALTERNATIVE_JRE_PATH" value="1.8" />
+      <envs>
+        <env name="TARGET_CLASSPATH_WALA" value="/Users/sohanabel/git/veritesting/benchmarks/Schedule_3" />
+      </envs>
+    </configuration>
+    <configuration name="Schedule_3V" type="JarApplication" factoryName="JAR Application">
+      <log_file path="$PROJECT_DIR$/../results" checked="true" skipped="true" show_all="false" alias="Schedule_3V" />
+      <output_file path="$PROJECT_DIR$/../results/Schedule_3V" is_save="true" />
+      <extension name="coverage" enabled="false" merge="false" sample_coverage="true" runner="idea" />
+      <option name="JAR_PATH" value="$PROJECT_DIR$/../jpf-core-veritesting/build/RunJPF.jar" />
+      <option name="VM_PARAMETERS" value="-Djava.library.path=&quot;$PROJECT_DIR$/lib&quot; -Xmx1024m -ea " />
+      <option name="PROGRAM_PARAMETERS" value="$PROJECT_DIR$/../benchmarks/Schedule_3/src/Schedule_3V.jpf" />
+      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$/lib" />
+      <option name="ALTERNATIVE_JRE_PATH_ENABLED" value="true" />
+      <option name="ALTERNATIVE_JRE_PATH" value="1.8" />
+      <envs>
+        <env name="TARGET_CLASSPATH_WALA" value="/Users/sohanabel/git/veritesting/benchmarks/Schedule_3" />
+      </envs>
+    </configuration>
+    <configuration name="Schedule_6S" type="JarApplication" factoryName="JAR Application">
+      <log_file path="$PROJECT_DIR$/../results" checked="true" skipped="true" show_all="false" alias="Schedule_6S" />
+      <output_file path="$PROJECT_DIR$/../results/Schedule_6S" is_save="true" />
+      <extension name="coverage" enabled="false" merge="false" sample_coverage="true" runner="idea" />
+      <option name="JAR_PATH" value="$PROJECT_DIR$/../jpf-core-veritesting/build/RunJPF.jar" />
+      <option name="VM_PARAMETERS" value="-Djava.library.path=&quot;$PROJECT_DIR$/lib&quot; -Xmx1024m -ea " />
+      <option name="PROGRAM_PARAMETERS" value="$PROJECT_DIR$/../benchmarks/Schedule_6/src/Schedule_6S.jpf" />
+      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$/lib" />
+      <option name="ALTERNATIVE_JRE_PATH_ENABLED" value="true" />
+      <option name="ALTERNATIVE_JRE_PATH" value="1.8" />
+      <envs>
+        <env name="TARGET_CLASSPATH_WALA" value="/Users/sohanabel/git/veritesting/benchmarks/Schedule_6" />
+      </envs>
+    </configuration>
+    <configuration name="Schedule_6V" type="JarApplication" factoryName="JAR Application">
+      <log_file path="$PROJECT_DIR$/../results" checked="true" skipped="true" show_all="false" alias="Schedule_6V" />
+      <output_file path="$PROJECT_DIR$/../results/Schedule_6V" is_save="true" />
+      <extension name="coverage" enabled="false" merge="false" sample_coverage="true" runner="idea" />
+      <option name="JAR_PATH" value="$PROJECT_DIR$/../jpf-core-veritesting/build/RunJPF.jar" />
+      <option name="VM_PARAMETERS" value="-Djava.library.path=&quot;$PROJECT_DIR$/lib&quot; -Xmx1024m -ea " />
+      <option name="PROGRAM_PARAMETERS" value="$PROJECT_DIR$/../benchmarks/Schedule_6/src/Schedule_6V.jpf" />
+      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$/lib" />
+      <option name="ALTERNATIVE_JRE_PATH_ENABLED" value="true" />
+      <option name="ALTERNATIVE_JRE_PATH" value="1.8" />
+      <envs>
+        <env name="TARGET_CLASSPATH_WALA" value="/Users/sohanabel/git/veritesting/benchmarks/Schedule_6" />
+      </envs>
+    </configuration>
+    <configuration name="Veritesting" type="JarApplication" factoryName="JAR Application">
+      <extension name="coverage" enabled="false" merge="false" sample_coverage="true" runner="idea" />
+      <option name="JAR_PATH" value="$PROJECT_DIR$/../jpf-core-veritesting/build/RunJPF.jar" />
+      <option name="VM_PARAMETERS" value="-Djava.library.path=&quot;$PROJECT_DIR$/lib&quot; -Xmx1024m -ea " />
+      <option name="PROGRAM_PARAMETERS" value="$PROJECT_DIR$/src/examples/VeritestingPerf.jpf " />
+      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$/lib" />
+      <option name="ALTERNATIVE_JRE_PATH_ENABLED" value="true" />
+      <option name="ALTERNATIVE_JRE_PATH" value="1.8" />
+      <envs>
+        <env name="TARGET_CLASSPATH_WALA" value="/Users/sohanabel/git/veritesting/jpf-symbc-veritesting/build/examples/" />
+      </envs>
+    </configuration>
+    <configuration name="WBSBenchmark" type="JarApplication" factoryName="JAR Application">
+      <extension name="coverage" enabled="false" merge="false" sample_coverage="true" runner="idea" />
+      <option name="JAR_PATH" value="$PROJECT_DIR$/../jpf-core-veritesting/build/RunJPF.jar" />
+      <option name="VM_PARAMETERS" value="-Djava.library.path=&quot;$PROJECT_DIR$/lib&quot; -Xmx1024m -ea " />
+      <option name="PROGRAM_PARAMETERS" value="$PROJECT_DIR$/../benchmarks/WBS/src/WBS.jpf" />
+      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$/lib" />
+      <option name="ALTERNATIVE_JRE_PATH_ENABLED" value="true" />
+      <option name="ALTERNATIVE_JRE_PATH" value="1.8" />
+      <envs>
+        <env name="TARGET_CLASSPATH_WALA" value="/Users/sohanabel/git/veritesting/benchmarks/WBS/bin/" />
+      </envs>
+    </configuration>
+    <configuration name="WillemCG" type="JarApplication" factoryName="JAR Application">
+      <extension name="coverage" enabled="false" merge="false" sample_coverage="true" runner="idea" />
+      <option name="JAR_PATH" value="$PROJECT_DIR$/../jpf-core-veritesting/build/RunJPF.jar" />
+      <option name="VM_PARAMETERS" value="-Djava.library.path=&quot;$PROJECT_DIR$/lib&quot; -Xmx1024m -ea " />
+      <option name="PROGRAM_PARAMETERS" value="$PROJECT_DIR$/src/examples/TestPaths.jpf " />
+      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$/lib" />
+      <option name="ALTERNATIVE_JRE_PATH_ENABLED" value="true" />
+      <option name="ALTERNATIVE_JRE_PATH" value="1.8" />
+      <envs>
+        <env name="TARGET_CLASSPATH_WALA" value="/Users/sohanabel/git/veritesting/jpf-symbc-veritesting/build/examples/" />
+      </envs>
+    </configuration>
+    <configuration default="true" type="Applet" factoryName="Applet">
+      <option name="HTML_USED" value="false" />
+      <option name="WIDTH" value="400" />
+      <option name="HEIGHT" value="300" />
+      <option name="POLICY_FILE" value="$APPLICATION_HOME_DIR$/bin/appletviewer.policy" />
+      <module />
+    </configuration>
+    <configuration default="true" type="Application" factoryName="Application">
+      <extension name="coverage" enabled="false" merge="false" sample_coverage="true" runner="idea" />
+      <option name="MAIN_CLASS_NAME" />
+      <option name="VM_PARAMETERS" />
+      <option name="PROGRAM_PARAMETERS" />
+      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$" />
+      <option name="ALTERNATIVE_JRE_PATH_ENABLED" value="false" />
+      <option name="ALTERNATIVE_JRE_PATH" />
+      <option name="ENABLE_SWING_INSPECTOR" value="false" />
+      <option name="ENV_VARIABLES" />
+      <option name="PASS_PARENT_ENVS" value="true" />
+      <module name="" />
+      <envs />
+    </configuration>
+    <configuration default="true" type="JUnit" factoryName="JUnit">
+      <extension name="coverage" enabled="false" merge="false" sample_coverage="true" runner="idea" />
+      <module name="" />
+      <option name="ALTERNATIVE_JRE_PATH_ENABLED" value="false" />
+      <option name="ALTERNATIVE_JRE_PATH" />
+      <option name="PACKAGE_NAME" />
+      <option name="MAIN_CLASS_NAME" />
+      <option name="METHOD_NAME" />
+      <option name="TEST_OBJECT" value="class" />
+      <option name="VM_PARAMETERS" value="-ea" />
+      <option name="PARAMETERS" />
+      <option name="WORKING_DIRECTORY" value="$MODULE_DIR$" />
+      <option name="ENV_VARIABLES" />
+      <option name="PASS_PARENT_ENVS" value="true" />
+      <option name="TEST_SEARCH_SCOPE">
+        <value defaultName="singleModule" />
+      </option>
+      <envs />
+      <patterns />
+    </configuration>
+    <configuration default="true" type="#org.jetbrains.idea.devkit.run.PluginConfigurationType" factoryName="Plugin">
+      <module name="" />
+      <option name="VM_PARAMETERS" value="-Xmx512m -Xms256m -XX:MaxPermSize=250m -ea" />
+      <option name="PROGRAM_PARAMETERS" />
+      <predefined_log_file id="idea.log" enabled="true" />
+    </configuration>
+    <configuration default="true" type="Remote" factoryName="Remote">
+      <option name="USE_SOCKET_TRANSPORT" value="true" />
+      <option name="SERVER_MODE" value="false" />
+      <option name="SHMEM_ADDRESS" value="javadebug" />
+      <option name="HOST" value="localhost" />
+      <option name="PORT" value="5005" />
+    </configuration>
+    <configuration default="true" type="TestNG" factoryName="TestNG">
+      <extension name="coverage" enabled="false" merge="false" sample_coverage="true" runner="idea" />
+      <module name="" />
+      <option name="ALTERNATIVE_JRE_PATH_ENABLED" value="false" />
+      <option name="ALTERNATIVE_JRE_PATH" />
+      <option name="SUITE_NAME" />
+      <option name="PACKAGE_NAME" />
+      <option name="MAIN_CLASS_NAME" />
+      <option name="METHOD_NAME" />
+      <option name="GROUP_NAME" />
+      <option name="TEST_OBJECT" value="CLASS" />
+      <option name="VM_PARAMETERS" value="-ea" />
+      <option name="PARAMETERS" />
+      <option name="WORKING_DIRECTORY" value="$MODULE_DIR$" />
+      <option name="OUTPUT_DIRECTORY" />
+      <option name="ANNOTATION_TYPE" />
+      <option name="ENV_VARIABLES" />
+      <option name="PASS_PARENT_ENVS" value="true" />
+      <option name="TEST_SEARCH_SCOPE">
+        <value defaultName="singleModule" />
+      </option>
+      <option name="USE_DEFAULT_REPORTERS" value="false" />
+      <option name="PROPERTIES_FILE" />
+      <envs />
+      <properties />
+      <listeners />
+    </configuration>
+    <configuration name="replace_11" type="JarApplication" factoryName="JAR Application">
+      <extension name="coverage" enabled="false" merge="false" sample_coverage="true" runner="idea" />
+      <option name="JAR_PATH" value="$PROJECT_DIR$/../jpf-core-veritesting/build/RunJPF.jar" />
+      <option name="VM_PARAMETERS" value="-Djava.library.path=&quot;$PROJECT_DIR$/lib&quot; -Xmx1024m -ea " />
+      <option name="PROGRAM_PARAMETERS" value="$PROJECT_DIR$/../benchmarks/repalce_11/src/replace.jpf" />
+      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$/lib" />
+      <option name="ALTERNATIVE_JRE_PATH_ENABLED" value="true" />
+      <option name="ALTERNATIVE_JRE_PATH" value="1.8" />
+      <envs>
+        <env name="TARGET_CLASSPATH_WALA" value="/Users/sohanabel/git/veritesting/benchmarks/repalce_11/bin" />
+      </envs>
+    </configuration>
+    <configuration name="replace_5" type="JarApplication" factoryName="JAR Application">
+      <extension name="coverage" enabled="false" merge="false" sample_coverage="true" runner="idea" />
+      <option name="JAR_PATH" value="$PROJECT_DIR$/../jpf-core-veritesting/build/RunJPF.jar" />
+      <option name="VM_PARAMETERS" value="-Djava.library.path=&quot;$PROJECT_DIR$/lib&quot; -Xmx1024m -ea " />
+      <option name="PROGRAM_PARAMETERS" value="$PROJECT_DIR$/../benchmarks/repalce_5/src/replace.jpf" />
+      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$/lib" />
+      <option name="ALTERNATIVE_JRE_PATH_ENABLED" value="true" />
+      <option name="ALTERNATIVE_JRE_PATH" value="1.8" />
+      <envs>
+        <env name="TARGET_CLASSPATH_WALA" value="/Users/sohanabel/git/veritesting/benchmarks/repalce_5/bin" />
+      </envs>
+    </configuration>
+    <configuration name="sienaBenchmark" type="JarApplication" factoryName="JAR Application">
+      <extension name="coverage" enabled="false" merge="false" sample_coverage="true" runner="idea" />
+      <option name="JAR_PATH" value="$PROJECT_DIR$/../jpf-core-veritesting/build/RunJPF.jar" />
+      <option name="VM_PARAMETERS" value="-Djava.library.path=&quot;$PROJECT_DIR$/lib&quot; -Xmx1024m -ea " />
+      <option name="PROGRAM_PARAMETERS" value="$PROJECT_DIR$/../benchmarks/siena/src/SENPDriver.jpf" />
+      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$/lib" />
+      <option name="ALTERNATIVE_JRE_PATH_ENABLED" value="true" />
+      <option name="ALTERNATIVE_JRE_PATH" value="1.8" />
+      <envs>
+        <env name="TARGET_CLASSPATH_WALA" value="/Users/sohanabel/git/veritesting/benchmarks/siena/bin/" />
+      </envs>
+    </configuration>
+    <configuration name="tcasBenchmark" type="JarApplication" factoryName="JAR Application">
+      <extension name="coverage" enabled="false" merge="false" sample_coverage="true" runner="idea" />
+      <option name="JAR_PATH" value="$PROJECT_DIR$/../jpf-core-veritesting/build/RunJPF.jar" />
+      <option name="VM_PARAMETERS" value="-Djava.library.path=&quot;$PROJECT_DIR$/lib&quot; -Xmx1024m -ea " />
+      <option name="PROGRAM_PARAMETERS" value="$PROJECT_DIR$/src/examples/tcas.jpf" />
+      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$/lib" />
+      <option name="ALTERNATIVE_JRE_PATH_ENABLED" value="true" />
+      <option name="ALTERNATIVE_JRE_PATH" value="1.8" />
+      <envs>
+        <env name="TARGET_CLASSPATH_WALA" value="/Users/sohanabel/git/veritesting/jpf-symbc-veritesting/build/examples" />
+      </envs>
+    </configuration>
+    <configuration name="tcasv" type="JarApplication" factoryName="JAR Application">
+      <extension name="coverage" enabled="false" merge="false" sample_coverage="true" runner="idea" />
+      <option name="JAR_PATH" value="$PROJECT_DIR$/../jpf-core-veritesting/build/RunJPF.jar" />
+      <option name="VM_PARAMETERS" value="-Djava.library.path=&quot;$PROJECT_DIR$/lib&quot; -Xmx1024m -ea " />
+      <option name="PROGRAM_PARAMETERS" value="$PROJECT_DIR$/src/examples/tcasv.jpf" />
+      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$/lib" />
+      <option name="ALTERNATIVE_JRE_PATH_ENABLED" value="true" />
+      <option name="ALTERNATIVE_JRE_PATH" value="1.8" />
+      <envs>
+        <env name="TARGET_CLASSPATH_WALA" value="/Users/sohanabel/git/veritesting/jpf-symbc-veritesting/build/examples" />
+      </envs>
+    </configuration>
+    <list size="19">
+      <item index="0" class="java.lang.String" itemvalue="Compound.ScheduleBenchmarks" />
+      <item index="1" class="java.lang.String" itemvalue="JAR Application.SPFWBSBenchmark" />
+      <item index="2" class="java.lang.String" itemvalue="JAR Application.SPFWBSV" />
+      <item index="3" class="java.lang.String" itemvalue="JAR Application.Veritesting" />
+      <item index="4" class="java.lang.String" itemvalue="JAR Application.WillemCG" />
+      <item index="5" class="java.lang.String" itemvalue="JAR Application.WBSBenchmark" />
+      <item index="6" class="java.lang.String" itemvalue="JAR Application.tcasBenchmark" />
+      <item index="7" class="java.lang.String" itemvalue="JAR Application.tcasv" />
+      <item index="8" class="java.lang.String" itemvalue="JAR Application.sienaBenchmark" />
+      <item index="9" class="java.lang.String" itemvalue="JAR Application.replace_11" />
+      <item index="10" class="java.lang.String" itemvalue="JAR Application.replace_5" />
+      <item index="11" class="java.lang.String" itemvalue="JAR Application.Schedule_6V" />
+      <item index="12" class="java.lang.String" itemvalue="JAR Application.Schedule_3V" />
+      <item index="13" class="java.lang.String" itemvalue="JAR Application.Schedule_6S" />
+      <item index="14" class="java.lang.String" itemvalue="JAR Application.Schedule_3S" />
+      <item index="15" class="java.lang.String" itemvalue="JAR Application.Schedule2_3V" />
+      <item index="16" class="java.lang.String" itemvalue="JAR Application.Schedule2_3S" />
+      <item index="17" class="java.lang.String" itemvalue="JAR Application.Schedule2_6S" />
+      <item index="18" class="java.lang.String" itemvalue="JAR Application.Schedule2_6V" />
+    </list>
+  </component>
+  <component name="ShelveChangesManager" show_recycled="false">
+    <option name="remove_strategy" value="false" />
+  </component>
+  <component name="TaskManager">
+    <task active="true" id="Default" summary="Default task">
+      <changelist id="d0da180d-3f02-49f4-af73-ea191133e8f7" name="Default" comment="" />
+      <created>1515345008800</created>
+      <option name="number" value="Default" />
+      <option name="presentableId" value="Default" />
+      <updated>1515345008800</updated>
+      <workItem from="1515345010970" duration="1528000" />
+      <workItem from="1515347812282" duration="9025000" />
+      <workItem from="1515428500110" duration="15561000" />
+      <workItem from="1515468623458" duration="56030000" />
+      <workItem from="1515712405678" duration="1728000" />
+      <workItem from="1515731058759" duration="46474000" />
+      <workItem from="1516045840915" duration="21678000" />
+      <workItem from="1516127425565" duration="4871000" />
+      <workItem from="1516154235625" duration="10898000" />
+      <workItem from="1516167255577" duration="34382000" />
+      <workItem from="1516382824746" duration="4689000" />
+      <workItem from="1516544919512" duration="1560000" />
+      <workItem from="1516570496763" duration="1075000" />
+      <workItem from="1516648230757" duration="311000" />
+      <workItem from="1516649187263" duration="11044000" />
+      <workItem from="1516743709515" duration="32000" />
+      <workItem from="1516758709709" duration="121000" />
+      <workItem from="1516760715196" duration="87000" />
+      <workItem from="1516770147202" duration="2167000" />
+      <workItem from="1516838708798" duration="13690000" />
+      <workItem from="1517262837592" duration="23230000" />
+      <workItem from="1517445120104" duration="321000" />
+      <workItem from="1517445532005" duration="2912000" />
+      <workItem from="1517573535416" duration="9132000" />
+      <workItem from="1517586518860" duration="923000" />
+      <workItem from="1517709606954" duration="3976000" />
+      <workItem from="1517754787483" duration="62462000" />
+      <workItem from="1518022263584" duration="1367000" />
+      <workItem from="1518033420174" duration="1148000" />
+      <workItem from="1518113274723" duration="4920000" />
+      <workItem from="1518121730377" duration="5845000" />
+      <workItem from="1518359277286" duration="22480000" />
+      <workItem from="1518413369644" duration="91000" />
+      <workItem from="1518493375225" duration="24722000" />
+      <workItem from="1518737988256" duration="37000" />
+      <workItem from="1518738550635" duration="53000" />
+      <workItem from="1518757000197" duration="45000" />
+      <workItem from="1518799736638" duration="6335000" />
+      <workItem from="1519061846075" duration="16959000" />
+      <workItem from="1519135828052" duration="4660000" />
+      <workItem from="1519143358465" duration="3483000" />
+      <workItem from="1519247951856" duration="74000" />
+      <workItem from="1519329208917" duration="4614000" />
+      <workItem from="1519387496567" duration="13198000" />
+      <workItem from="1519424423901" duration="1206000" />
+      <workItem from="1519492019569" duration="411000" />
+      <workItem from="1519494368621" duration="11892000" />
+      <workItem from="1519507684411" duration="10603000" />
+      <workItem from="1519770507184" duration="1064000" />
+      <workItem from="1519846958483" duration="570000" />
+      <workItem from="1519856115777" duration="566000" />
+      <workItem from="1519867785366" duration="2537000" />
+      <workItem from="1519874865311" duration="595000" />
+      <workItem from="1519931821971" duration="1196000" />
+      <workItem from="1520050592796" duration="3469000" />
+      <workItem from="1520266683114" duration="589000" />
+      <workItem from="1520314502954" duration="300000" />
+      <workItem from="1520565081095" duration="1059000" />
+      <workItem from="1520566291769" duration="1090000" />
+      <workItem from="1520612801816" duration="2325000" />
+      <workItem from="1520645023174" duration="10636000" />
+      <workItem from="1520884205888" duration="10463000" />
+      <workItem from="1520906783095" duration="834000" />
+      <workItem from="1520907810314" duration="8277000" />
+      <workItem from="1521054369446" duration="867000" />
+      <workItem from="1521232203897" duration="724000" />
+      <workItem from="1521456922120" duration="5948000" />
+      <workItem from="1521471349033" duration="23772000" />
+      <workItem from="1521629222684" duration="4017000" />
+      <workItem from="1521732257036" duration="15821000" />
+      <workItem from="1521753801708" duration="6355000" />
+      <workItem from="1521809399565" duration="1865000" />
+      <workItem from="1522063217788" duration="95000" />
+      <workItem from="1522063731562" duration="12728000" />
+      <workItem from="1522151900145" duration="3723000" />
+      <workItem from="1522156160152" duration="1529000" />
+      <workItem from="1522179149751" duration="30871000" />
+      <workItem from="1522333826821" duration="6101000" />
+      <workItem from="1522374581048" duration="880000" />
+      <workItem from="1522413842716" duration="10370000" />
+      <workItem from="1522546115415" duration="455000" />
+      <workItem from="1522685778153" duration="1187000" />
+    </task>
+    <task id="LOCAL-00001" summary="Added linear method summary + Printing out number of veritesting regions.">
+      <created>1515443157269</created>
+      <option name="number" value="00001" />
+      <option name="presentableId" value="LOCAL-00001" />
+      <option name="project" value="LOCAL" />
+      <updated>1515443157269</updated>
+    </task>
+    <task id="LOCAL-00002" summary="Adding .properties configuration setup">
+      <created>1516471100519</created>
+      <option name="number" value="00002" />
+      <option name="presentableId" value="LOCAL-00002" />
+      <option name="project" value="LOCAL" />
+      <updated>1516471100539</updated>
+    </task>
+    <option name="localTasksCounter" value="3" />
+    <servers />
+  </component>
+  <component name="TimeTrackingManager">
+    <option name="totallyTimeSpent" value="646928000" />
+  </component>
+  <component name="TodoView">
+    <todo-panel id="selected-file">
+      <is-autoscroll-to-source value="true" />
+    </todo-panel>
+    <todo-panel id="all">
+      <are-packages-shown value="true" />
+      <is-autoscroll-to-source value="true" />
+    </todo-panel>
+  </component>
+  <component name="ToolWindowManager">
+    <frame x="0" y="23" width="1280" height="709" extended-state="6" />
+    <layout>
+      <window_info id="Palette" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="3" side_tool="false" content_ui="tabs" />
+      <window_info id="TODO" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.3287483" sideWeight="0.5" order="6" side_tool="false" content_ui="tabs" />
+      <window_info id="Messages" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.30794165" sideWeight="0.5" order="11" side_tool="false" content_ui="tabs" />
+      <window_info id="Palette&#9;" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="8" side_tool="false" content_ui="tabs" />
+      <window_info id="Image Layers" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="6" side_tool="false" content_ui="tabs" />
+      <window_info id="Capture Analysis" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="6" side_tool="false" content_ui="tabs" />
+      <window_info id="Event Log" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.4315961" sideWeight="0.27948305" order="7" side_tool="true" content_ui="tabs" />
+      <window_info id="Maven Projects" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.32956383" sideWeight="0.5" order="4" side_tool="false" content_ui="tabs" />
+      <window_info id="Run" active="true" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" show_stripe_button="true" weight="0.32247558" sideWeight="0.720517" order="2" side_tool="false" content_ui="tabs" />
+      <window_info id="Version Control" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.57980454" sideWeight="0.4946752" order="8" side_tool="false" content_ui="tabs" />
+      <window_info id="Sequence" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="9" side_tool="false" content_ui="tabs" />
+      <window_info id="Terminal" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.3279743" sideWeight="0.5" order="10" side_tool="false" content_ui="tabs" />
+      <window_info id="Capture Tool" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="2" side_tool="false" content_ui="tabs" />
+      <window_info id="Designer" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="3" side_tool="false" content_ui="tabs" />
+      <window_info id="Project" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" show_stripe_button="true" weight="0.16074313" sideWeight="0.48765433" order="0" side_tool="false" content_ui="combo" />
+      <window_info id="Database" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.32956383" sideWeight="0.5" order="5" side_tool="false" content_ui="tabs" />
+      <window_info id="Structure" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.24959612" sideWeight="0.5" order="1" side_tool="false" content_ui="tabs" />
+      <window_info id="Ant Build" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" show_stripe_button="true" weight="0.1542811" sideWeight="0.48961425" order="1" side_tool="false" content_ui="tabs" />
+      <window_info id="UI Designer" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="4" side_tool="false" content_ui="tabs" />
+      <window_info id="Theme Preview" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="7" side_tool="false" content_ui="tabs" />
+      <window_info id="Debug" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.40716612" sideWeight="0.49676898" order="3" side_tool="false" content_ui="tabs" />
+      <window_info id="Favorites" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.1631664" sideWeight="0.5123457" order="5" side_tool="true" content_ui="tabs" />
+      <window_info id="Cvs" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.25" sideWeight="0.5" order="4" side_tool="false" content_ui="tabs" />
+      <window_info id="Message" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="0" side_tool="false" content_ui="tabs" />
+      <window_info id="Commander" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.4" sideWeight="0.5" order="0" side_tool="false" content_ui="tabs" />
+      <window_info id="Hierarchy" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.25" sideWeight="0.5" order="2" side_tool="false" content_ui="combo" />
+      <window_info id="Inspection" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.4" sideWeight="0.5" order="5" side_tool="false" content_ui="tabs" />
+      <window_info id="Coverage" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.09127625" sideWeight="0.51038575" order="9" side_tool="true" content_ui="tabs" />
+      <window_info id="Find" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.32899022" sideWeight="0.5" order="1" side_tool="false" content_ui="tabs" />
+    </layout>
+  </component>
+  <component name="TypeScriptGeneratedFilesManager">
+    <option name="version" value="1" />
+  </component>
+  <component name="Vcs.Log.Tabs.Properties">
+    <option name="TAB_STATES">
+      <map>
+        <entry key="MAIN">
+          <value>
+            <State>
+              <option name="RECENTLY_FILTERED_USER_GROUPS">
+                <collection />
+              </option>
+              <option name="RECENTLY_FILTERED_BRANCH_GROUPS">
+                <collection />
+              </option>
+              <option name="COLUMN_ORDER">
+                <list>
+                  <option value="0" />
+                  <option value="1" />
+                  <option value="2" />
+                  <option value="3" />
+                </list>
+              </option>
+            </State>
+          </value>
+        </entry>
+      </map>
+    </option>
+  </component>
+  <component name="VcsContentAnnotationSettings">
+    <option name="myLimit" value="2678400000" />
+  </component>
+  <component name="VcsManagerConfiguration">
+    <option name="LOCAL_CHANGES_DETAILS_PREVIEW_SHOWN" value="true" />
+    <MESSAGE value="Added linear method summary + Printing out number of veritesting regions." />
+    <MESSAGE value="Adding .properties configuration setup" />
+    <option name="LAST_COMMIT_MESSAGE" value="Adding .properties configuration setup" />
+  </component>
+  <component name="XDebuggerManager">
+    <breakpoint-manager>
+      <breakpoints>
+        <line-breakpoint enabled="true" type="java-line">
+          <url>file://$PROJECT_DIR$/src/examples/tcas.java</url>
+          <line>172</line>
+          <properties />
+          <option name="timeStamp" value="130" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" type="java-line">
+          <url>file://$PROJECT_DIR$/src/main/gov/nasa/jpf/symbc/numeric/GreenPbTranslator.java</url>
+          <line>252</line>
+          <properties />
+          <option name="timeStamp" value="399" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" type="java-line">
+          <url>file://$PROJECT_DIR$/src/main/gov/nasa/jpf/symbc/bytecode/IF_ICMPLE.java</url>
+          <line>34</line>
+          <properties />
+          <option name="timeStamp" value="447" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" type="java-line">
+          <url>file://$PROJECT_DIR$/src/main/gov/nasa/jpf/symbc/bytecode/IF_ICMPLT.java</url>
+          <line>35</line>
+          <properties />
+          <option name="timeStamp" value="449" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" type="java-line">
+          <url>file://$PROJECT_DIR$/src/main/gov/nasa/jpf/symbc/bytecode/IFLT.java</url>
+          <line>35</line>
+          <properties />
+          <option name="timeStamp" value="450" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" type="java-line">
+          <url>file://$PROJECT_DIR$/src/main/gov/nasa/jpf/symbc/SymbolicChoiceChangingListener2.java</url>
+          <line>58</line>
+          <properties />
+          <option name="timeStamp" value="476" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" type="java-line">
+          <url>file://$PROJECT_DIR$/src/main/gov/nasa/jpf/symbc/SymbolicChoiceChangingListener2.java</url>
+          <line>61</line>
+          <properties />
+          <option name="timeStamp" value="477" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" type="java-line">
+          <url>file://$PROJECT_DIR$/src/main/gov/nasa/jpf/symbc/VeritestingListener.java</url>
+          <line>104</line>
+          <properties />
+          <option name="timeStamp" value="525" />
+        </line-breakpoint>
+      </breakpoints>
+      <option name="time" value="551" />
+    </breakpoint-manager>
+    <watches-manager>
+      <configuration name="JarApplication">
+        <watch expression="instructionToExecute" language="JAVA" custom="gov.nasa.jpf.symbc.bytecode.optimization.IFLE" />
+        <watch expression="((PCChoiceGenerator)ti.getVM().getChoiceGenerator()).getCurrentPC().simplify()" language="JAVA" />
+        <watch expression="ASTToString(((GreenConstraint)(((PCChoiceGenerator)ti.getVM().getChoiceGenerator()).getCurrentPC().header.and).exp)" language="JAVA" />
+        <watch expression="ASTToString(regionSummary)" language="JAVA" />
+        <watch expression="veritestingRegions" language="JAVA" />
+        <watch expression="instructionToExecute.getMethodInfo().getName()" language="JAVA" />
+        <watch expression="ti.getVM().getChoiceGenerator()" language="JAVA" />
+        <watch expression="ti.nextPc" language="JAVA" />
+      </configuration>
+    </watches-manager>
+  </component>
+  <component name="antWorkspaceConfiguration">
+    <option name="IS_AUTOSCROLL_TO_SOURCE" value="false" />
+    <option name="FILTER_TARGETS" value="false" />
+    <buildFile url="file://$PROJECT_DIR$/build.xml">
+      <targetFilters>
+        <filter targetName="-init" isVisible="false" />
+        <filter targetName="compile" isVisible="true" />
+        <filter targetName="-compile-annotations" isVisible="false" />
+        <filter targetName="-compile-main" isVisible="false" />
+        <filter targetName="-compile-peers" isVisible="false" />
+        <filter targetName="-compile-classes" isVisible="false" />
+        <filter targetName="-compile-tests" isVisible="false" />
+        <filter targetName="-compile-examples" isVisible="false" />
+        <filter targetName="build" isVisible="true" />
+        <filter targetName="-jar-jvm" isVisible="false" />
+        <filter targetName="-jar-jpf" isVisible="false" />
+        <filter targetName="-jar-annotations" isVisible="false" />
+        <filter targetName="dist" isVisible="true" />
+        <filter targetName="clean" isVisible="false" />
+        <filter targetName="test" isVisible="true" />
+      </targetFilters>
+      <expanded value="true" />
+    </buildFile>
+  </component>
+  <component name="editorHistoryManager">
+    <entry file="file://$PROJECT_DIR$/src/main/gov/nasa/jpf/symbc/veritesting/FillHolesOutput.java">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="168">
+          <caret line="15" column="0" lean-forward="true" selection-start-line="15" selection-start-column="0" selection-end-line="15" selection-end-column="0" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/src/main/gov/nasa/jpf/symbc/veritesting/VeritestingMain.java">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="178">
+          <caret line="429" column="29" lean-forward="true" selection-start-line="429" selection-start-column="29" selection-end-line="429" selection-end-column="29" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="jar://$PROJECT_DIR$/lib/green.jar!/za/ac/sun/cs/green/expr/Expression.class">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="61">
+          <caret line="13" column="25" lean-forward="false" selection-start-line="13" selection-start-column="25" selection-end-line="13" selection-end-column="25" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="jar://$PROJECT_DIR$/lib/green.jar!/za/ac/sun/cs/green/expr/Operation.class">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="107">
+          <caret line="163" column="0" lean-forward="false" selection-start-line="163" selection-start-column="0" selection-end-line="163" selection-end-column="0" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/src/main/gov/nasa/jpf/symbc/numeric/GreenConstraint.java">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="161">
+          <caret line="36" column="0" lean-forward="false" selection-start-line="36" selection-start-column="0" selection-end-line="36" selection-end-column="0" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/src/main/gov/nasa/jpf/symbc/numeric/PCParser.java">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="63">
+          <caret line="1080" column="12" lean-forward="true" selection-start-line="1080" selection-start-column="12" selection-end-line="1080" selection-end-column="12" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/src/main/gov/nasa/jpf/symbc/numeric/SymbolicConstraintsGeneral.java">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="124">
+          <caret line="164" column="0" lean-forward="false" selection-start-line="164" selection-start-column="0" selection-end-line="164" selection-end-column="0" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/src/main/gov/nasa/jpf/symbc/veritesting/VeritestingRegion.java">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="112">
+          <caret line="13" column="28" lean-forward="false" selection-start-line="13" selection-start-column="28" selection-end-line="13" selection-end-column="28" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/src/main/gov/nasa/jpf/symbc/bytecode/FCMPL.java">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="126">
+          <caret line="33" column="13" lean-forward="false" selection-start-line="33" selection-start-column="13" selection-end-line="33" selection-end-column="13" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$USER_HOME$/Library/Containers/com.apple.mail/Data/Library/Mail Downloads/36C397F7-1CC3-486D-A613-3A2F49A12E2C/SymbolicChoiceChangingListener.java">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="217">
+          <caret line="74" column="52" lean-forward="false" selection-start-line="74" selection-start-column="52" selection-end-line="74" selection-end-column="52" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/src/main/gov/nasa/jpf/symbc/veritesting/ExitTransition.java">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="63">
+          <caret line="27" column="105" lean-forward="false" selection-start-line="27" selection-start-column="105" selection-end-line="27" selection-end-column="105" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/../../WillemGC/ChoiceChanger.jpf">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="0">
+          <caret line="0" column="0" lean-forward="false" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/../../WillemGC/PotSmoker3.java">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="196">
+          <caret line="15" column="15" lean-forward="false" selection-start-line="15" selection-start-column="8" selection-end-line="15" selection-end-column="15" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/../../WillemGC/ChoiceChangingListener.java">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="227">
+          <caret line="118" column="4" lean-forward="true" selection-start-line="118" selection-start-column="4" selection-end-line="118" selection-end-column="4" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/src/main/gov/nasa/jpf/symbc/SymbolicChoiceChangingListener2.java">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="221">
+          <caret line="56" column="50" lean-forward="true" selection-start-line="56" selection-start-column="50" selection-end-line="56" selection-end-column="50" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/src/examples/TestPaths.java">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="378">
+          <caret line="52" column="7" lean-forward="false" selection-start-line="52" selection-start-column="7" selection-end-line="52" selection-end-column="7" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/src/examples/TestPaths.jpf">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="168">
+          <caret line="12" column="48" lean-forward="false" selection-start-line="12" selection-start-column="48" selection-end-line="12" selection-end-column="48" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="jar://$PROJECT_DIR$/../jpf-core-veritesting/build/jpf.jar!/gov/nasa/jpf/ListenerAdapter.class">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="266">
+          <caret line="34" column="54" lean-forward="false" selection-start-line="34" selection-start-column="54" selection-end-line="34" selection-end-column="54" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/src/main/gov/nasa/jpf/symbc/SymbolicChoiceChangingListener.java">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="378">
+          <caret line="48" column="0" lean-forward="false" selection-start-line="48" selection-start-column="0" selection-end-line="48" selection-end-column="0" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/src/main/gov/nasa/jpf/symbc/tree/visualizer/DOTFactory.java">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="154">
+          <caret line="27" column="33" lean-forward="false" selection-start-line="27" selection-start-column="33" selection-end-line="27" selection-end-column="33" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/src/main/gov/nasa/jpf/symbc/bytecode/optimization/util/IFInstrSymbHelper.java">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="56">
+          <caret line="24" column="33" lean-forward="false" selection-start-line="24" selection-start-column="33" selection-end-line="24" selection-end-column="33" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/src/main/gov/nasa/jpf/symbc/tree/Filter.java">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="189">
+          <caret line="31" column="17" lean-forward="false" selection-start-line="31" selection-start-column="17" selection-end-line="31" selection-end-column="17" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="jar://$PROJECT_DIR$/../jpf-core-veritesting/build/jpf.jar!/gov/nasa/jpf/vm/Instruction.class">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="196">
+          <caret line="202" column="23" lean-forward="false" selection-start-line="202" selection-start-column="23" selection-end-line="202" selection-end-column="23" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="jar://$PROJECT_DIR$/../jpf-core-veritesting/build/jpf.jar!/gov/nasa/jpf/PropertyListenerAdapter.class">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="280">
+          <caret line="35" column="0" lean-forward="true" selection-start-line="35" selection-start-column="0" selection-end-line="35" selection-end-column="0" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/src/main/gov/nasa/jpf/symbc/bytecode/IALOAD.java">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="112">
+          <caret line="118" column="0" lean-forward="false" selection-start-line="118" selection-start-column="0" selection-end-line="118" selection-end-column="0" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/src/main/gov/nasa/jpf/symbc/SymbolicListener.java">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="97">
+          <caret line="72" column="55" lean-forward="false" selection-start-line="72" selection-start-column="55" selection-end-line="72" selection-end-column="55" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/src/main/gov/nasa/jpf/symbc/numeric/Comparator.java">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="126">
+          <caret line="44" column="3" lean-forward="false" selection-start-line="44" selection-start-column="3" selection-end-line="44" selection-end-column="3" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/src/main/gov/nasa/jpf/symbc/numeric/PathCondition.java">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="4270">
+          <caret line="365" column="40" lean-forward="false" selection-start-line="365" selection-start-column="40" selection-end-line="365" selection-end-column="40" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="jar://$PROJECT_DIR$/../jpf-core-veritesting/build/jpf.jar!/gov/nasa/jpf/vm/ThreadInfo.class">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="118">
+          <caret line="1198" column="0" lean-forward="false" selection-start-line="1198" selection-start-column="0" selection-end-line="1198" selection-end-column="0" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/src/main/gov/nasa/jpf/symbc/bytecode/IFLE.java">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="-94">
+          <caret line="58" column="13" lean-forward="false" selection-start-line="58" selection-start-column="13" selection-end-line="58" selection-end-column="13" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/src/main/gov/nasa/jpf/symbc/bytecode/IFGT.java">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="-473">
+          <caret line="32" column="13" lean-forward="false" selection-start-line="32" selection-start-column="13" selection-end-line="32" selection-end-column="13" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/src/main/gov/nasa/jpf/symbc/bytecode/IFGE.java">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="154">
+          <caret line="76" column="21" lean-forward="false" selection-start-line="76" selection-start-column="21" selection-end-line="76" selection-end-column="21" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/src/main/gov/nasa/jpf/symbc/bytecode/IFLT.java">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="52">
+          <caret line="68" column="32" lean-forward="false" selection-start-line="68" selection-start-column="32" selection-end-line="68" selection-end-column="32" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/src/main/gov/nasa/jpf/symbc/bytecode/IFNE.java">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="134">
+          <caret line="79" column="13" lean-forward="true" selection-start-line="79" selection-start-column="13" selection-end-line="79" selection-end-column="13" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="jar://$PROJECT_DIR$/../jpf-core-veritesting/build/jpf.jar!/gov/nasa/jpf/vm/VM.class">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="37">
+          <caret line="574" column="18" lean-forward="false" selection-start-line="574" selection-start-column="18" selection-end-line="574" selection-end-column="18" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/src/main/gov/nasa/jpf/symbc/veritesting/VarUtil.java">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="69">
+          <caret line="401" column="22" lean-forward="false" selection-start-line="401" selection-start-column="22" selection-end-line="401" selection-end-column="22" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/src/main/gov/nasa/jpf/symbc/veritesting/MyIVisitor.java">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="527">
+          <caret line="117" column="45" lean-forward="true" selection-start-line="117" selection-start-column="45" selection-end-line="117" selection-end-column="45" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/src/main/gov/nasa/jpf/symbc/bytecode/IFNONNULL.java">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="140">
+          <caret line="46" column="22" lean-forward="false" selection-start-line="46" selection-start-column="13" selection-end-line="46" selection-end-column="22" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="jar://$PROJECT_DIR$/../jpf-core-veritesting/build/jpf.jar!/gov/nasa/jpf/jvm/bytecode/IfInstruction.class">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="-2">
+          <caret line="34" column="23" lean-forward="false" selection-start-line="34" selection-start-column="23" selection-end-line="34" selection-end-column="23" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="jar://$PROJECT_DIR$/../jpf-core-veritesting/build/jpf.jar!/gov/nasa/jpf/jvm/bytecode/IFNONNULL.class">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="196">
+          <caret line="14" column="49" lean-forward="true" selection-start-line="14" selection-start-column="49" selection-end-line="14" selection-end-column="49" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/src/main/gov/nasa/jpf/symbc/bytecode/IFNULL.java">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="350">
+          <caret line="62" column="31" lean-forward="true" selection-start-line="62" selection-start-column="31" selection-end-line="62" selection-end-column="31" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/src/main/gov/nasa/jpf/symbc/bytecode/IF_ICMPLT.java">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="-398">
+          <caret line="39" column="0" lean-forward="true" selection-start-line="39" selection-start-column="0" selection-end-line="39" selection-end-column="0" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/src/main/gov/nasa/jpf/symbc/bytecode/IF_ICMPLE.java">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="-194">
+          <caret line="27" column="13" lean-forward="false" selection-start-line="27" selection-start-column="13" selection-end-line="27" selection-end-column="13" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/src/main/gov/nasa/jpf/symbc/bytecode/IF_ICMPGT.java">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="-600">
+          <caret line="31" column="13" lean-forward="false" selection-start-line="31" selection-start-column="13" selection-end-line="31" selection-end-column="13" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/src/main/gov/nasa/jpf/symbc/bytecode/IF_ICMPGE.java">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="-602">
+          <caret line="41" column="83" lean-forward="true" selection-start-line="41" selection-start-column="0" selection-end-line="42" selection-end-column="0" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/src/main/gov/nasa/jpf/symbc/bytecode/IF_ICMPEQ.java">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="-412">
+          <caret line="42" column="37" lean-forward="true" selection-start-line="42" selection-start-column="0" selection-end-line="43" selection-end-column="0" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/src/main/gov/nasa/jpf/symbc/numeric/VeriPCChoiceGenerator.java">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="-187">
+          <caret line="119" column="26" lean-forward="true" selection-start-line="119" selection-start-column="26" selection-end-line="119" selection-end-column="26" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/src/main/gov/nasa/jpf/symbc/bytecode/IFEQ.java">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="518">
+          <caret line="63" column="58" lean-forward="false" selection-start-line="63" selection-start-column="58" selection-end-line="63" selection-end-column="58" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/src/main/gov/nasa/jpf/symbc/VeritestingListener.java">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="220">
+          <caret line="86" column="0" lean-forward="true" selection-start-line="86" selection-start-column="0" selection-end-line="86" selection-end-column="0" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/src/examples/VeritestingPerf.java">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="14">
+          <caret line="18" column="8" lean-forward="false" selection-start-line="18" selection-start-column="8" selection-end-line="18" selection-end-column="8" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/src/examples/VeritestingPerf.jpf">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="182">
+          <caret line="15" column="0" lean-forward="true" selection-start-line="15" selection-start-column="0" selection-end-line="15" selection-end-column="0" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+  </component>
+  <component name="masterDetails">
+    <states>
+      <state key="ArtifactsStructureConfigurable.UI">
+        <settings>
+          <artifact-editor />
+          <splitter-proportions>
+            <option name="proportions">
+              <list>
+                <option value="0.2" />
+              </list>
+            </option>
+          </splitter-proportions>
+        </settings>
+      </state>
+      <state key="FacetStructureConfigurable.UI">
+        <settings>
+          <last-edited>No facets are configured</last-edited>
+          <splitter-proportions>
+            <option name="proportions">
+              <list>
+                <option value="0.2" />
+              </list>
+            </option>
+          </splitter-proportions>
+        </settings>
+      </state>
+      <state key="GlobalLibrariesConfigurable.UI">
+        <settings>
+          <splitter-proportions>
+            <option name="proportions">
+              <list>
+                <option value="0.2" />
+              </list>
+            </option>
+          </splitter-proportions>
+        </settings>
+      </state>
+      <state key="JdkListConfigurable.UI">
+        <settings>
+          <last-edited>1.8</last-edited>
+          <splitter-proportions>
+            <option name="proportions">
+              <list>
+                <option value="0.2" />
+              </list>
+            </option>
+          </splitter-proportions>
+        </settings>
+      </state>
+      <state key="ModuleStructureConfigurable.UI">
+        <settings>
+          <last-edited>jpf-symbc-veritesting</last-edited>
+          <splitter-proportions>
+            <option name="proportions">
+              <list>
+                <option value="0.2" />
+              </list>
+            </option>
+          </splitter-proportions>
+        </settings>
+      </state>
+      <state key="ProjectLibrariesConfigurable.UI">
+        <settings>
+          <last-edited>lib</last-edited>
+          <splitter-proportions>
+            <option name="proportions">
+              <list>
+                <option value="0.2" />
+              </list>
+            </option>
+          </splitter-proportions>
+        </settings>
+      </state>
+    </states>
+  </component>
+</project>

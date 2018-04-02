@@ -49,10 +49,10 @@ public class GreenConstraint extends Constraint {
 	}
 
 	public String toString() {
-		return (exp.toString());	}
+		return ("("+ exp.toString())+ ")";	}
 
 	public String stringPC() {
-		return this.toString();
+		return "(" + this.toString()+")";
 	}
 
 	public boolean equals(Object o) {

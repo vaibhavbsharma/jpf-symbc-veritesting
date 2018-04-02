@@ -399,12 +399,12 @@ public class VarUtil {
         return ret;
     }*/
 
-    public Expression addArrayLoadVal(Expression arrayRef, Expression arrayIndex, TypeReference arrayType, HoleExpression.HoleType holeType, SSAArrayLoadInstruction instructionName, String pathLabelString, int pathLabel) {
+    public Expression addArrayLoadVal(Expression arrayRef, Expression arrayIndex, TypeReference arrayType, HoleExpression.HoleType holeType, SSAArrayLoadInstruction instructionName, Expression pathLabelHole) {
         assert(holeType == HoleExpression.HoleType.ARRAYLOAD);
         HoleExpression holeExpression = new HoleExpression(nextInt());
         holeExpression.setHoleVarName(instructionName.toString());
         holeExpression.setHole(true, holeType);
-        holeExpression.setArrayInfo(arrayRef, arrayIndex, arrayType, pathLabelString, pathLabel);
+        holeExpression.setArrayInfo(arrayRef, arrayIndex, arrayType, pathLabelHole);
         varCache.put(holeExpression.getHoleVarName(), holeExpression);
         holeExpression.toString();
         return holeExpression;

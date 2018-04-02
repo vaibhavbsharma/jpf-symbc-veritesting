@@ -57,6 +57,7 @@ import java.util.Set;
 import java.util.Map.Entry;
 
 
+
 // generalized to use different constraint solvers/decision procedures
 // Warning: should never use / modify the types from pb:
 // types come in and out of each particular dp !!!!!!!!!!!!!!!
@@ -144,6 +145,7 @@ public class SymbolicConstraintsGeneral {
 			result = Boolean.FALSE;
 		else
 			result = pb.solve();
+
 
 		if (SymbolicInstructionFactory.debugMode)
 			System.out.println("numeric PC: " + pc + " -> " + result+"\n");

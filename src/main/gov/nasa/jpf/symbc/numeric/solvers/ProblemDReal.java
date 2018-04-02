@@ -191,7 +191,13 @@ public abstract class ProblemDReal extends ProblemGeneral {
 			throw new RuntimeException("## Error dReal unsupported operation");
 		}
 
+
 		private static TrueFormula TRUE = new TrueFormula();
+
+		@Override
+		public Object logical_implies(Object exp1, Object exp2) {
+			throw new RuntimeException("## Error dReal unsupported operation");
+		}
 
 		@Override
 		public Object rem(Object exp1, Object exp2) {
@@ -331,6 +337,11 @@ public abstract class ProblemDReal extends ProblemGeneral {
 
 		@Override
 		public Object logical_not(Object exp) {
+			throw new RuntimeException("## Error: dReal unsupported operation");
+		}
+
+		@Override
+		public Object logical_implies(Object exp1, Object exp2) {
 			throw new RuntimeException("## Error: dReal unsupported operation");
 		}
 
