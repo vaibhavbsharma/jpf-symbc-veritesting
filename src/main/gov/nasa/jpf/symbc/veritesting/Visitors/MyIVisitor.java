@@ -1,4 +1,4 @@
-package gov.nasa.jpf.symbc.veritesting;
+package gov.nasa.jpf.symbc.veritesting.Visitors;
 
 import com.ibm.wala.classLoader.CallSiteReference;
 import com.ibm.wala.shrikeBT.IBinaryOpInstruction;
@@ -11,6 +11,9 @@ import com.ibm.wala.types.MethodReference;
 import com.ibm.wala.types.TypeReference;
 import com.ibm.wala.util.strings.Atom;
 import gov.nasa.jpf.symbc.VeritestingListener;
+import gov.nasa.jpf.symbc.veritesting.HoleExpression;
+import gov.nasa.jpf.symbc.veritesting.InvokeInfo;
+import gov.nasa.jpf.symbc.veritesting.VarUtil;
 import za.ac.sun.cs.green.expr.Expression;
 
 import za.ac.sun.cs.green.expr.IntVariable;
@@ -422,7 +425,7 @@ public class MyIVisitor implements SSAInstruction.IVisitor {
         if (thenUseNum != -1 || elseUseNum != -1) {
             phiExprLHS = varUtil.addDefVal(instruction.getDef(0));
             assert (!(phiExprLHS instanceof HoleExpression && !((HoleExpression) phiExprLHS).isHole()));
-            assert (varUtil.ir.getSymbolTable().isConstant(instruction.getDef(0)) == false);
+            assert (varUtil.getIr().getSymbolTable().isConstant(instruction.getDef(0)) == false);
         }
         canVeritest = true;
         //while other instructions may also update local variables, those should always become intermediate variables

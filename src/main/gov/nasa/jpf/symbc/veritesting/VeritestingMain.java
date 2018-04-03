@@ -27,7 +27,6 @@ import com.ibm.wala.ipa.callgraph.AnalysisScope;
 import com.ibm.wala.ipa.callgraph.IAnalysisCacheView;
 import com.ibm.wala.ipa.callgraph.impl.Everywhere;
 import com.ibm.wala.ipa.cha.ClassHierarchy;
-import com.ibm.wala.ipa.cha.ClassHierarchyException;
 import com.ibm.wala.ipa.cha.ClassHierarchyFactory;
 import com.ibm.wala.shrikeCT.InvalidClassFileException;
 import com.ibm.wala.ssa.*;
@@ -40,11 +39,9 @@ import com.ibm.wala.util.graph.dominators.Dominators;
 import com.ibm.wala.util.graph.dominators.NumberedDominators;
 import com.ibm.wala.util.graph.impl.GraphInverter;
 import com.ibm.wala.util.io.FileProvider;
-import com.ibm.wala.util.strings.Atom;
 import com.ibm.wala.util.strings.StringStuff;
-import com.microsoft.z3.Expr;
-import gov.nasa.jpf.Config;
 import gov.nasa.jpf.symbc.VeritestingListener;
+import gov.nasa.jpf.symbc.veritesting.Visitors.MyIVisitor;
 import x10.wala.util.NatLoop;
 import x10.wala.util.NatLoopSolver;
 
@@ -63,12 +60,6 @@ public class VeritestingMain {
     HashSet<String> methodSummaryClassNames, methodSummarySubClassNames;
     private boolean methodAnalysis = false;
 
-    public int getObjectReference() {
-        return objectReference;
-    }
-    public void setObjectReference(int objectReference) {
-        this.objectReference = objectReference;
-    }
     // Relevant only if this region is a method summary
     // Used to point to the object on which the method will be called
     // Useful to get fields of the object in this method summary
@@ -96,6 +87,12 @@ public class VeritestingMain {
         endingInsnsHash = new HashSet();
         new MyAnalysis(args[1], args[3]);
     }*/
+    public int getObjectReference() {
+        return objectReference;
+    }
+    public void setObjectReference(int objectReference) {
+        this.objectReference = objectReference;
+    }
 
     public void analyzeForVeritesting(String classPath, String _className) {
         // causes java.lang.IllegalArgumentException: ill-formed sig testMe4(int[],int)
@@ -249,6 +246,7 @@ public class VeritestingMain {
             loops = new HashSet<>();
             HashSet<Integer> visited = new HashSet<>();
             NatLoopSolver.findAllLoops(cfg, uninverteddom, loops, visited, cfg.getNode(0));
+            // Here is where the magic happens.
             if(!methodAnalysis) doAnalysis(cfg.entry(), null);
             else doMethodAnalysis(cfg.entry(), cfg.exit());
         } catch (InvalidClassFileException e) {
@@ -266,6 +264,8 @@ public class VeritestingMain {
         return false;
     }
 
+    // MWW TODO: Add support for static exceptions into veritesting region.
+    // MWW: This method takes 9 parameters!
     public VeritestingRegion constructVeritestingRegion(
             Expression thenExpr,
             Expression elseExpr,
@@ -298,6 +298,7 @@ public class VeritestingMain {
         Expression phiExprSPF, finalPathExpr = pathExpr1;
         Iterator<SSAInstruction> iterator = commonSucc.iterator();
         while(iterator.hasNext()) {
+            // visit instructions one at a time.  Why the break on non-phi instructions?
             iterator.next().visit(myIVisitor);
             if (myIVisitor.hasPhiExpr()) {
                 phiExprSPF = myIVisitor.getPhiExprSPF(thenPLAssignSPF, elsePLAssignSPF);
@@ -334,6 +335,13 @@ public class VeritestingMain {
         return veritestingRegion;
     }
 
+    // MWW: WTF?!?
+    // MWW: A two-hundred-line method?
+    // MWW: I feel a great disturbance in the force...
+
+    // What can we tease apart here?
+    //
+
     public void doAnalysis(ISSABasicBlock startingUnit, ISSABasicBlock endingUnit) throws InvalidClassFileException {
         //System.out.println("Starting doAnalysis");
         ISSABasicBlock currUnit = startingUnit;
@@ -365,6 +373,7 @@ public class VeritestingMain {
                     return;
                 }
 
+                // constructing path labels.
                 Expression thenExpr = null, elseExpr = null;
                 String pathLabelString = "pathLabel" + varUtil.getPathCounter();
                 final int thenPathLabel = varUtil.getPathCounter();
@@ -395,6 +404,8 @@ public class VeritestingMain {
                         //to allow complex regions
                         HashMap<Expression, Expression> savedHoleHashMap = saveHoleHashMap();
                         HashMap<String, Expression> savedVarCache = saveVarCache();
+
+                        // MWW : recursive call
                         doAnalysis(thenUnit, commonSucc);
                         for(Map.Entry<Expression, Expression> entry: savedHoleHashMap.entrySet()) { //restore holeHshMap
                             varUtil.holeHashMap.put(entry.getKey(), entry.getValue());
@@ -404,6 +415,8 @@ public class VeritestingMain {
                         }
                         int offset = ((IBytecodeMethod) (ir.getMethod())).getBytecodeIndex(thenUnit.getLastInstructionIndex());
                         String key = currentClassName + "." + methodName + methodSig + "#" + offset;
+
+                        // MWW: working with child region here
                         if(VeritestingListener.veritestingRegions.containsKey(key)) { // we are able to summarize the inner region, try to sallow it
                             System.out.println("Veritested inner region with key = " + key);
                             //visit all instructions up to and including the condition
@@ -587,9 +600,9 @@ public class VeritestingMain {
                         String key = veritestingRegion.getClassName() + "." + veritestingRegion.getMethodName() +
                                 veritestingRegion.getMethodSignature() + "#" +
                                 veritestingRegion.getStartInsnPosition();
-                        FNV1 fnv = new FNV1a64();
-                        fnv.init(key);
-                        long hash = fnv.getHash();
+                        //FNV1 fnv = new FNV1a64();
+                        //fnv.init(key);
+                        //long hash = fnv.getHash();
                         VeritestingListener.veritestingRegions.put(key, veritestingRegion);
                     }
                 }
@@ -601,7 +614,8 @@ public class VeritestingMain {
             System.out.println();
         } // end while(true)
         if (currUnit != null && currUnit != startingUnit && currUnit != endingUnit &&
-                cfg.getNormalSuccessors(currUnit).size() > 0) doAnalysis(currUnit, endingUnit);
+                cfg.getNormalSuccessors(currUnit).size() > 0)
+            doAnalysis(currUnit, endingUnit);
     } // end doAnalysis
 
     private HashMap<String, Expression> saveVarCache() {
@@ -811,7 +825,8 @@ public class VeritestingMain {
         }
 
         public BlockSummary invoke() {
-            MyIVisitor myIVisitor;Iterator<SSAInstruction> ssaInstructionIterator = unit.iterator();
+            MyIVisitor myIVisitor;
+            Iterator<SSAInstruction> ssaInstructionIterator = unit.iterator();
             if(isPhiUnit && ssaInstructionIterator.hasNext()){
                 assert(ssaInstructionIterator.next() instanceof SSAPhiInstruction);
             }

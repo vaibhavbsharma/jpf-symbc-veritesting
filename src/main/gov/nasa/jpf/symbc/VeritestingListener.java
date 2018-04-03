@@ -20,6 +20,14 @@
 package gov.nasa.jpf.symbc;
 
 
+// MWW: general comment: many uses of nulls as 'signal' values.
+// This usually leads to brittle and hard to debug code with lots
+// of null pointer exceptions.  Be explicit!  Use exceptions
+// to handle unexpected circumstances.
+
+// MWW general comment: there is very little OO in this code.
+// Poor encapsulation and little thought to behavioral interfaces.
+
 import com.ibm.wala.types.TypeReference;
 import gov.nasa.jpf.Config;
 import gov.nasa.jpf.JPF;
@@ -29,9 +37,10 @@ import gov.nasa.jpf.report.ConsolePublisher;
 import gov.nasa.jpf.report.Publisher;
 import gov.nasa.jpf.report.PublisherExtension;
 import gov.nasa.jpf.symbc.numeric.*;
-import gov.nasa.jpf.symbc.numeric.Comparator;
+//import gov.nasa.jpf.symbc.numeric.Comparator;
 import gov.nasa.jpf.symbc.numeric.solvers.SolverTranslator;
 import gov.nasa.jpf.symbc.veritesting.*;
+import gov.nasa.jpf.symbc.veritesting.Visitors.FillAstHoleVisitor;
 import gov.nasa.jpf.vm.*;
 import za.ac.sun.cs.green.expr.Expression;
 import za.ac.sun.cs.green.expr.IntConstant;
@@ -92,24 +101,36 @@ public class VeritestingListener extends PropertyListenerAdapter implements Publ
 
     public void executeInstruction(VM vm, ThreadInfo ti, Instruction instructionToExecute) {
         if (veritestingMode == 0) return;
+
+        // MWW: Essentially, this acts as a singleton to construct an element.
         if (veritestingRegions == null) {
             discoverRegions(ti); // static analysis to discover regions
         }
+
+        // MWW: giant hack here.  Debugging?
         if((instructionToExecute.getPosition() == 48)&&(instructionToExecute.getMethodInfo().getName().equals("boundedOutRangeloadArrayTC"))){
             String key = generateRegionKey(ti, instructionToExecute);
             System.out.println("key is = " + key);
         }
+        // Here is the real code
         String key = generateRegionKey(ti, instructionToExecute);
 
+        // shouldn't veritestingRegion non-null be invariant at this point?
         if (veritestingRegions != null && veritestingRegions.containsKey(key)) {
             VeritestingRegion region = veritestingRegions.get(key);
             VeriPCChoiceGenerator newCG;
 
             if (!ti.isFirstStepInsn()) { // first time around
-                Expression regionSummary = instantiateHoles(ti, region); // fill holes in region
-                if (regionSummary == null)
+                Expression regionSummary;
+                try {
+                    regionSummary = instantiateHoles(ti, region); // fill holes in region
+                    newCG = makeVeritestingCG(region, regionSummary, ti);
+                } catch (StaticRegionException sre) {
+                    System.out.println(sre.toString());
                     return; //problem filling holes, abort veritesting
-                newCG = makeVeritestingCG(region, regionSummary, ti);
+                }
+
+                // construct choice generator
                 newCG.setOffset(instructionToExecute.getPosition());
                 newCG.setMethodName(instructionToExecute.getMethodInfo().getFullName());
                 SystemState systemState = vm.getSystemState();
@@ -119,13 +140,14 @@ public class VeritestingListener extends PropertyListenerAdapter implements Publ
             } else {
                 ChoiceGenerator<?> cg = ti.getVM().getSystemState().getChoiceGenerator();
                 if (cg instanceof VeriPCChoiceGenerator) {
+                    VeriPCChoiceGenerator vcg = (VeriPCChoiceGenerator)cg;
                     int choice = (Integer) cg.getNextChoice();
                     PathCondition pc;
                     if (choice == 0) { // veritesting nominal case
                         setupSPF(ti, instructionToExecute, region);
                     } else {
                         System.out.println("Exploring Exit Transitions");
-                        Instruction nextInstruction = ((VeriPCChoiceGenerator)cg).execute(instructionToExecute, (VeriPCChoiceGenerator) cg, choice);
+                        Instruction nextInstruction = vcg.execute(instructionToExecute, choice);
                         ti.setNextPC(nextInstruction);
                     }
                 }
@@ -133,69 +155,46 @@ public class VeritestingListener extends PropertyListenerAdapter implements Publ
         }
     }
 
-    private VeriPCChoiceGenerator makeVeritestingCG(VeritestingRegion region, Expression regionSummary, ThreadInfo ti) {
-        Set<ExitTransition> regionTransitions = region.getExitTransitionHashMap();
-        VeriPCChoiceGenerator cg = null;
-        int gcSize = regionTransitions == null ? 1 : 3;
-        cg = new VeriPCChoiceGenerator(gcSize); //including a choice for nominal case
-        setNominalTransition(ti, regionSummary, cg, region);
-        if (region.getExitTransitionHashMap() != null)
-            setExitTransition(ti, regionSummary, cg, region);
+    // MWW: It would probably be better if this code migrated to the VeriPCChoiceGenerator.
+    // As it is the CG is 1/2 responsible for creating its choices, and the
+    // VeritestingListener is 1/2 responsible (below).
+
+    // 4 cases (they may be UNSAT, but that's ok):
+    // 0: staticNominalNoReturn
+    // 1: thenException
+    // 2: elseException
+    // 3: staticNominalReturn
+    // NB: then and else constraints are the same (here).  We will tack on the additional
+    // constraint for the 'then' and 'else' branches when we execute the choice generator.
+    private PathCondition createPC(PathCondition pc, Expression regionSummary, Expression constraint) {
+        PathCondition pcCopy = pc.make_copy();
+        Expression copyConstraint = new Operation(Operation.Operator.AND, regionSummary, constraint);
+        pcCopy._addDet(new GreenConstraint(copyConstraint));
+        return pcCopy;
+    }
+
+    private VeriPCChoiceGenerator makeVeritestingCG(VeritestingRegion region, Expression regionSummary, ThreadInfo ti) throws StaticRegionException {
+
+        VeriPCChoiceGenerator cg = new VeriPCChoiceGenerator(4); //including a choice for nominal case
+        PathCondition pc = ((PCChoiceGenerator) ti.getVM().getSystemState().getChoiceGenerator()).getCurrentPC();
+
+        cg.setPC(createPC(pc, regionSummary, region.staticNominalPredicate()), 0);
+        cg.setPC(createPC(pc, regionSummary, region.spfPathPredicate()), 1);
+        cg.setPC(createPC(pc, regionSummary, region.spfPathPredicate()), 2);
+        // TODO: create the path preicate for the 'return' case.
+
         return cg;
     }
 
-// S/\ !N_i  for all i in region.exitTransitionHashMap
 
-    private void setExitTransition(ThreadInfo ti, Expression regionSummary, ChoiceGenerator<?> cg, VeritestingRegion region) {
-        HashSet<ExitTransition> regionTransitions = region.getExitTransitionHashMap();
-        PathCondition pc = ((PCChoiceGenerator) ti.getVM().getSystemState().getChoiceGenerator()).getCurrentPC();
-        if (regionTransitions != null) {
-            Iterator<ExitTransition> exitTransitionIterator = regionTransitions.iterator();
-            Expression exitTransitionConstraint = null;
-            int gcChoice = 1; //starting from the first choice for non-nominal choices
-            while (exitTransitionIterator.hasNext()) {
-                if (exitTransitionConstraint == null)
-                    exitTransitionConstraint = exitTransitionIterator.next().getNegNominalConstraint();
-                else
-                    exitTransitionConstraint = new Operation(Operation.Operator.OR, exitTransitionConstraint, exitTransitionIterator.next().getNegNominalConstraint());
-            }
-            exitTransitionConstraint = new Operation(Operation.Operator.AND, regionSummary, exitTransitionConstraint);
-            // 2nd choice
-        //    PathCondition exitTransitionPc_1 = pc.make_copy();
-           PathCondition exitTransitionPc_1 = new PathCondition();
-            exitTransitionPc_1._addDet(new GreenConstraint(exitTransitionConstraint));
-            ((VeriPCChoiceGenerator) cg).setPC(exitTransitionPc_1, 1);
-
-            //3rd choice
-       //     PathCondition exitTransitionPc_2 = pc.make_copy();
-            PathCondition exitTransitionPc_2 = new PathCondition();
-            exitTransitionPc_2._addDet(new GreenConstraint(exitTransitionConstraint));
-            ((VeriPCChoiceGenerator) cg).setPC(exitTransitionPc_2, 2);
-        }
-    }
-
-
-    // S /\ N
-    private void setNominalTransition(ThreadInfo ti, Expression regionSummary, ChoiceGenerator<?> cg, VeritestingRegion region) {
-       PathCondition pc = ((PCChoiceGenerator) ti.getVM().getSystemState().getChoiceGenerator()).getCurrentPC();
-       PathCondition nominalTransitionPC = pc.make_copy();
-      //  PathCondition nominalTransitionPC = new PathCondition();
-        Expression nominalConstraint = null;
-        if (region.getExitTransitionHashMap() == null)
-            nominalConstraint = regionSummary;
-        else
-            nominalConstraint = new Operation(Operation.Operator.AND, regionSummary, region.getAllNominalsConstraints());
-        nominalTransitionPC._addDet(new GreenConstraint(nominalConstraint));
-        ((VeriPCChoiceGenerator) cg).setPC(nominalTransitionPC, 0); //setting choice 0 for veritesting nominal case
-    }
-
-
+    /*
     public long generateHashCode(String key) {
         FNV1 fnv = new FNV1a64();
         fnv.init(key);
         long hash = fnv.getHash();
         return hash;
     }
+    */
 
     private String generateRegionKey(ThreadInfo ti, Instruction instructionToExecute) {
         return ti.getTopFrame().getClassInfo().getName() + "." + ti.getTopFrame().getMethodInfo().getName() +
@@ -210,7 +209,11 @@ public class VeritestingListener extends PropertyListenerAdapter implements Publ
                 insn = ((GOTO) insn).getTarget();
             else insn = insn.getNext();
         }
+
+        // MWW: this looks like a hack!
         if (insn.getMnemonic().contains("store")) insn = insn.getNext();
+        // MWW: end comment.
+
         StackFrame modifiableTopFrame = ti.getModifiableTopFrame();
         int numOperands = 0;
         StackFrame sf = ti.getTopFrame();
@@ -222,44 +225,37 @@ public class VeritestingListener extends PropertyListenerAdapter implements Publ
             modifiableTopFrame.pop();
             numOperands--;
         }
-/*
-        ChoiceGenerator<?> cg = ti.getVM().getSystemState().getChoiceGenerator();
-        ChoiceGenerator<?> prev_cg = cg.getPreviousChoiceGenerator();
-        PathCondition pc;
 
-        while (!((prev_cg == null) || (prev_cg instanceof PCChoiceGenerator))) {
-            prev_cg = prev_cg.getPreviousChoiceGenerator();
-        }
-
-        if (prev_cg == null)
-            pc = new PathCondition();
-        else
-            pc = ((PCChoiceGenerator) prev_cg).getCurrentPC();
-
-        assert pc != null;
-
-        PathCondition veritestingPc = ((VeriPCChoiceGenerator)ti.getVM().getChoiceGenerator()).getCurrentPC();
-        pc.appendPathcondition(veritestingPc);
-
-        ((PCChoiceGenerator) ti.getVM().getSystemState().getChoiceGenerator()).setCurrentPC(pc);
-        */
         ti.setNextPC(insn);
         pathLabelCount += 1;
         region.usedCount++;
     }
 
-    private Expression instantiateHoles(ThreadInfo ti, VeritestingRegion region) {
-        //if(!isGoodRegion(region)) return;
+    private Expression instantiateHoles(ThreadInfo ti, VeritestingRegion region) throws StaticRegionException {
+        // MWW: Why is this code not in the region class?
         region.ranIntoCount++;
         StackFrame sf = ti.getTopFrame();
+
+        // MWW: make emitting this stuff keyed off of a verbosity level.
         //System.out.println("Starting region (" + region.toString()+") at instruction " + instructionToExecute
         //+ " (pos = " + instructionToExecute.getPosition() + ")");
+
+        // What is this?  InstructionInfo tracks information related to a condition.
+        // Why is this here?  It has nothing to do with holes.
+        // If we can't figure out the condition and we are not reasoning about a
+        // method summary, return null.
         InstructionInfo instructionInfo = new InstructionInfo().invoke(sf);
         if (instructionInfo == null && !region.isMethodSummary()) return null;
+
+
         PathCondition pc;
         //We've intercepted execution before any symbolic state was reached, so return
         if (!(ti.getVM().getSystemState().getChoiceGenerator() instanceof PCChoiceGenerator)) return null;
+
         pc = ((PCChoiceGenerator) ti.getVM().getSystemState().getChoiceGenerator()).getCurrentPC();
+
+        // MWW: this code is, as best I can tell, useless.
+        /*
         if (!boostPerf && instructionInfo != null) {
             PathCondition eqPC = pc.make_copy();
             eqPC._addDet(new GreenConstraint(instructionInfo.getCondition()));
@@ -274,6 +270,8 @@ public class VeritestingListener extends PropertyListenerAdapter implements Publ
                 assert (false);
             }
         }
+        */
+
         FillHolesOutput fillHolesOutput =
                 fillHoles(region, instructionInfo, sf, ti);
         if (fillHolesOutput == null || fillHolesOutput.holeHashMap == null) return null;
@@ -281,12 +279,14 @@ public class VeritestingListener extends PropertyListenerAdapter implements Publ
         Expression finalSummaryExpression = summaryExpression;
         if (fillHolesOutput.additionalAST != null)
             finalSummaryExpression = new Operation(Operation.Operator.AND, summaryExpression, fillHolesOutput.additionalAST);
-        finalSummaryExpression = fillASTHoles(finalSummaryExpression, fillHolesOutput.holeHashMap); //not constant-folding for now
-        exitTransitionsFillASTHoles(fillHolesOutput.holeHashMap);
+        FillAstHoleVisitor visitor = new FillAstHoleVisitor(fillHolesOutput.holeHashMap);
+        finalSummaryExpression = visitor.visit(finalSummaryExpression); //not constant-folding for now
+        region.instantiate(fillHolesOutput.holeHashMap);
+        // exitTransitionsFillASTHoles(fillHolesOutput.holeHashMap);
 
         // pc._addDet(new GreenConstraint(finalSummaryExpression));
         if (!boostPerf) {
-            String finalSummaryExpressionString = ASTToString(finalSummaryExpression);
+            //String finalSummaryExpressionString = ASTToString(finalSummaryExpression);
             if (!pc.simplify()) {
                 System.out.println("veritesting region added unsat summary");
                 assert (false);
@@ -298,7 +298,8 @@ public class VeritestingListener extends PropertyListenerAdapter implements Publ
         return finalSummaryExpression;
     }
 
-    private void exitTransitionsFillASTHoles(HashMap<Expression, Expression> holeHashMap) {
+/*
+    private void exitTransitionsFillASTHoles(HashMap<Expression, Expression> holeHashMap) throws StaticRegionException {
         //go through all regions and find existTransitions in them.
         //call fillASTHoles on the its pathConstraint
         assert (veritestingRegions != null);
@@ -307,16 +308,17 @@ public class VeritestingListener extends PropertyListenerAdapter implements Publ
             Collection<ExitTransition> exitTransitions = region.getExitTransitionHashMap();
             if (exitTransitions != null)
                 for (ExitTransition exitTransition : exitTransitions) {
-                    Expression newPathConstraint = fillASTHoles(exitTransition.getPathConstraint(), holeHashMap);
+                    FillAstHoleVisitor visitor = new FillAstHoleVisitor(holeHashMap);
+                    Expression newPathConstraint = visitor.visit(exitTransition.getPathConstraint());
                     exitTransition.setPathConstraint(newPathConstraint);
-                    Expression newNegConstraint = fillASTHoles(exitTransition.getNegNominalConstraint(), holeHashMap);
+                    Expression newNegConstraint = visitor.visit(exitTransition.getNegNominalConstraint());
                     exitTransition.setNegNominalConstraint(newNegConstraint);
-                    Expression newNominalConstraint = fillASTHoles(exitTransition.getNominalConstraint(), holeHashMap);
+                    Expression newNominalConstraint = visitor.visit(exitTransition.getNominalConstraint());
                     exitTransition.setNominalConstraint(newNominalConstraint);
                 }
         }
     }
-
+*/
 
     private void discoverRegions(ThreadInfo ti) {
         Config conf = ti.getVM().getConfig();
@@ -372,8 +374,7 @@ public class VeritestingListener extends PropertyListenerAdapter implements Publ
                     ranIntoByBranch.add(0);
                     usedByBranch.add(0);
                     ArrayList<VeritestingRegion> regions = getRegionsForSummarizedBranchNum(i, false);
-                    for (int j = 0; j < regions.size(); j++) {
-                        VeritestingRegion region = regions.get(j);
+                    for (VeritestingRegion region: regions) {
                         ranIntoByBranch.set(i, ranIntoByBranch.get(i) + (region.ranIntoCount != 0 ? 1 : 0));
                         usedByBranch.set(i, usedByBranch.get(i) + (region.usedCount != 0 ? 1 : 0));
                     }
@@ -394,8 +395,7 @@ public class VeritestingListener extends PropertyListenerAdapter implements Publ
                     ranIntoByBranch.add(0);
                     usedByBranch.add(0);
                     ArrayList<VeritestingRegion> regions = getRegionsForSummarizedBranchNum(i, true);
-                    for (int j = 0; j < regions.size(); j++) {
-                        VeritestingRegion region = regions.get(j);
+                    for (VeritestingRegion region: regions) {
                         ranIntoByBranch.set(i, ranIntoByBranch.get(i) + (region.ranIntoCount != 0 ? 1 : 0));
                         usedByBranch.set(i, usedByBranch.get(i) + (region.usedCount != 0 ? 1 : 0));
                     }
@@ -414,8 +414,8 @@ public class VeritestingListener extends PropertyListenerAdapter implements Publ
 
                 System.out.println("Sorted regions:");
                 regions.sort(String::compareTo);
-                for (int i = 0; i < regions.size(); i++) {
-                    System.out.println(regions.get(i));
+                for (String region: regions) {
+                    System.out.println(region);
                 }
             }
 
@@ -426,7 +426,7 @@ public class VeritestingListener extends PropertyListenerAdapter implements Publ
         for (HashMap.Entry<String, VeritestingRegion> entry : veritestingRegions.entrySet()) {
             VeritestingRegion region = entry.getValue();
             if (region.getNumBranchesSummarized() == numBranch) {
-                if (!methodSummary || (methodSummary && region.isMethodSummary()))
+                if (!methodSummary || region.isMethodSummary())
                     ret.add(region);
             }
         }
@@ -438,21 +438,14 @@ public class VeritestingListener extends PropertyListenerAdapter implements Publ
         for (HashMap.Entry<String, VeritestingRegion> entry : veritestingRegions.entrySet()) {
             VeritestingRegion region = entry.getValue();
             if (region.getNumBranchesSummarized() > maxSummarizedBranch) {
-                if (!methodSummary || (methodSummary && region.isMethodSummary()))
+                if (!methodSummary || (region.isMethodSummary()))
                     maxSummarizedBranch = region.getNumBranchesSummarized();
             }
         }
         return maxSummarizedBranch;
     }
 
-    private boolean isGoodRegion(VeritestingRegion region) {
-        if (region.getMethodName().equals("mainProcess")) return true;
-        if (region.getMethodName().equals("Own_Below_Threat")) return true;
-        if (region.getMethodName().equals("Own_Above_Threat")) return true;
-        if (region.getMethodName().equals("alt_assign") && region.getStartInsnPosition() == 19) return true;
-        return false;
-    }
-
+    /*
     private Comparator GreenToSPFComparator(Operation.Operator operator) {
         switch (operator) {
             case EQ:
@@ -478,6 +471,7 @@ public class VeritestingListener extends PropertyListenerAdapter implements Publ
         }
         return null;
     }
+    */
 
     /*
     write all outputs of the veritesting region
@@ -487,9 +481,8 @@ public class VeritestingListener extends PropertyListenerAdapter implements Publ
     private boolean populateOutputs(HashSet<Expression> outputVars,
                                     HashMap<Expression, Expression> holeHashMap,
                                     StackFrame stackFrame, ThreadInfo ti) {
-        Iterator iterator = outputVars.iterator();
-        while (iterator.hasNext()) {
-            Expression expression = (Expression) iterator.next(), finalValue;
+        for (Expression expression: outputVars) {
+            Expression finalValue;
             assert (expression instanceof HoleExpression);
             HoleExpression holeExpression = (HoleExpression) expression;
             assert (holeHashMap.containsKey(holeExpression));
@@ -517,38 +510,6 @@ public class VeritestingListener extends PropertyListenerAdapter implements Publ
     }
 
     /*
-    Walk the CNLIE expression, looking for holes (which will always be at the leaf nodes), and ensure that all holes
-    are filled in
-     */
-    private Expression fillASTHoles(Expression holeExpression,
-                                    HashMap<Expression, Expression> holeHashMap) {
-        if (holeExpression instanceof HoleExpression && ((HoleExpression) holeExpression).isHole()) {
-            //assert(holeHashMap.containsKey(holeExpression));
-            if (!holeHashMap.containsKey(holeExpression)) {
-                System.out.println("fillASTHoles does not know how to fill hole " + holeExpression.toString());
-                assert (false);
-            }
-            Expression ret = holeHashMap.get(holeExpression);
-            if (ret instanceof Operation) {
-                Operation oldOperation = (Operation) ret;
-                Operation newOperation = new Operation(oldOperation.getOperator(),
-                        fillASTHoles(oldOperation.getOperand(0), holeHashMap),
-                        fillASTHoles(oldOperation.getOperand(1), holeHashMap));
-                return newOperation;
-            }
-            return ret;
-        }
-        if (holeExpression instanceof Operation) {
-            Operation oldOperation = (Operation) holeExpression;
-            Operation newOperation = new Operation(oldOperation.getOperator(),
-                    fillASTHoles(oldOperation.getOperand(0), holeHashMap),
-                    fillASTHoles(oldOperation.getOperand(1), holeHashMap));
-            return newOperation;
-        }
-        return holeExpression;
-    }
-
-    /*
     Load from local variable stack slots IntegerExpression objects and store them into holeHashMap
      */
     //TODO Handle read after write on class fields
@@ -557,7 +518,7 @@ public class VeritestingListener extends PropertyListenerAdapter implements Publ
     private FillHolesOutput fillHoles(VeritestingRegion region,
                                       InstructionInfo instructionInfo,
                                       StackFrame stackFrame,
-                                      ThreadInfo ti) {
+                                      ThreadInfo ti) throws StaticRegionException {
         HashMap<Expression, Expression> holeHashMap = region.getHoleHashMap();
         HashMap<Expression, Expression> retHoleHashMap = new HashMap<>();
         Expression additionalAST = null;
@@ -569,9 +530,10 @@ public class VeritestingListener extends PropertyListenerAdapter implements Publ
         if (concreteException)
             return null;
 
+        // MWW: Why is this not in a fillInvokeHole method?
         for (HashMap.Entry<Expression, Expression> entry : holeHashMap.entrySet()) {
-            Expression key = entry.getKey(), greenExpr = null;
-            gov.nasa.jpf.symbc.numeric.Expression spfExpr;
+            Expression key = entry.getKey();
+            //gov.nasa.jpf.symbc.numeric.Expression spfExpr;
             assert (key instanceof HoleExpression);
             HoleExpression keyHoleExpression = (HoleExpression) key;
             assert (keyHoleExpression.isHole());
@@ -593,9 +555,9 @@ public class VeritestingListener extends PropertyListenerAdapter implements Publ
                     callSiteInfo.className = ci.getName();
                     //If there exists a invokeVirtual for a method that we weren't able to summarize, skip veritesting
                     String key1 = callSiteInfo.className + "." + callSiteInfo.methodName + callSiteInfo.methodSignature + "#0";
-                    FNV1 fnv = new FNV1a64();
-                    fnv.init(key1);
-                    long hash = fnv.getHash();
+                    //FNV1 fnv = new FNV1a64();
+                    //fnv.init(key1);
+                    //long hash = fnv.getHash();
                     if (!veritestingRegions.containsKey(key1)) {
                         System.out.println("Could not find method summary for " +
                                 callSiteInfo.className + "." + callSiteInfo.methodName + "#0");
@@ -648,6 +610,7 @@ public class VeritestingListener extends PropertyListenerAdapter implements Publ
         return new FillHolesOutput(retHoleHashMap, additionalAST);
     }
 
+    // This needs to store sufficient information in the holeHashMap so that I can discover it for the exception computation.
     private boolean fillArrayLoadHoles(VeritestingRegion region, HashMap<Expression, Expression> holeHashMap, InstructionInfo instructionInfo,
                                        StackFrame stackFrame, ThreadInfo ti, HashMap<Expression, Expression> retHoleHashMap) {
         for (HashMap.Entry<Expression, Expression> entry : holeHashMap.entrySet()) {
@@ -662,6 +625,8 @@ public class VeritestingListener extends PropertyListenerAdapter implements Publ
                     indexAttr =
                             (gov.nasa.jpf.symbc.numeric.Expression) stackFrame.getLocalAttr(((HoleExpression) (arrayInfoHole.arrayIndexHole)).getLocalStackSlot());
                     switch (((HoleExpression) arrayInfoHole.arrayIndexHole).getHoleType()) {
+                        // what happens for field inputs?
+                        // This code appears to be similar between both kinds of holes
                         case LOCAL_INPUT: //case array index is local input
                             int arrayRef = stackFrame.getLocalVariable(((HoleExpression) arrayInfoHole.arrayRefHole).getLocalStackSlot());
                             //int arrayRef = stackFrame.peek(((HoleExpression)arrayInfoHole.arrayRefHole).getLocalStackSlot());
@@ -669,7 +634,7 @@ public class VeritestingListener extends PropertyListenerAdapter implements Publ
                             int arrayLength = ((ArrayFields) ei.getFields()).arrayLength();
                             TypeReference arrayType = arrayInfoHole.arrayType;
                             Expression pathLabelConstraint = arrayInfoHole.getPathLabelHole();
-                            Expression arrayConstraint = null;
+                            Expression arrayConstraint;
                             if (indexAttr == null) //attribute is null so index is concrete
                             {
                                 int indexVal = stackFrame.getLocalVariable(((HoleExpression) arrayInfoHole.arrayIndexHole).getLocalStackSlot());
@@ -692,6 +657,8 @@ public class VeritestingListener extends PropertyListenerAdapter implements Publ
                                 arrayConstraint = new Operation(Operation.Operator.IMPLIES, pathLabelConstraint, arrayConstraint);
                                 retHoleHashMap.put(keyHoleExpression, arrayConstraint);
 
+                                // MWW: TODO: move this code.
+                                /*
                                 if (outOfBound(arraySymbConstraint, finalValueGreen, ti)) {//outOfBoundException is possible
                                     Expression lowerBoundConstraint = new Operation(Operation.Operator.GE, finalValueGreen, new IntConstant(0));
                                     Expression upperBoundConstraint = new Operation(Operation.Operator.LT, finalValueGreen, new IntConstant(arraySymbConstraint.length));
@@ -699,6 +666,7 @@ public class VeritestingListener extends PropertyListenerAdapter implements Publ
                                     ExitTransition outOfBoundExit = new ExitTransition(inBoundConstraint, ((HoleExpression) key).getHoleVarName(), pathLabelConstraint);
                                     region.putExitTransition(outOfBoundExit);
                                 }
+                                */
                             }
                             break;
                         case FIELD_INPUT:

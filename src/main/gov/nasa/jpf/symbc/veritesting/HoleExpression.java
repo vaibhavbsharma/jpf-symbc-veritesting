@@ -9,8 +9,24 @@ import za.ac.sun.cs.green.expr.VisitorException;
 import java.lang.reflect.Array;
 import java.util.List;
 
+// MWW - arrayInfoHole is only used for one kind of hole.
+// Why are we not subclassing here for the extra information?
+
 public class HoleExpression extends za.ac.sun.cs.green.expr.Expression{
     public boolean isLatestWrite = true;
+    final long holeID;
+    String holeVarName = "";
+    InvokeInfo invokeInfo = null;
+    public Expression dependsOn = null;
+    FieldInfo fieldInfo = null;
+    HoleType holeType = HoleType.NONE;
+    ArrayInfoHole arrayInfoHole = null;
+
+    protected boolean isHole = false;
+    protected int localStackSlot = -1;
+
+    // MWW: Why is this not public?  Is it supposed to be instantiated only within package?
+    HoleExpression(long _holeID) { holeID = _holeID; }
 
     @Override
     public void accept(Visitor visitor) throws VisitorException {
@@ -118,16 +134,12 @@ public class HoleExpression extends za.ac.sun.cs.green.expr.Expression{
         return null;
     }
 
-    final long holeID;
-    HoleExpression(long _holeID) { holeID = _holeID; }
-
     public void setHoleVarName(String holeVarName) {
         this.holeVarName = holeVarName;
     }
     public String getHoleVarName() {
         return holeVarName;
     }
-    String holeVarName = "";
 
     public enum HoleType {
         LOCAL_INPUT("local_input"),
@@ -151,8 +163,6 @@ public class HoleExpression extends za.ac.sun.cs.green.expr.Expression{
         return holeType;
     }
 
-    HoleType holeType = HoleType.NONE;
-
     public boolean isHole() {
         return isHole;
     }
@@ -171,7 +181,6 @@ public class HoleExpression extends za.ac.sun.cs.green.expr.Expression{
                 (!isHole && holeType == HoleType.NONE));
     }
 
-    protected boolean isHole = false;
 
     public void setLocalStackSlot(int localStackSlot) {
         assert(holeType == HoleType.LOCAL_INPUT || holeType == HoleType.LOCAL_OUTPUT);
@@ -185,7 +194,6 @@ public class HoleExpression extends za.ac.sun.cs.green.expr.Expression{
         assert(holeType == HoleType.LOCAL_INPUT || holeType == HoleType.LOCAL_OUTPUT);
         return localStackSlot;
     }
-    protected int localStackSlot = -1;
 
     public void setFieldInfo(String className, String fieldName, int localStackSlot, int callSiteStackSlot,
                              Expression writeExpr, boolean isStaticField) {
@@ -208,7 +216,6 @@ public class HoleExpression extends za.ac.sun.cs.green.expr.Expression{
         assert(this.isHole && this.holeType== HoleType.ARRAYLOAD);
         arrayInfoHole = new ArrayInfoHole(arrayRef, arrayIndex, arrayType, pathLabelHole);
     }
-    ArrayInfoHole arrayInfoHole = null;
 
     public class ArrayInfoHole{
         public Expression arrayRefHole,arrayIndexHole;
@@ -281,15 +288,10 @@ public class HoleExpression extends za.ac.sun.cs.green.expr.Expression{
         }
     }
 
-    FieldInfo fieldInfo = null;
-
     public void setInvokeInfo(InvokeInfo invokeInfo) {
         this.invokeInfo = invokeInfo;
     }
     public InvokeInfo getInvokeInfo() {
         return invokeInfo;
     }
-    InvokeInfo invokeInfo = null;
-
-    public Expression dependsOn = null;
 }

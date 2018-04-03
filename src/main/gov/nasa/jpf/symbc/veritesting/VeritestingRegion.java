@@ -1,6 +1,8 @@
 package gov.nasa.jpf.symbc.veritesting;
 
 
+import gov.nasa.jpf.symbc.veritesting.SPFCase.SPFCase;
+import gov.nasa.jpf.symbc.veritesting.SPFCase.SPFCaseList;
 import za.ac.sun.cs.green.expr.Expression;
 import za.ac.sun.cs.green.expr.Operation;
 
@@ -8,9 +10,63 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
 
+/**
+ *  MWW: This could be much better managed through a good encapsulated interface.
+ *    As it is, it is no better than a struct and has very poor encapsulation.
+ *    To be fixed after ASE.
+ *
+ *  In addition, some of the fields are public, some are private, and some are
+ *  package protected.
+ *
+ *
+ */
 
 public class VeritestingRegion {
 
+    private int startInsnPosition;
+    private int endInsnPosition;
+    private Expression summaryExpression;
+    private HashSet<Expression> outputVars;
+    private String className, methodName;
+    private HashMap<Expression, Expression> holeHashMap;
+    private boolean isMethodSummary = false;
+    public Expression retVal;
+    private String methodSignature;
+    public HashSet<Integer> summarizedRegionStartBB = null;
+    public int ranIntoCount = 0, usedCount = 0;
+    public int endBBNum;
+    public int startBBNum;
+
+    private SPFCaseList spfCases = new SPFCaseList();
+
+    // Should not be necessary, if we have a good interface!
+    //public SPFCaseList getSpfCases() { return spfCases; }
+
+    public void addSPFCase(SPFCase c) { spfCases.addCase(c); }
+
+    // Behavior
+    // add more here for other aspects of region: segments with return, e.g.
+    public void embedPathConstraint(Expression e) throws StaticRegionException {
+        spfCases.embedPathConstraint(e);
+    }
+
+    public void instantiate(HashMap<Expression, Expression> holeHashMap) throws StaticRegionException {
+        spfCases.instantiate(holeHashMap);
+    }
+
+    public void simplify() throws StaticRegionException {
+        spfCases.simplify();
+    }
+
+    public Expression spfPathPredicate() throws StaticRegionException {
+        return spfCases.spfPredicate();
+    }
+
+    public Expression staticNominalPredicate() throws StaticRegionException {
+        return spfCases.staticNominalPredicate();
+    }
+
+    /*
     private HashSet<ExitTransition> exitTransitionHashMap;
 
     public void putExitTransition(ExitTransition exitTransition) {
@@ -40,51 +96,39 @@ public class VeritestingRegion {
     public HashSet<ExitTransition> getExitTransitionHashMap() {
         return exitTransitionHashMap;
     }
+    */
 
     public int getStartInsnPosition() {
         return startInsnPosition;
     }
-
     public void setStartInsnPosition(int startInsnPosition) {
         this.startInsnPosition = startInsnPosition;
     }
 
-    private int startInsnPosition;
-
     public int getEndInsnPosition() {
         return endInsnPosition;
     }
-
     public void setEndInsnPosition(int endInsnPosition) {
         this.endInsnPosition = endInsnPosition;
     }
 
-    private int endInsnPosition;
-
     public Expression getSummaryExpression() {
         return summaryExpression;
     }
-
     public void setSummaryExpression(Expression CNLIE) {
         this.summaryExpression = CNLIE;
     }
 
-    private Expression summaryExpression;
-
     public HashSet<Expression> getOutputVars() {
         return outputVars;
     }
-
     public void setOutputVars(HashSet outputVars) {
         this.outputVars = outputVars;
     }
 
-    private HashSet<Expression> outputVars;
-
     public String getClassName() {
         return className;
     }
-
     public void setClassName(String className) {
         this.className = className;
     }
@@ -92,38 +136,29 @@ public class VeritestingRegion {
     public String getMethodName() {
         return methodName;
     }
-
     public void setMethodName(String methodName) {
         this.methodName = methodName;
     }
 
-    private String className, methodName;
-
     public void setHoleHashMap(HashMap<Expression, Expression> holeHashMap) {
         this.holeHashMap = holeHashMap;
     }
-
     public HashMap<Expression, Expression> getHoleHashMap() {
         return holeHashMap;
     }
 
-    private HashMap<Expression, Expression> holeHashMap;
 
     public void setIsMethodSummary(boolean isMethodSummary) {
         this.isMethodSummary = isMethodSummary;
     }
-
     public boolean isMethodSummary() {
         return isMethodSummary;
     }
 
-    private boolean isMethodSummary = false;
-
     public void setRetValVars(Expression retVal) {
         this.retVal = retVal;
     }
-
-    public Expression retVal;
+    public Expression getRetValVars() { return retVal; }
 
     public String toString() {
         return "(" + className + ", " + methodName + ", " + startInsnPosition + ", " + endInsnPosition +
@@ -133,21 +168,14 @@ public class VeritestingRegion {
     public void setMethodSignature(String methodSignature) {
         this.methodSignature = methodSignature;
     }
-
     public String getMethodSignature() {
         return methodSignature;
     }
-
-    String methodSignature;
 
     public void setSummarizedRegionStartBB(HashSet<Integer> summarizedRegionStartBB) {
         this.summarizedRegionStartBB = new HashSet<>();
         this.summarizedRegionStartBB.addAll(summarizedRegionStartBB);
     }
-
-    public HashSet<Integer> summarizedRegionStartBB = null;
-
-    public int ranIntoCount = 0, usedCount = 0;
 
     public int getNumBranchesSummarized() {
         if (summarizedRegionStartBB == null) {
@@ -160,12 +188,9 @@ public class VeritestingRegion {
         this.endBBNum = endBBNum;
     }
 
-    public int endBBNum;
-
     public void setStartBBNum(int startBBNum) {
         this.startBBNum = startBBNum;
     }
 
-    public int startBBNum;
 }
 

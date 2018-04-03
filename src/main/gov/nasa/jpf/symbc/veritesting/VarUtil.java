@@ -12,6 +12,9 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
 
+// MWW: are all these methods and data essentially static?
+// How does this class cohere?
+
 public class VarUtil {
     String className;
     String methodName;
@@ -89,6 +92,7 @@ public class VarUtil {
                     // for final filled-up hole object
                     if(!holeHashMap.containsKey(expression)) {
                         setLatestWrite(expression);
+                        /// MWW: in this stmt, I might put 'null' to signify that there is nothing useful in the codomain.
                         holeHashMap.put(expression, expression);
                         checkReadAfterWrite(expression);
                     }
@@ -102,6 +106,8 @@ public class VarUtil {
         className = _className;
         methodName = _methodName;
         ir = _ir;
+
+        // MWW: Perhaps make this its own visitor class?
         // Report local stack slot information (if it exists) for every WALA IR variable
         _ir.visitNormalInstructions(new SSAInstruction.Visitor() {
             void getStackSlots(SSAInstruction ssaInstruction) {
@@ -560,5 +566,7 @@ public class VarUtil {
             }
         }
     }
+
+    public IR getIr() {return ir; }
 }
 

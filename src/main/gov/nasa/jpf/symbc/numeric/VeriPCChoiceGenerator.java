@@ -50,6 +50,10 @@ import gov.nasa.jpf.symbc.numeric.Comparator;
 
 import java.util.HashMap;
 
+// MWW: general comment: many uses of nulls as 'signal' values.
+// This usually leads to brittle and hard to debug code with lots
+// of null pointer exceptions.  Be explicit!  Use exceptions
+// to handle unexpected circumstances.
 
 public class VeriPCChoiceGenerator extends PCChoiceGenerator {
     private enum kind {UNARYIF, BINARYIF, NULLIF}
@@ -124,6 +128,7 @@ public class VeriPCChoiceGenerator extends PCChoiceGenerator {
         }
     }
 
+    // MWW: I see vey similar code in InstuctionInfo.  Why?
     public Comparator getComparator(Instruction instruction) {
         switch (instruction.getMnemonic()) {
             case "ifge":
@@ -145,6 +150,7 @@ public class VeriPCChoiceGenerator extends PCChoiceGenerator {
         }
     }
 
+    // MWW: I see vey similar code in InstuctionInfo.  Why?
     public Comparator getNegComparator(Instruction instruction) {
         switch (instruction.getMnemonic()) {
             case "ifge":
@@ -166,17 +172,17 @@ public class VeriPCChoiceGenerator extends PCChoiceGenerator {
         }
     }
 
-    public Instruction execute(Instruction instructionToExecute, VeriPCChoiceGenerator cg, int choice) {
+    public Instruction execute(Instruction instructionToExecute, int choice) {
         Instruction nextInstruction = null;
         switch (getKind(instructionToExecute)) {
             case UNARYIF:
-                Comparator byteCodeOp = ((VeriPCChoiceGenerator) cg).getComparator(instructionToExecute);
-                Comparator byteCodeNegOp = ((VeriPCChoiceGenerator) cg).getNegComparator(instructionToExecute);
+                Comparator byteCodeOp = this.getComparator(instructionToExecute);
+                Comparator byteCodeNegOp = this.getNegComparator(instructionToExecute);
                 nextInstruction = executeUnaryIf(byteCodeOp, byteCodeNegOp, instructionToExecute, choice);
                 break;
             case BINARYIF:
-                byteCodeOp = ((VeriPCChoiceGenerator) cg).getComparator(instructionToExecute);
-                byteCodeNegOp = ((VeriPCChoiceGenerator) cg).getNegComparator(instructionToExecute);
+                byteCodeOp = this.getComparator(instructionToExecute);
+                byteCodeNegOp = this.getNegComparator(instructionToExecute);
                 nextInstruction = executeBinaryIf(byteCodeOp, byteCodeNegOp, instructionToExecute, choice);
                 break;
             case NULLIF:
@@ -185,6 +191,8 @@ public class VeriPCChoiceGenerator extends PCChoiceGenerator {
         }
         return nextInstruction;
     }
+
+    // MWW: Why are we looking up the choice generator here?   We are *in* the choice generator.
 
     private Instruction executeBinaryIf(Comparator byteCodeOp, Comparator byteCodeNegOp, Instruction instructionToExecute, int choice) {
         StackFrame sf = ti.getModifiableTopFrame();
@@ -244,6 +252,8 @@ public class VeriPCChoiceGenerator extends PCChoiceGenerator {
         }
     }
 
+    // MWW - Why are we calling these method execute functions directly
+    // rather than adding their conditions to the path?
 
     public Instruction executeNullIf(Instruction instructionToExecute) {
         StackFrame sf = ti.getModifiableTopFrame();
@@ -256,6 +266,8 @@ public class VeriPCChoiceGenerator extends PCChoiceGenerator {
             return ((IfInstruction) instructionToExecute).getTarget();
         }
     }
+
+    // MWW: you are *in* the choice generator - why are you looking it up?!?
 
     public Instruction executeUnaryIf(Comparator byteCodeOp, Comparator byteCodeNegOp, Instruction instruction, int choice) {
         StackFrame sf = ti.getModifiableTopFrame();

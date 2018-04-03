@@ -1,0 +1,7 @@
+build.properties
+nbproject/private/*
+build/*
+dist/*
+*.class
+*~
+*.DS_Store
