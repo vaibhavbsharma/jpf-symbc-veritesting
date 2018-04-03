@@ -21,6 +21,7 @@ public class MyIVisitor implements SSAInstruction.IVisitor {
     private final int thenUseNum;
     private final int elseUseNum;
     private final boolean isMeetVisitor;
+    private final Expression PLAssign;
     boolean isPhiInstruction = false;
     VarUtil varUtil;
     SSAInstruction lastInstruction;
@@ -61,15 +62,17 @@ public class MyIVisitor implements SSAInstruction.IVisitor {
 
     private Expression SPFExpr;
 
-    public MyIVisitor(VarUtil _varUtil, int _thenUseNum, int _elseUseNum, boolean _isMeetVisitor) {
+    public MyIVisitor(VarUtil _varUtil, int _thenUseNum, int _elseUseNum, boolean _isMeetVisitor, Expression PLAssign) {
         varUtil = _varUtil;
         thenUseNum = _thenUseNum;
         elseUseNum = _elseUseNum;
         isMeetVisitor = _isMeetVisitor;
+        this.PLAssign = PLAssign;
         //SPFExpr = new String();
     }
 
-    public MyIVisitor(VarUtil _varUtil, int _thenUseNum, int _elseUseNum, boolean _isMeetVisitor, String pathLabelString, int pathLabel) {
+    public MyIVisitor(VarUtil _varUtil, int _thenUseNum, int _elseUseNum, boolean _isMeetVisitor,
+                      String pathLabelString, int pathLabel, Expression PLAssign) {
         varUtil = _varUtil;
         thenUseNum = _thenUseNum;
         elseUseNum = _elseUseNum;
@@ -77,6 +80,7 @@ public class MyIVisitor implements SSAInstruction.IVisitor {
         //SPFExpr = new String();
         this.pathLabel = pathLabel;
         this.pathLabelString = pathLabelString;
+        this.PLAssign = PLAssign;
     }
 
     @Override
@@ -100,7 +104,8 @@ public class MyIVisitor implements SSAInstruction.IVisitor {
         Expression arrayRefHole = varUtil.addVal(arrayRef);
         Expression arrayIndexHole = varUtil.addVal(arrayIndex);
 
-        Expression arrayLoadHole = varUtil.addArrayLoadVal(arrayRefHole, arrayIndexHole,arrayType, HoleExpression.HoleType.ARRAYLOAD, instruction, pathLabelString, pathLabel);
+        Expression arrayLoadHole = varUtil.addArrayLoadVal(arrayRefHole, arrayIndexHole,arrayType,
+                HoleExpression.HoleType.ARRAYLOAD, instruction, pathLabelString, pathLabel);
         SPFExpr = new Operation(Operator.EQ, lhsExpr, arrayLoadHole);
        canVeritest = true;
     }
@@ -314,7 +319,7 @@ public class MyIVisitor implements SSAInstruction.IVisitor {
         Expression writeVal = varUtil.addVal(instruction.getVal());
         SPFExpr = new Operation(Operator.EQ, intermediate, writeVal);
         if(varUtil.addFieldOutputVal(intermediate, objRef, className, fieldName.toString(),
-                HoleExpression.HoleType.FIELD_OUTPUT, instruction.isStatic()) == null) {
+                HoleExpression.HoleType.FIELD_OUTPUT, instruction.isStatic(), PLAssign) == null) {
             canVeritest = false;
         } else {
             canVeritest = true;

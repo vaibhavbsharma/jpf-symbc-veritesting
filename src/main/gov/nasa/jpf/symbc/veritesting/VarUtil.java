@@ -445,7 +445,7 @@ public class VarUtil {
         HoleExpression holeExpression = new HoleExpression(nextInt(), this.className, methodName);
         holeExpression.setHole(true, holeType);
         holeExpression.setFieldInfo(fieldClassName, fieldName, methodName, localStackSlot, -1, null,
-                isStaticField, useHole);
+                isStaticField, useHole, null);
         String name = this.className + "." + this.methodName + ".v" + def;
         holeExpression.setHoleVarName(name);
         if(fieldHasRWOperation(holeExpression, HoleExpression.HoleType.FIELD_OUTPUT, holeHashMap, null, null)) {
@@ -468,24 +468,29 @@ public class VarUtil {
                                               StackFrame stackFrame) {
         assert(holeExpression.getHoleType() == HoleExpression.HoleType.FIELD_INPUT ||
                 holeExpression.getHoleType() == HoleExpression.HoleType.FIELD_OUTPUT);
+        HoleExpression.FieldInfo f = holeExpression.getFieldInfo();
         for(HashMap.Entry<Expression, Expression> entry: holeHashMap.entrySet()) {
             HoleExpression holeExpression1 = (HoleExpression) entry.getKey();
+            HoleExpression.FieldInfo f1 = holeExpression1.getFieldInfo();
             if(holeExpression1.getHoleType() != holeType) continue;
             //One of the field accesses is non-static, so there cannot be a r/w operation to the same field
-            if(holeExpression1.getFieldInfo().isStaticField && !holeExpression.getFieldInfo().isStaticField) continue;
-            if(!holeExpression1.getFieldInfo().isStaticField && holeExpression.getFieldInfo().isStaticField) continue;
-            if(!holeExpression.getFieldInfo().fieldName.equals(holeExpression1.getFieldInfo().fieldName)) continue;
+            if(f1.isStaticField && !f.isStaticField) continue;
+            if(!f1.isStaticField && f.isStaticField) continue;
+            if(!f.fieldName.equals(f1.fieldName)) continue;
+            if(!f.fieldClassName.equals(f1.fieldClassName)) continue;
             //Both field accesses are static and access the same field
-            if(holeExpression1.getFieldInfo().isStaticField && holeExpression.getFieldInfo().isStaticField)
-                if(holeExpression.getFieldInfo().equals(holeExpression1.getFieldInfo()))
+            if(f1.isStaticField && f.isStaticField)
+                if(f.equals(f1))
                     return true;
+            //Were both fields created on the same side of a branch (if there was a branch)
+            if(!f.isSamePLAssign(f1.PLAssign)) continue;
             //At this point, both field accesses operate on the same type of field and are both non-static
             //we now need to determine if these two fields belong to the same object
             //Assume that holeExpression comes from a method summary if callSiteInfo is not null
             if(callSiteInfo == null) return true;
-            if(holeExpression.getFieldInfo().localStackSlot == 0) {
+            if(f.localStackSlot == 0) {
                 int objRefMS = stackFrame.getLocalVariable(((HoleExpression) callSiteInfo.paramList.get(0)).getLocalStackSlot());
-                int objRefOR = stackFrame.getLocalVariable(holeExpression1.getFieldInfo().localStackSlot);
+                int objRefOR = stackFrame.getLocalVariable(f1.localStackSlot);
                 if(objRefMS == objRefOR) return true;
                 else return false;
             } else {
@@ -501,7 +506,8 @@ public class VarUtil {
                                        String fieldClassName,
                                        String fieldName,
                                        HoleExpression.HoleType holeType,
-                                        boolean isStaticField) {
+                                        boolean isStaticField,
+                                        Expression PLAssign) {
         assert(holeType == HoleExpression.HoleType.FIELD_OUTPUT);
         assert(writeExpr instanceof HoleExpression);
         assert(((HoleExpression)writeExpr).getHoleType() == HoleExpression.HoleType.INTERMEDIATE);
@@ -524,7 +530,7 @@ public class VarUtil {
         assert(!varCache.containsKey(name));
         HoleExpression holeExpression = new HoleExpression(nextInt(), this.className, methodName);
         holeExpression.setHole(true, holeType);
-        holeExpression.setFieldInfo(fieldClassName, fieldName, methodName, localStackSlot, -1, writeExpr, isStaticField, useHole);
+        holeExpression.setFieldInfo(fieldClassName, fieldName, methodName, localStackSlot, -1, writeExpr, isStaticField, useHole, PLAssign);
         holeExpression.setHoleVarName(name);
         if(fieldHasRWOperation(holeExpression, HoleExpression.HoleType.FIELD_INPUT, holeHashMap, null, null)) {
             VeritestingListener.fieldWriteAfterRead += 1;

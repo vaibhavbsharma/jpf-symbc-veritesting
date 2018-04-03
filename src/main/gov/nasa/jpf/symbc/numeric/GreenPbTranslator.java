@@ -201,6 +201,8 @@ class GreenPbTranslator extends Visitor {
                     stack.push((Expr) context.logical_not(l));
                     break;
                 case IMPLIES:
+                    stack.push((Expr) context.logical_or(context.logical_not(l), r));
+                    break;
                 case BIT_CONCAT:
                 case SIN:
                 case COS:

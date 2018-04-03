@@ -15,6 +15,7 @@ public class VeritestingPerf {
     public static void main(String[] args) {
         //(new VeritestingPerf()).cfgTest(1);
         (new VeritestingPerf()).countBitsSet(1);
+        //(new VeritestingPerf()).fieldWriteTest(1);
         //(new VeritestingPerf()).nestedRegion(1);
         //int x[] = {1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20};
 //        (new VeritestingPerf()).inRangeloadArrayTC( 22, 10);
@@ -70,6 +71,12 @@ public class VeritestingPerf {
         if (x != 0) {
             if (x != 0) { count = 3; } else { count = 4;  }
         } else { count = 5; }
+        return count;
+    }
+
+    public int fieldWriteTest(int x) {
+        if(x != 0) count = 1;
+        else count = 2;
         return count;
     }
 
@@ -219,7 +226,7 @@ class TempClassDerived extends TempClass {
 
     public static int tempInt = 1; //change this to 2 to test read after write on a class field inside a Veritesting region
 
-    public int myInt = 1;
+    public static int myInt = 1;
 
     public int getAnotherAnotherTempInt(int a) {
         //TempClass2 t = new TempClass2();
@@ -231,7 +238,7 @@ class TempClassDerived extends TempClass {
         //TempClass2 t = new TempClass2();
         //t.tempMethod();
         //return tempInt;
-        return getAnotherAnotherTempInt(myInt);
+        return getAnotherAnotherTempInt(TempClassDerived.myInt);
     }
 
     public int getTempInt(int a) {
@@ -250,7 +257,7 @@ class TempClassDerived extends TempClass {
         //VeritestingPerf.count += 1;
         //return tempInt;
         //return nestedRegion(myInt);
-        return getTempInt(tempInt);
+        return getTempInt(TempClassDerived.tempInt);
     }
 
     public int nestedRegion(int x) {
@@ -265,7 +272,7 @@ class TempClass {
 
     public static int tempInt = 1;
 
-    public int myInt = 1;
+    public static int myInt = 1;
 
     public TempClass() {
         this.tempClass2 = new TempClass2();

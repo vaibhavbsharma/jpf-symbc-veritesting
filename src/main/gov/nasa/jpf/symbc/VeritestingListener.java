@@ -263,7 +263,6 @@ public class VeritestingListener extends PropertyListenerAdapter implements Publ
             //System.out.println("used empty region");
             //assert(false);
         }
-        finalSummaryExpression = fillASTHoles(finalSummaryExpression, fillHolesOutput.holeHashMap); //not constant-folding for now
 
         // pc._addDet(new GreenConstraint(finalSummaryExpression));
         if (!boostPerf) {
@@ -273,9 +272,9 @@ public class VeritestingListener extends PropertyListenerAdapter implements Publ
                 assert (false);
             }
         }
-        if (!populateOutputs(region.getOutputVars(), fillHolesOutput.holeHashMap, sf, ti)) {
-            return null;
-        }
+        Expression fieldOutputExpression = populateOutputs(ti,sf, region.getOutputVars(), fillHolesOutput.holeHashMap);
+        finalSummaryExpression = new Operation(Operation.Operator.AND, finalSummaryExpression, fieldOutputExpression);
+        finalSummaryExpression = fillASTHoles(finalSummaryExpression, fillHolesOutput.holeHashMap); //not constant-folding for now
         return finalSummaryExpression;
     }
 
@@ -410,31 +409,98 @@ public class VeritestingListener extends PropertyListenerAdapter implements Publ
      */
     //TODO make this method write the outputs atomically,
     // either all of them get written or none of them do and then SPF takes over
-    private boolean populateOutputs(HashSet<Expression> outputVars,
-                                    LinkedHashMap<Expression, Expression> holeHashMap,
-                                    StackFrame stackFrame, ThreadInfo ti) {
+    private Expression populateOutputs(ThreadInfo ti, StackFrame stackFrame, HashSet<Expression> outputVars,
+                                    LinkedHashMap<Expression, Expression> holeHashMap) {
         Iterator iterator = outputVars.iterator();
+        Expression fieldOutputExpression = null;
+        ArrayList<HoleExpression> completedFieldOutputs = new ArrayList<>();
         while (iterator.hasNext()) {
-            Expression expression = (Expression) iterator.next(), finalValue;
+            Expression expression = (Expression) iterator.next(), value;
             assert (expression instanceof HoleExpression);
             HoleExpression holeExpression = (HoleExpression) expression;
             assert (holeHashMap.containsKey(holeExpression));
             switch (holeExpression.getHoleType()) {
                 case LOCAL_OUTPUT:
-                    finalValue = holeHashMap.get(holeExpression);
-                    stackFrame.setSlotAttr(holeExpression.getLocalStackSlot(), GreenToSPFExpression(finalValue));
+                    value = holeHashMap.get(holeExpression);
+                    stackFrame.setSlotAttr(holeExpression.getLocalStackSlot(), GreenToSPFExpression(value));
                     break;
                 case FIELD_OUTPUT:
                     if(holeExpression.isLatestWrite) {
                         HoleExpression.FieldInfo fieldInfo = holeExpression.getFieldInfo();
+                        if(isFieldOutputComplete(ti, stackFrame, holeHashMap, completedFieldOutputs, holeExpression))
+                            continue;
                         assert (fieldInfo != null);
-                        finalValue = holeHashMap.get(fieldInfo.writeValue);
-                        fillFieldHole(ti, stackFrame, holeExpression, holeHashMap, false, GreenToSPFExpression(finalValue));
+                        Expression prevValue =
+                                SPFToGreenExpr(fillFieldHole(ti, stackFrame, holeExpression, holeHashMap,true,null));
+                        Expression finalValue =
+                                SPFToGreenExpr(makeSymbolicInteger(holeExpression.getHoleVarName()+".final_value"));
+                        holeHashMap.put(holeExpression, finalValue);
+                        //returns an predicate that is a conjunction of (predicate IMPLIES (finalValue EQ outputVar)) expressions
+                        Expression fieldOutputPredicate =
+                                findCommonFieldOutputs(ti, stackFrame, holeExpression, outputVars, finalValue, prevValue, holeHashMap);
+                        if(fieldOutputExpression == null) fieldOutputExpression = fieldOutputPredicate;
+                        else fieldOutputExpression =
+                                new Operation(Operation.Operator.AND, fieldOutputExpression, fieldOutputPredicate);
+                        fillFieldHole(ti, stackFrame, holeExpression, holeHashMap, false,
+                                GreenToSPFExpression(finalValue));
+                        completedFieldOutputs.add(holeExpression);
                     }
                     break;
             }
         }
-        return true;
+        return fieldOutputExpression;
+    }
+
+    private Expression findCommonFieldOutputs(ThreadInfo ti, StackFrame sf,
+                                              HoleExpression holeExpression, HashSet<Expression> outputVars,
+                                              Expression finalValue, Expression prevValue,
+                                              LinkedHashMap<Expression, Expression> finalHashMap) {
+        Expression ret = null;
+        Iterator iterator = outputVars.iterator();
+        while(iterator.hasNext()) {
+            HoleExpression outputVar = (HoleExpression) iterator.next();
+            if(outputVar.getHoleType() != HoleExpression.HoleType.FIELD_OUTPUT) continue;
+            if(isSameField(ti, sf, holeExpression, outputVar, finalHashMap)) {
+                Expression thisOutputVar = new Operation(Operation.Operator.IMPLIES, outputVar.getFieldInfo().PLAssign,
+                        new Operation(Operation.Operator.EQ, finalValue, outputVar.getFieldInfo().writeValue));
+                if(ret == null)
+                    ret = thisOutputVar;
+                else ret = new Operation(Operation.Operator.AND, ret, thisOutputVar);
+            }
+        }
+        Expression prevAssign = new Operation(Operation.Operator.IMPLIES,
+                new Operation(Operation.Operator.NOT, holeExpression.getFieldInfo().PLAssign),
+                new Operation(Operation.Operator.EQ, finalValue, prevValue));
+        if(ret == null) return prevAssign;
+        else return new Operation(Operation.Operator.AND, ret, prevAssign);
+    }
+
+    /*
+    Have we previously resolved field outputs to the field output hole in holeExpression ?
+     */
+    private boolean isFieldOutputComplete(ThreadInfo ti, StackFrame sf,
+                                          LinkedHashMap<Expression, Expression> finalHashMap,
+                                          ArrayList<HoleExpression> completedFieldOutputs,
+                                          HoleExpression holeExpression) {
+        assert(holeExpression.getHoleType() == HoleExpression.HoleType.FIELD_OUTPUT);
+        HoleExpression.FieldInfo f = holeExpression.getFieldInfo();
+        for(int i=0; i < completedFieldOutputs.size(); i++) {
+            if(isSameField(ti, sf, holeExpression, completedFieldOutputs.get(i), finalHashMap)) return true;
+        }
+        return false;
+    }
+
+    private boolean isSameField(ThreadInfo ti, StackFrame sf, HoleExpression holeExpression,
+                                HoleExpression holeExpression1, LinkedHashMap<Expression, Expression> finalHashMap) {
+        HoleExpression.FieldInfo f1 = holeExpression1.getFieldInfo();
+        HoleExpression.FieldInfo f = holeExpression.getFieldInfo();
+        if(!f1.fieldClassName.equals(f.fieldClassName) ||
+                !f1.fieldName.equals(f.fieldName) ||
+                (f1.isStaticField != f.isStaticField)) return false;
+        int objRef1 = getObjRef(ti, sf, holeExpression, finalHashMap);
+        int objRef2 = getObjRef(ti, sf, holeExpression1, finalHashMap);
+        if(objRef1 != objRef2) return false;
+        else return true;
     }
 
     private gov.nasa.jpf.symbc.numeric.Expression GreenToSPFExpression(Expression greenExpression) {
@@ -628,32 +694,9 @@ public class VeritestingListener extends PropertyListenerAdapter implements Publ
                                                         gov.nasa.jpf.symbc.numeric.Expression finalValue) {
         HoleExpression.FieldInfo fieldInputInfo = holeExpression.getFieldInfo();
         final boolean isStatic = fieldInputInfo.isStaticField;
-        int objRef = -1;
-        //get the object reference from fieldInputInfo.use's local stack slot if not from the call site stack slot
-        int stackSlot = -1;
-        if(ti.getTopFrame().getClassInfo().getName().equals(holeExpression.getClassName()) &&
-                ti.getTopFrame().getMethodInfo().getName().equals(holeExpression.getMethodName()))
-            stackSlot = fieldInputInfo.localStackSlot;
-        else {
-            stackSlot = fieldInputInfo.callSiteStackSlot;
-            if(stackSlot == -1 && !fieldInputInfo.isStaticField)
-                assert(false);
-        }
-        //this field is being loaded from an object reference that is itself a hole
-        // this object reference hole should be filled already because holes are stored in a LinkedHashMap
-        // that keeps holes in the order they were created while traversing the WALA IR
-        if(stackSlot == -1 && !fieldInputInfo.isStaticField) {
-            gov.nasa.jpf.symbc.numeric.Expression objRefExpression =
-                    GreenToSPFExpression(retHoleHashMap.get(fieldInputInfo.useHole));
-            assert(objRefExpression instanceof IntegerConstant);
-            objRef = ((IntegerConstant) objRefExpression).value();
-        }
-        if (!isStatic && (stackSlot != -1)) {
-            objRef = stackFrame.getLocalVariable(stackSlot);
-            assert(objRef != 0);
-            //load the class name dynamically based on the object reference
-            fieldInputInfo.className = ti.getClassInfo(objRef).getName();
-        }
+        int objRef = getObjRef(ti, stackFrame, holeExpression, retHoleHashMap);
+        //load the class name dynamically based on the object reference
+        if(objRef != -1) fieldInputInfo.fieldClassName = ti.getClassInfo(objRef).getName();
         if (objRef == 0) {
             System.out.println("java.lang.NullPointerException" + "referencing field '" +
                     fieldInputInfo.fieldName + "' on null object");
@@ -661,7 +704,7 @@ public class VeritestingListener extends PropertyListenerAdapter implements Publ
         } else {
             ClassInfo ci;
             try {
-                ci = ClassLoaderInfo.getCurrentResolvedClassInfo(fieldInputInfo.className);
+                ci = ClassLoaderInfo.getCurrentResolvedClassInfo(fieldInputInfo.fieldClassName);
             } catch (ClassInfoException e) {
                 return null;
             }
@@ -708,6 +751,37 @@ public class VeritestingListener extends PropertyListenerAdapter implements Publ
             }
         }
         return null;
+    }
+
+    public int getObjRef(ThreadInfo ti, StackFrame stackFrame, HoleExpression holeExpression,
+                          LinkedHashMap<Expression, Expression> retHoleHashMap) {
+        int objRef = -1;
+        //get the object reference from fieldInputInfo.use's local stack slot if not from the call site stack slot
+        int stackSlot = -1;
+        HoleExpression.FieldInfo fieldInputInfo = holeExpression.getFieldInfo();
+        boolean isStatic = fieldInputInfo.isStaticField;
+        if(ti.getTopFrame().getClassInfo().getName().equals(holeExpression.getClassName()) &&
+                ti.getTopFrame().getMethodInfo().getName().equals(holeExpression.getMethodName()))
+            stackSlot = fieldInputInfo.localStackSlot;
+        else {
+            stackSlot = fieldInputInfo.callSiteStackSlot;
+            if(stackSlot == -1 && !fieldInputInfo.isStaticField)
+                assert(false);
+        }
+        //this field is being loaded from an object reference that is itself a hole
+        // this object reference hole should be filled already because holes are stored in a LinkedHashMap
+        // that keeps holes in the order they were created while traversing the WALA IR
+        if(stackSlot == -1 && !fieldInputInfo.isStaticField) {
+            gov.nasa.jpf.symbc.numeric.Expression objRefExpression =
+                    GreenToSPFExpression(retHoleHashMap.get(fieldInputInfo.useHole));
+            assert(objRefExpression instanceof IntegerConstant);
+            objRef = ((IntegerConstant) objRefExpression).value();
+        }
+        if (!isStatic && (stackSlot != -1)) {
+            objRef = stackFrame.getLocalVariable(stackSlot);
+            assert(objRef != 0);
+        }
+        return objRef;
     }
 
     private class InstructionInfo {
@@ -909,10 +983,11 @@ public class VeritestingListener extends PropertyListenerAdapter implements Publ
                                 if (methodKeyHoleFieldInfo.localStackSlot == 0) {
                                     assert (callSiteInfo.paramList.size() > 0);
                                     methodKeyHoleFieldInfo.callSiteStackSlot = ((HoleExpression) callSiteInfo.paramList.get(0)).getLocalStackSlot();
-                                    methodKeyHole.setFieldInfo(methodKeyHoleFieldInfo.className, methodKeyHoleFieldInfo.fieldName,
+                                    methodKeyHole.setFieldInfo(methodKeyHoleFieldInfo.fieldClassName, methodKeyHoleFieldInfo.fieldName,
                                             methodKeyHoleFieldInfo.methodName,
                                             methodKeyHoleFieldInfo.localStackSlot, methodKeyHoleFieldInfo.callSiteStackSlot, methodKeyHoleFieldInfo.writeValue,
-                                            methodKeyHoleFieldInfo.isStaticField, methodKeyHoleFieldInfo.useHole);
+                                            methodKeyHoleFieldInfo.isStaticField, methodKeyHoleFieldInfo.useHole,
+                                            methodKeyHoleFieldInfo.PLAssign);
                                 } else return true;
                             }
                             //populateOutputs does not use the value mapped to methodKeyHole for FIELD_OUTPUT holes

@@ -2,10 +2,10 @@ package gov.nasa.jpf.symbc.veritesting;
 
 import com.ibm.wala.types.TypeReference;
 import za.ac.sun.cs.green.expr.Expression;
+import za.ac.sun.cs.green.expr.Operation;
 import za.ac.sun.cs.green.expr.Visitor;
 import za.ac.sun.cs.green.expr.VisitorException;
 
-import java.lang.reflect.Array;
 import java.util.List;
 
 public class HoleExpression extends za.ac.sun.cs.green.expr.Expression{
@@ -30,6 +30,7 @@ public class HoleExpression extends za.ac.sun.cs.green.expr.Expression{
     //these fields are important to know the context in which the hole is being used
     //if a local variable field is used to fill in a method summary being used then the globalStackSlot will be used
     // and needs to be set to a value other than -1
+    //className and methodName will point to the className and methodName of the region for which this hole was created
     private String className=null, methodName=null;
 
     @Override
@@ -80,7 +81,7 @@ public class HoleExpression extends za.ac.sun.cs.green.expr.Expression{
     public String toString() {
         String ret = new String();
         ret += "(type = " + holeType + ", name = " + holeVarName;
-        ret += ", className = " + className + ", methodName = " + methodName;
+        ret += ", fieldClassName = " + className + ", methodName = " + methodName;
         switch (holeType) {
             case LOCAL_INPUT:
             case LOCAL_OUTPUT:
@@ -230,8 +231,22 @@ public class HoleExpression extends za.ac.sun.cs.green.expr.Expression{
     }
     protected int localStackSlot = -1;
 
-    public void setFieldInfo(String className, String fieldName, String methodName, int localStackSlot, int callSiteStackSlot,
-                             Expression writeExpr, boolean isStaticField, HoleExpression useHole) {
+    public void setFieldInfo(FieldInfo f) {
+        assert(holeType == HoleType.FIELD_INPUT || holeType == HoleType.FIELD_OUTPUT);
+        //the object reference should either be local, come from another hole, or this field should be static
+        assert((f.localStackSlot != -1 || f.callSiteStackSlot != -1) || (f.useHole != null) || f.isStaticField);
+        if(holeType == HoleType.FIELD_OUTPUT) {
+            assert (f.writeValue != null);
+            assert (f.writeValue instanceof HoleExpression);
+            assert (((HoleExpression)f.writeValue).getHoleType() == HoleType.INTERMEDIATE);
+        }
+        if(holeType == HoleType.FIELD_INPUT) assert(f.writeValue == null);
+        fieldInfo = new FieldInfo(f.fieldClassName, f.fieldName, methodName, localStackSlot, f.callSiteStackSlot, f.writeValue,
+                f.isStaticField, f.useHole, f.PLAssign);
+    }
+
+    public void setFieldInfo(String fieldClassName, String fieldName, String methodName, int localStackSlot, int callSiteStackSlot,
+                             Expression writeExpr, boolean isStaticField, HoleExpression useHole, Expression PLAssign) {
         assert(holeType == HoleType.FIELD_INPUT || holeType == HoleType.FIELD_OUTPUT);
         //the object reference should either be local, come from another hole, or this field should be static
         assert((localStackSlot != -1 || callSiteStackSlot != -1) || (useHole != null) || isStaticField);
@@ -241,7 +256,8 @@ public class HoleExpression extends za.ac.sun.cs.green.expr.Expression{
             assert (((HoleExpression)writeExpr).getHoleType() == HoleType.INTERMEDIATE);
         }
         if(holeType == HoleType.FIELD_INPUT) assert(writeExpr == null);
-        fieldInfo = new FieldInfo(className, fieldName, methodName, localStackSlot, callSiteStackSlot, writeExpr, isStaticField, useHole);
+        fieldInfo = new FieldInfo(fieldClassName, fieldName, methodName, localStackSlot, callSiteStackSlot, writeExpr,
+                isStaticField, useHole, PLAssign);
     }
 
     public FieldInfo getFieldInfo() {
@@ -295,26 +311,29 @@ public class HoleExpression extends za.ac.sun.cs.green.expr.Expression{
 
     public class FieldInfo {
         public final String methodName;
-        public String className, fieldName;
+        public Expression PLAssign;
+        public String fieldClassName, fieldName;
         public int localStackSlot = -1, callSiteStackSlot = -1;
         public Expression writeValue = null;
         public boolean isStaticField = false;
         public HoleExpression useHole = null;
 
-        public FieldInfo(String className, String fieldName, String methodName, int localStackSlot, int callSiteStackSlot,
-                         Expression writeValue, boolean isStaticField, HoleExpression useHole) {
+        public FieldInfo(String fieldClassName, String fieldName, String methodName, int localStackSlot, int callSiteStackSlot,
+                         Expression writeValue, boolean isStaticField, HoleExpression useHole, Expression PLAssign) {
             this.localStackSlot = localStackSlot;
             this.callSiteStackSlot = callSiteStackSlot;
-            this.className = className;
+            this.fieldClassName = fieldClassName;
             this.fieldName = fieldName;
             this.methodName = methodName;
             this.writeValue = writeValue;
             this.isStaticField = isStaticField;
             this.useHole = useHole;
+            assert(PLAssign == null || PLAssign instanceof Operation);
+            this.PLAssign = PLAssign;
         }
 
         public String toString() {
-            String ret = "currentClassName = " + className + ", fieldName = " + fieldName +
+            String ret = "currentClassName = " + fieldClassName + ", fieldName = " + fieldName +
                     ", stackSlots (local = " + localStackSlot + ", callSite = " + callSiteStackSlot;
             if(writeValue != null) ret += ", writeValue (" + writeValue.toString() + ")";
             ret += ", isStaticField = " + isStaticField;
@@ -326,16 +345,29 @@ public class HoleExpression extends za.ac.sun.cs.green.expr.Expression{
         public boolean equals(Object o) {
             if(!(o instanceof FieldInfo) || o == null) return false;
             FieldInfo fieldInfo1 = (FieldInfo) o;
-            if(!fieldInfo1.className.equals(this.className) ||
+            if(!isSamePLAssign(fieldInfo1.PLAssign)) return false;
+            if(!equalsNoPlAssign(fieldInfo1))
+                return false;
+            else return true;
+        }
+
+        public boolean equalsNoPlAssign(FieldInfo fieldInfo1) {
+            if(!fieldInfo1.fieldClassName.equals(this.fieldClassName) ||
                     !fieldInfo1.fieldName.equals(this.fieldName) ||
                     !fieldInfo1.methodName.equals(this.methodName) ||
                     fieldInfo1.localStackSlot != this.localStackSlot ||
                     fieldInfo1.callSiteStackSlot != this.callSiteStackSlot ||
                     (fieldInfo1.writeValue != null && this.writeValue != null && !fieldInfo1.writeValue.equals(this.writeValue)) ||
                     (fieldInfo1.isStaticField != this.isStaticField) ||
-                    (fieldInfo1.useHole!= null && !fieldInfo1.useHole.equals(this.useHole)))
-                return false;
+                    (fieldInfo1.useHole!= null && !fieldInfo1.useHole.equals(this.useHole))) return false;
             else return true;
+        }
+
+        public boolean isSamePLAssign(Expression plAssign1) {
+            if(this.PLAssign == null && plAssign1 == null) return true;
+            if(this.PLAssign == null && plAssign1 != null) return false;
+            if(this.PLAssign != null && plAssign1 == null) return false;
+            return (this.PLAssign.equals(plAssign1));
         }
     }
 

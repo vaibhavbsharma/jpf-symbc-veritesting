@@ -289,7 +289,7 @@ public class VeritestingMain {
                         new Operation(Operation.Operator.AND, condition, thenExpr),
                         new Operation(Operation.Operator.AND, negCondition, elseExpr));
 
-        MyIVisitor myIVisitor = new MyIVisitor(varUtil, thenUseNum, elseUseNum, true);
+        MyIVisitor myIVisitor = new MyIVisitor(varUtil, thenUseNum, elseUseNum, true, null);
         //TODO there could be multiple outputs of this region, keep going until you don't find any more Phi's
         Expression phiExprSPF, finalPathExpr = pathExpr1;
         Iterator<SSAInstruction> iterator = commonSucc.iterator();
@@ -368,10 +368,10 @@ public class VeritestingMain {
                 ISSABasicBlock thenPred = thenUnit, elsePred = elseUnit;
                 int thenUseNum = -1, elseUseNum = -1;
                 Expression pathLabel = varUtil.makeIntermediateVar(pathLabelString, true);
-                final Expression thenPLAssignSPF =
+                final Expression thenPLAssign =
                         new Operation(Operation.Operator.EQ, pathLabel,
                                 new IntConstant(thenPathLabel));
-                final Expression elsePLAssignSPF =
+                final Expression elsePLAssign =
                         new Operation(Operation.Operator.EQ, pathLabel,
                                 new IntConstant(elsePathLabel));
                 boolean canVeritest = true;
@@ -403,7 +403,7 @@ public class VeritestingMain {
                         if(VeritestingListener.veritestingRegions.containsKey(key)) {
                             System.out.println("Veritested inner region with key = " + key);
                             //visit all instructions up to and including the condition
-                            BlockSummary blockSummary = new BlockSummary(thenUnit, thenExpr, canVeritest, isPhithenUnit).invoke();
+                            BlockSummary blockSummary = new BlockSummary(thenUnit, thenExpr, canVeritest, isPhithenUnit, thenPLAssign).invoke();
                             canVeritest = blockSummary.isCanVeritest();
                             thenExpr = blockSummary.getExpression();
                             Expression conditionExpression = blockSummary.getIfExpression();
@@ -423,10 +423,20 @@ public class VeritestingMain {
                                 varUtil.defLocalVars.add(e);
                             }
                             for(Map.Entry<Expression, Expression> entry: innerRegion.getHoleHashMap().entrySet()) {
-                                varUtil.holeHashMap.put(entry.getKey(), entry.getValue());
+
                                 if(((HoleExpression)entry.getKey()).getHoleType() == HoleExpression.HoleType.CONDITION ||
                                         ((HoleExpression)entry.getKey()).getHoleType() == HoleExpression.HoleType.NEGCONDITION)
-                                    varUtil.holeHashMap.remove(entry.getKey());
+                                    continue;
+                                if(((HoleExpression)entry.getKey()).getHoleType() == HoleExpression.HoleType.FIELD_OUTPUT) {
+                                    HoleExpression holeExpression = (HoleExpression) entry.getKey();
+                                    HoleExpression.FieldInfo f = holeExpression.getFieldInfo();
+                                    //TODO make a recursive copy of f.PLAssign instead of modifying it in place
+                                    // because this modifies PLAssign for the hole in the inner region too
+                                    f.PLAssign = new Operation(Operation.Operator.AND, f.PLAssign, thenPLAssign);
+                                    HoleExpression h = new HoleExpression(varUtil.nextInt(), currentClassName, currentMethodName);
+                                    h.setFieldInfo(f);
+                                }
+                                varUtil.holeHashMap.put(entry.getKey(), entry.getValue());
                             }
                             Expression thenExpr1 = innerRegion.getSummaryExpression();
                             thenExpr1 = replaceCondition(thenExpr1, conditionExpression);
@@ -444,7 +454,7 @@ public class VeritestingMain {
                         } else canVeritest = false;
                     }
                     if (!canVeritest || thenUnit == commonSucc) break;
-                    BlockSummary blockSummary = new BlockSummary(thenUnit, thenExpr, canVeritest, isPhithenUnit, pathLabelString, thenPathLabel).invoke();
+                    BlockSummary blockSummary = new BlockSummary(thenUnit, thenExpr, canVeritest, isPhithenUnit, pathLabelString, thenPathLabel, thenPLAssign).invoke();
                     canVeritest = blockSummary.isCanVeritest();
                     thenExpr = blockSummary.getExpression();
                     //we should not encounter a BB with more than one successor at this point
@@ -496,7 +506,7 @@ public class VeritestingMain {
                         if(VeritestingListener.veritestingRegions.containsKey(key)) {
                             System.out.println("Veritested inner region with key = " + key);
                             //visit all instructions up to and including the condition
-                            BlockSummary blockSummary = new BlockSummary(elseUnit, elseExpr, canVeritest, isPhielseUnit).invoke();
+                            BlockSummary blockSummary = new BlockSummary(elseUnit, elseExpr, canVeritest, isPhielseUnit, elsePLAssign).invoke();
                             canVeritest = blockSummary.isCanVeritest();
                             elseExpr = blockSummary.getExpression();
                             Expression conditionExpression = blockSummary.getIfExpression();
@@ -540,7 +550,7 @@ public class VeritestingMain {
                         } else canVeritest = false;
                     }
                     if (!canVeritest || elseUnit == commonSucc) break;
-                    BlockSummary blockSummary = new BlockSummary(elseUnit, elseExpr, canVeritest, isPhielseUnit, pathLabelString, elsePathLabel).invoke();
+                    BlockSummary blockSummary = new BlockSummary(elseUnit, elseExpr, canVeritest, isPhielseUnit, pathLabelString, elsePathLabel, elsePLAssign).invoke();
                     canVeritest = blockSummary.isCanVeritest();
                     elseExpr = blockSummary.getExpression();
                     //we should not encounter a BB with more than one successor at this point
@@ -574,7 +584,7 @@ public class VeritestingMain {
                     if(elsePred != null)
                         elseUseNum = Util.whichPred(cfg, elsePred, commonSucc);
                     VeritestingRegion veritestingRegion = constructVeritestingRegion(thenExpr, elseExpr,
-                            thenPLAssignSPF, elsePLAssignSPF,
+                            thenPLAssign, elsePLAssign,
                             currUnit, commonSucc,
                             thenUseNum, elseUseNum, summarizedRegionStartBB);
                     if (veritestingRegion != null) {
@@ -672,7 +682,7 @@ public class VeritestingMain {
             ISSABasicBlock commonSucc = cfg.getIPdom(currUnit.getNumber());
             if (succs.size() == 1 || succs.size() == 0) {
                 //Assuming that it would be ok to visit a BB that starts with a phi expression
-                BlockSummary blockSummary = new BlockSummary(currUnit, methodExpression, canVeritestMethod, false).invoke();
+                BlockSummary blockSummary = new BlockSummary(currUnit, methodExpression, canVeritestMethod, false, null).invoke();
                 canVeritestMethod = blockSummary.isCanVeritest();
                 methodExpression = blockSummary.getExpression();
                 assert(blockSummary.getIfExpression() == null);
@@ -697,7 +707,7 @@ public class VeritestingMain {
             }
             else if (succs.size() == 2) {
                 //Summarize instructions before the condition
-                BlockSummary blockSummary = new BlockSummary(currUnit, methodExpression, canVeritestMethod, false).invoke();
+                BlockSummary blockSummary = new BlockSummary(currUnit, methodExpression, canVeritestMethod, false, null).invoke();
                 canVeritestMethod = blockSummary.isCanVeritest();
                 methodExpression = blockSummary.getExpression();
                 Expression conditionExpression = blockSummary.getIfExpression();
@@ -763,6 +773,7 @@ public class VeritestingMain {
     }
 
     private class BlockSummary {
+        private final Expression PLAssign;
         private int pathLabel =-1;
         private String pathLabelString = null;
         private ISSABasicBlock unit;
@@ -778,20 +789,24 @@ public class VeritestingMain {
         private boolean canVeritest;
         private boolean isPhiUnit;
 
-        public BlockSummary(ISSABasicBlock thenUnit, Expression thenExpr, boolean canVeritest, boolean isPhithenUnit) {
+        public BlockSummary(ISSABasicBlock thenUnit, Expression thenExpr, boolean canVeritest, boolean isPhithenUnit,
+                            Expression PLAssign) {
             this.unit = thenUnit;
             this.expression = thenExpr;
             this.canVeritest = canVeritest;
             this.isPhiUnit = isPhithenUnit;
+            this.PLAssign = PLAssign;
         }
 
-        public BlockSummary(ISSABasicBlock thenUnit, Expression thenExpr, boolean canVeritest, boolean isPhithenUnit, String pathLabelString, int pathLabel ) {
+        public BlockSummary(ISSABasicBlock thenUnit, Expression thenExpr, boolean canVeritest, boolean isPhithenUnit,
+                            String pathLabelString, int pathLabel, Expression PLAssign ) {
             this.unit = thenUnit;
             this.expression = thenExpr;
             this.canVeritest = canVeritest;
             this.isPhiUnit = isPhithenUnit;
             this.pathLabelString = pathLabelString;
             this.pathLabel = pathLabel;
+            this.PLAssign = PLAssign;
         }
 
         public Expression getExpression() {
@@ -812,7 +827,7 @@ public class VeritestingMain {
                 assert(ssaInstructionIterator.next() instanceof SSAPhiInstruction);
             }
             while (ssaInstructionIterator.hasNext()) {
-                myIVisitor = new MyIVisitor(varUtil, -1, -1, false, pathLabelString, pathLabel);
+                myIVisitor = new MyIVisitor(varUtil, -1, -1, false, pathLabelString, pathLabel, PLAssign);
                 ssaInstructionIterator.next().visit(myIVisitor);
 
                 if (!myIVisitor.canVeritest()) {
