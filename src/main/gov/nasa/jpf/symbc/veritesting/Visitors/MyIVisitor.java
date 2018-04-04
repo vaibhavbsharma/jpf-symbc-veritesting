@@ -99,21 +99,22 @@ public class MyIVisitor implements SSAInstruction.IVisitor {
         lastInstruction = instruction;
         int lhs = instruction.getDef();
         Expression lhsExpr = varUtil.makeIntermediateVar(lhs);
-        Expression arrayLoadResult = new IntVariable("arrayLoadResult", Integer.MIN_VALUE, Integer.MAX_VALUE);
+        // Expression arrayLoadResult = new IntVariable("arrayLoadResult", Integer.MIN_VALUE, Integer.MAX_VALUE);
         int arrayRef = instruction.getUse(0);
         int arrayIndex = instruction.getUse(1);
         TypeReference arrayType = instruction.getElementType();
         Expression arrayRefHole = varUtil.addVal(arrayRef);
         Expression arrayIndexHole = varUtil.addVal(arrayIndex);
+        Expression arrayLoadHole = varUtil.addArrayLoadVal(arrayRefHole, arrayIndexHole, lhsExpr, arrayType, HoleExpression.HoleType.ARRAYLOAD, instruction, pathLabelHole);
 
-        // MWW: new code!
-        ArrayBoundsReason reason = new ArrayBoundsReason(arrayRefHole, arrayIndexHole);
+        // MWW: new code!  TODO: get rid of arrayRefHole and arrayIndexHole: they are discoverable.
+        ArrayBoundsReason reason = new ArrayBoundsReason(arrayRefHole, arrayIndexHole, arrayLoadHole);
         SPFCase c = new SPFCase(pathLabelHole, reason);
         varUtil.addSpfCase(c);
         // MWW: end new code!
-
-        Expression arrayLoadHole = varUtil.addArrayLoadVal(arrayRefHole, arrayIndexHole,arrayType, HoleExpression.HoleType.ARRAYLOAD, instruction, pathLabelHole);
-        SPFExpr = new Operation(Operator.IMPLIES, arrayLoadHole, new Operation(Operator.EQ, lhsExpr, arrayLoadResult));
+        // SPFExpr will be handled
+        // SPFExpr = new Operation(Operator.IMPLIES, arrayLoadResult, new Operation(Operator.EQ, lhsExpr, arrayLoadResult));
+        SPFExpr = arrayLoadHole;
        canVeritest = true;
     }
 
@@ -138,7 +139,7 @@ public class MyIVisitor implements SSAInstruction.IVisitor {
         int operand2 = instruction.getUse(1);
         //variables written to in a veritesting region will always become intermediates because they will be
         //phi'd at the end of the region or be written into a class field later
-        //lhsExpr will also be a intermediate variable if we are summarizing a method
+        //lhsExpr will also be a lhsExpr variable if we are summarizing a method
         Expression lhsExpr = varUtil.makeIntermediateVar(lhs);
         Expression operand1Expr = varUtil.addVal(operand1);
         Expression operand2Expr = varUtil.addVal(operand2);
@@ -436,7 +437,7 @@ public class MyIVisitor implements SSAInstruction.IVisitor {
             assert (varUtil.getIr().getSymbolTable().isConstant(instruction.getDef(0)) == false);
         }
         canVeritest = true;
-        //while other instructions may also update local variables, those should always become intermediate variables
+        //while other instructions may also update local variables, those should always become lhsExpr variables
     }
 
     @Override

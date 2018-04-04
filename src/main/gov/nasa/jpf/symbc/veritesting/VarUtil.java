@@ -397,7 +397,7 @@ public class VarUtil {
     }
 
     public Expression addDefVal(int def) {
-        //this assumes that we dont need to do anything special for intermediate vars defined in a region
+        //this assumes that we dont need to do anything special for lhsExpr vars defined in a region
         if(isLocalVariable(def)) {
             return makeLocalOutputVar(def);
         }
@@ -412,12 +412,12 @@ public class VarUtil {
         return ret;
     }*/
 
-    public Expression addArrayLoadVal(Expression arrayRef, Expression arrayIndex, TypeReference arrayType, HoleExpression.HoleType holeType, SSAArrayLoadInstruction instructionName, Expression pathLabelHole) {
+    public Expression addArrayLoadVal(Expression arrayRef, Expression arrayIndex, Expression lhsSide, TypeReference arrayType, HoleExpression.HoleType holeType, SSAArrayLoadInstruction instructionName, Expression pathLabelHole) {
         assert(holeType == HoleExpression.HoleType.ARRAYLOAD);
         HoleExpression holeExpression = new HoleExpression(nextInt());
         holeExpression.setHoleVarName(instructionName.toString());
         holeExpression.setHole(true, holeType);
-        holeExpression.setArrayInfo(arrayRef, arrayIndex, arrayType, pathLabelHole);
+        holeExpression.setArrayInfo(arrayRef, arrayIndex, lhsSide, arrayType, pathLabelHole);
         varCache.put(holeExpression.getHoleVarName(), holeExpression);
         holeExpression.toString();
         return holeExpression;

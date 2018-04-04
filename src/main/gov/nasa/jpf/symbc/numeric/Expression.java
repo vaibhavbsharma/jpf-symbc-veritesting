@@ -55,7 +55,7 @@ public abstract class Expression implements Comparable<Expression> {
 	public enum HoleType {
 		LOCAL_INPUT("local_input"),
 		LOCAL_OUTPUT("local_output"),
-		INTERMEDIATE("intermediate"),
+		INTERMEDIATE("lhsExpr"),
 		NONE ("none"),
 		CONDITION("condition"),
 		NEGCONDITION("negcondition"),

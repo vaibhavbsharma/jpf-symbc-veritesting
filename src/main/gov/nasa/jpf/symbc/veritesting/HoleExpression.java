@@ -1,12 +1,10 @@
 package gov.nasa.jpf.symbc.veritesting;
 
 import com.ibm.wala.types.TypeReference;
-import ia_parser.Exp;
 import za.ac.sun.cs.green.expr.Expression;
 import za.ac.sun.cs.green.expr.Visitor;
 import za.ac.sun.cs.green.expr.VisitorException;
 
-import java.lang.reflect.Array;
 import java.util.List;
 
 // MWW - arrayInfoHole is only used for one kind of hole.
@@ -144,7 +142,7 @@ public class HoleExpression extends za.ac.sun.cs.green.expr.Expression{
     public enum HoleType {
         LOCAL_INPUT("local_input"),
         LOCAL_OUTPUT("local_output"),
-        INTERMEDIATE("intermediate"),
+        INTERMEDIATE("lhsExpr"),
         NONE ("none"),
         CONDITION("condition"),
         NEGCONDITION("negcondition"),
@@ -212,18 +210,20 @@ public class HoleExpression extends za.ac.sun.cs.green.expr.Expression{
     }
 
     public ArrayInfoHole getArrayInfo() {return  arrayInfoHole;}
-    public void setArrayInfo(Expression arrayRef, Expression arrayIndex, TypeReference arrayType, Expression pathLabelHole){
+    public void setArrayInfo(Expression arrayRef, Expression arrayIndex, Expression lhsExpr,  TypeReference arrayType, Expression pathLabelHole){
         assert(this.isHole && this.holeType== HoleType.ARRAYLOAD);
-        arrayInfoHole = new ArrayInfoHole(arrayRef, arrayIndex, arrayType, pathLabelHole);
+        arrayInfoHole = new ArrayInfoHole(arrayRef, arrayIndex, lhsExpr, arrayType, pathLabelHole);
     }
 
     public class ArrayInfoHole{
-        public Expression arrayRefHole,arrayIndexHole;
+        public Expression arrayRefHole, arrayIndexHole, lhsExpr;
         public TypeReference arrayType;
         Expression pathLabelHole;
+        int length;
 
-        public ArrayInfoHole(Expression arrayRef, Expression arrayIndex, TypeReference arrayType, Expression pathLabelHole){
+        public ArrayInfoHole(Expression arrayRef, Expression arrayIndex, Expression lhsExpr, TypeReference arrayType, Expression pathLabelHole){
             this.arrayRefHole = arrayRef;
+            this.lhsExpr = lhsExpr;
             this.arrayIndexHole = arrayIndex;
             this.arrayType = arrayType;
             this.pathLabelHole = pathLabelHole;
@@ -233,6 +233,9 @@ public class HoleExpression extends za.ac.sun.cs.green.expr.Expression{
             return pathLabelHole;
         }
 
+        // instantiation information; transient.
+        public int length() { return length; }
+        public void setLength(int length) { this.length = length; }
 
         @Override
         public String toString() {

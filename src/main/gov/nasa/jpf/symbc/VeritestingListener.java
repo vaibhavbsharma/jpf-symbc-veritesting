@@ -628,33 +628,40 @@ public class VeritestingListener extends PropertyListenerAdapter implements Publ
                     HoleExpression.ArrayInfoHole arrayInfoHole = keyHoleExpression.getArrayInfo();
                     indexAttr =
                             (gov.nasa.jpf.symbc.numeric.Expression) stackFrame.getLocalAttr(((HoleExpression) (arrayInfoHole.arrayIndexHole)).getLocalStackSlot());
-                    switch (((HoleExpression) arrayInfoHole.arrayIndexHole).getHoleType()) {
+                    HoleExpression indexHole = (HoleExpression) arrayInfoHole.arrayIndexHole;
+                    HoleExpression arrayRefHole = ((HoleExpression) arrayInfoHole.arrayRefHole);
+
+                    switch (indexHole.getHoleType()) {
                         // what happens for field inputs?
                         // This code appears to be similar between both kinds of holes
                         case LOCAL_INPUT: //case array index is local input
-                            int arrayRef = stackFrame.getLocalVariable(((HoleExpression) arrayInfoHole.arrayRefHole).getLocalStackSlot());
-                            //int arrayRef = stackFrame.peek(((HoleExpression)arrayInfoHole.arrayRefHole).getLocalStackSlot());
+                            int arrayRef = stackFrame.getLocalVariable(arrayRefHole.getLocalStackSlot());
                             ElementInfo ei = ti.getElementInfo(arrayRef);
                             int arrayLength = ((ArrayFields) ei.getFields()).arrayLength();
+
+                            // MWW: modified to be able to extract array length from spfCase.
+                            arrayInfoHole.setLength(arrayLength);
+                            // MWW: end of modification.
+
                             TypeReference arrayType = arrayInfoHole.arrayType;
                             Expression pathLabelConstraint = arrayInfoHole.getPathLabelHole();
                             Expression arrayConstraint;
                             if (indexAttr == null) //attribute is null so index is concrete
                             {
                                 int indexVal = stackFrame.getLocalVariable(((HoleExpression) arrayInfoHole.arrayIndexHole).getLocalStackSlot());
-                                if (indexVal < 0 || indexVal >= arrayLength) //checking concerte index is out of bound
+                                if (indexVal < 0 || indexVal >= arrayLength) //checking concrete index is out of bound
                                     return true;
                                 int value = ei.getIntElement(indexVal);
                                 finalValueGreen = SPFToGreenExpr(new IntegerConstant(value));
-                                retHoleHashMap.put(keyHoleExpression, finalValueGreen);
                             } else { //index is symbolic - fun starts here :)
                                 finalValueGreen = SPFToGreenExpr(indexAttr);
+                                Expression lhsExpr = retHoleHashMap.get(arrayInfoHole.lhsExpr);
                                 Expression[] arraySymbConstraint = new Expression[arrayLength];
-                                Expression arrayLoadResult = new IntVariable("arrayLoadResult", Integer.MIN_VALUE, Integer.MAX_VALUE);
+                                //Expression arrayLoadResult = new IntVariable("arrayLoadResult", Integer.MIN_VALUE, Integer.MAX_VALUE);
                                 for (int i = 0; i < arrayLength; i++) {//constructing the symbolic index constraint
                                     Expression exp1 = new Operation(Operation.Operator.EQ, finalValueGreen, new IntConstant(i));
                                     int value = ei.getIntElement(i);
-                                    Expression exp2 = new Operation(Operation.Operator.EQ, arrayLoadResult, new IntConstant(value)); //loadArrayElement(ei, arrayType)
+                                    Expression exp2 = new Operation(Operation.Operator.EQ, lhsExpr, new IntConstant(value)); //loadArrayElement(ei, arrayType)
                                     arraySymbConstraint[i] = new Operation(Operation.Operator.IMPLIES, exp1, exp2);
                                 }
                                 arrayConstraint = unrollGreenOrConstraint(arraySymbConstraint);
@@ -1162,7 +1169,7 @@ public class VeritestingListener extends PropertyListenerAdapter implements Publ
                 assert (methodKeyHole.isHole());
                 switch (methodKeyHole.getHoleType()) {
                     //LOCAL_INPUTs can be mapped to parameters at the call site, non-parameter local inputs
-                    // need to be mapped to intermediate variables since we cannot create a stack for the summarized method
+                    // need to be mapped to lhsExpr variables since we cannot create a stack for the summarized method
                     case LOCAL_INPUT:
                         //get the latest value written into this local, not the value in the local at the beginning of
                         //this region
@@ -1186,7 +1193,7 @@ public class VeritestingListener extends PropertyListenerAdapter implements Publ
                                         methodKeyHole,
                                         callSiteInfo.paramList.get(methodLocalStackSlot)));
                             } else {
-                                //Local variables in the method summary should just become intermediate variables
+                                //Local variables in the method summary should just become lhsExpr variables
                                 gov.nasa.jpf.symbc.numeric.Expression finalValueSPF =
                                         makeSymbolicInteger(methodKeyHole.getHoleVarName() + pathLabelCount);
                                 Expression finalValueGreen = SPFToGreenExpr(finalValueSPF);
