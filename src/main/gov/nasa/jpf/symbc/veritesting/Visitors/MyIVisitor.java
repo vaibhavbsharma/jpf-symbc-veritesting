@@ -423,6 +423,7 @@ public class MyIVisitor implements SSAInstruction.IVisitor {
 
     @Override
     public void visitPhi(SSAPhiInstruction instruction) {
+        if(!isMeetVisitor) return;
         isPhiInstruction = true;
         System.out.println("SSAPhiInstruction = " + instruction);
         lastInstruction = instruction;

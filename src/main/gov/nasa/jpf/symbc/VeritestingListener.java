@@ -49,6 +49,7 @@ import za.ac.sun.cs.green.expr.Operation;
 
 import java.io.PrintWriter;
 import java.util.*;
+import gov.nasa.jpf.symbc.veritesting.StaticRegionException;
 
 public class VeritestingListener extends PropertyListenerAdapter implements PublisherExtension {
 
@@ -484,7 +485,7 @@ public class VeritestingListener extends PropertyListenerAdapter implements Publ
     // either all of them get written or none of them do and then SPF takes over
     private boolean populateOutputs(HashSet<Expression> outputVars,
                                     HashMap<Expression, Expression> holeHashMap,
-                                    StackFrame stackFrame, ThreadInfo ti) {
+                                    StackFrame stackFrame, ThreadInfo ti) throws StaticRegionException {
         for (Expression expression: outputVars) {
             Expression finalValue;
             assert (expression instanceof HoleExpression);
@@ -696,7 +697,10 @@ public class VeritestingListener extends PropertyListenerAdapter implements Publ
     }
 
 
-    private HashMap<Expression, Expression> fillInputHoles(HashMap<Expression, Expression> holeHashMap, StackFrame stackFrame, ThreadInfo ti, HashMap<Expression, Expression> retHoleHashMap) {
+    private HashMap<Expression, Expression> fillInputHoles(HashMap<Expression, Expression> holeHashMap,
+                                                           StackFrame stackFrame, ThreadInfo ti,
+                                                           HashMap<Expression, Expression> retHoleHashMap)
+            throws StaticRegionException {
         //resolve all input holes inside the current region's summary
         for (HashMap.Entry<Expression, Expression> entry : holeHashMap.entrySet()) {
             Expression key = entry.getKey(), finalValueGreen;
@@ -847,7 +851,7 @@ public class VeritestingListener extends PropertyListenerAdapter implements Publ
     gov.nasa.jpf.symbc.numeric.Expression fillFieldInputHole(
             ThreadInfo ti,
             StackFrame stackFrame,
-            HoleExpression.FieldInfo fieldInputInfo) {
+            HoleExpression.FieldInfo fieldInputInfo) throws StaticRegionException {
 
         boolean isStatic = fieldInputInfo.isStaticField;
         int objRef = -1;
@@ -864,7 +868,7 @@ public class VeritestingListener extends PropertyListenerAdapter implements Publ
             try {
                 ci = ClassLoaderInfo.getCurrentResolvedClassInfo(fieldInputInfo.className);
             } catch (ClassInfoException e) {
-                return null;
+                throw new StaticRegionException("fillFieldInputHole: class loader failed to resolve class name " + fieldInputInfo.className);
             }
             ElementInfo eiFieldOwner;
             if (!isStatic) eiFieldOwner = ti.getElementInfo(objRef);
@@ -897,7 +901,7 @@ public class VeritestingListener extends PropertyListenerAdapter implements Publ
     void fillFieldOutputHole(ThreadInfo ti,
                              StackFrame stackFrame,
                              HoleExpression.FieldInfo fieldInputInfo,
-                             gov.nasa.jpf.symbc.numeric.Expression finalValue) {
+                             gov.nasa.jpf.symbc.numeric.Expression finalValue) throws StaticRegionException {
         boolean isStatic = false;
         int objRef = -1;
         int stackSlot = fieldInputInfo.callSiteStackSlot;
@@ -909,7 +913,12 @@ public class VeritestingListener extends PropertyListenerAdapter implements Publ
                     fieldInputInfo.fieldName + "' on null object");
             assert (false);
         } else {
-            ClassInfo ci = ClassLoaderInfo.getCurrentResolvedClassInfo(fieldInputInfo.className);
+            ClassInfo ci;
+            try {
+                ci = ClassLoaderInfo.getCurrentResolvedClassInfo(fieldInputInfo.className);
+            } catch (ClassInfoException e) {
+                throw new StaticRegionException("fillFieldInputHole: class loader failed to resolve class name " + fieldInputInfo.className);
+            }
             ElementInfo eiFieldOwner;
             if (!isStatic) eiFieldOwner = ti.getModifiableElementInfo(objRef);
             else eiFieldOwner = ci.getModifiableStaticElementInfo();
@@ -1158,7 +1167,7 @@ public class VeritestingListener extends PropertyListenerAdapter implements Publ
             return paramEqList;
         }
 
-        public FillInputHolesMS invoke() {
+        public FillInputHolesMS invoke() throws StaticRegionException {
             gov.nasa.jpf.symbc.numeric.Expression spfExpr;
             Expression greenExpr;
             paramEqList = new ArrayList<>();
