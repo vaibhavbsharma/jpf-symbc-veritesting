@@ -12,9 +12,9 @@ package gov.nasa.jpf.symbc.veritesting.SPFCase;
  *  getInstantiatedSPFPredicate: which returns the instantiated predicate associated with
  *    the reason, or throws an exception if not instantiated.
  *
- * @author  Zara Ali
+ * @author  Mike Whalen
  * @version 1.0
- * @since   2014-03-31
+ * @since   2018-04-02
  */
 
 import gov.nasa.jpf.symbc.veritesting.StaticRegionException;
@@ -28,4 +28,6 @@ public interface SPFCaseReason {
     void simplify() throws StaticRegionException;
     Expression getInstantiatedSPFPredicate() throws StaticRegionException;
 
+    // Copy is a type-safe clone.
+    SPFCaseReason copy();
 }

@@ -124,6 +124,8 @@ public class VeritestingListener extends PropertyListenerAdapter implements Publ
                 Expression regionSummary;
                 try {
                     regionSummary = instantiateHoles(ti, region); // fill holes in region
+                    if (regionSummary == null)
+                        return; //problem filling holes, abort veritesting
                     newCG = makeVeritestingCG(region, regionSummary, ti);
                 } catch (StaticRegionException sre) {
                     System.out.println(sre.toString());
@@ -175,7 +177,8 @@ public class VeritestingListener extends PropertyListenerAdapter implements Publ
 
     private VeriPCChoiceGenerator makeVeritestingCG(VeritestingRegion region, Expression regionSummary, ThreadInfo ti) throws StaticRegionException {
 
-        VeriPCChoiceGenerator cg = new VeriPCChoiceGenerator(4); //including a choice for nominal case
+        // TODO: set up case for 'returns': set cg size to 4 afterwards.
+        VeriPCChoiceGenerator cg = new VeriPCChoiceGenerator(3); //including a choice for nominal case
         PathCondition pc = ((PCChoiceGenerator) ti.getVM().getSystemState().getChoiceGenerator()).getCurrentPC();
 
         cg.setPC(createPC(pc, regionSummary, region.staticNominalPredicate()), 0);
@@ -281,7 +284,8 @@ public class VeritestingListener extends PropertyListenerAdapter implements Publ
             finalSummaryExpression = new Operation(Operation.Operator.AND, summaryExpression, fillHolesOutput.additionalAST);
         FillAstHoleVisitor visitor = new FillAstHoleVisitor(fillHolesOutput.holeHashMap);
         finalSummaryExpression = visitor.visit(finalSummaryExpression); //not constant-folding for now
-        region.instantiate(fillHolesOutput.holeHashMap);
+        region.getSpfCases().instantiate(fillHolesOutput.holeHashMap);
+        region.getSpfCases().simplify();
         // exitTransitionsFillASTHoles(fillHolesOutput.holeHashMap);
 
         // pc._addDet(new GreenConstraint(finalSummaryExpression));

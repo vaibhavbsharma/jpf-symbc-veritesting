@@ -41,6 +41,7 @@ import com.ibm.wala.util.graph.impl.GraphInverter;
 import com.ibm.wala.util.io.FileProvider;
 import com.ibm.wala.util.strings.StringStuff;
 import gov.nasa.jpf.symbc.VeritestingListener;
+import gov.nasa.jpf.symbc.veritesting.SPFCase.SPFCaseList;
 import gov.nasa.jpf.symbc.veritesting.Visitors.MyIVisitor;
 import x10.wala.util.NatLoop;
 import x10.wala.util.NatLoopSolver;
@@ -331,6 +332,10 @@ public class VeritestingMain {
         veritestingRegion.setHoleHashMap(hashMap);
         veritestingRegion.setSummarizedRegionStartBB(summarizedRegionStartBB);
 
+        // MWW: adding the spfCases
+        veritestingRegion.setSpfCases(varUtil.getSpfCases());
+        // MWW: end addition
+
         pathLabelVarNum++;
         return veritestingRegion;
     }
@@ -341,6 +346,8 @@ public class VeritestingMain {
 
     // What can we tease apart here?
     //
+    // For one thing, we should simply construct a new varUtil each time this method is called; when
+    // we recursively invoke it, we just save off the entire structure rather than do it piecemeal.
 
     public void doAnalysis(ISSABasicBlock startingUnit, ISSABasicBlock endingUnit) throws InvalidClassFileException {
         //System.out.println("Starting doAnalysis");
@@ -363,6 +370,9 @@ public class VeritestingMain {
             } else if (succs.size() == 2 && !startingPointsHistory.contains(currUnit)) {
                 startingPointsHistory.add(currUnit);
                 //fix this varUtil reset because it screws up varUtil.holeHashMap
+
+                // MWW: why is this reset here?  Why does it not occur prior to the
+                // other recursive call for doAnalysis?
                 varUtil.reset();
 
                 ISSABasicBlock thenUnit = Util.getTakenSuccessor(cfg, currUnit);
@@ -402,6 +412,8 @@ public class VeritestingMain {
                         assert(VeritestingListener.veritestingMode == 2 || VeritestingListener.veritestingMode == 3);
                         //instead of giving up, try to compute a summary of everything from thenUnit up to commonSucc
                         //to allow complex regions
+
+
                         HashMap<Expression, Expression> savedHoleHashMap = saveHoleHashMap();
                         HashMap<String, Expression> savedVarCache = saveVarCache();
 
@@ -438,6 +450,18 @@ public class VeritestingMain {
 
                             //start swallow holes from inner region to the outer region by taking a copy of the inner holes to the outer region
                             VeritestingRegion innerRegion = VeritestingListener.veritestingRegions.get(key);
+                            // MWW: new code.  Note: really exception should never occur, so perhaps this is *too*
+                            // defensive.
+                            try {
+                                SPFCaseList innerCases = innerRegion.getSpfCases().cloneEmbedPathConstraint(thenExpr);
+                                varUtil.getSpfCases().addAll(innerCases);
+                            } catch (StaticRegionException sre) {
+                                System.out.println("Unable to instantiate spfCases: " + sre.toString());
+                                canVeritest = false;
+                                break;
+                            }
+                            // MWW: end of new code
+
                             for(Expression e: innerRegion.getOutputVars()) {
                                 varUtil.defLocalVars.add(e);
                             }
@@ -503,13 +527,22 @@ public class VeritestingMain {
                         //to allow complex regions
                         HashMap<Expression, Expression> savedHoleHashMap = saveHoleHashMap();
                         HashMap<String, Expression> savedVarCache = saveVarCache();
+                        SPFCaseList savedCaseList = varUtil.getSpfCases();
+
                         doAnalysis(elseUnit, commonSucc);
+                        // MWW: Note: you can merge maps in one go with putAll as in e.g., the following:
+                        // varUtil.holeHashMap.putAll(savedHoleHashMap);
+                        // so these loops are not necessary.
+
+                        // Also: doesn't this information get added *again* when we take it from the
+                        // inner veritestingRegion?
                         for(Map.Entry<Expression, Expression> entry: savedHoleHashMap.entrySet()) {
                             varUtil.holeHashMap.put(entry.getKey(), entry.getValue());
                         }
                         for(Map.Entry<String, Expression> entry: savedVarCache.entrySet()) {
                             varUtil.varCache.put(entry.getKey(), entry.getValue());
                         }
+
                         int offset = ((IBytecodeMethod) (ir.getMethod())).getBytecodeIndex(elseUnit.getLastInstructionIndex());
                         String key = currentClassName + "." + methodName + methodSig + "#" + offset;
                         if(VeritestingListener.veritestingRegions.containsKey(key)) {
@@ -534,6 +567,18 @@ public class VeritestingMain {
 
 
                             VeritestingRegion innerRegion = VeritestingListener.veritestingRegions.get(key);
+                            // MWW: new code.  Note: really exception should never occur, so perhaps this is *too*
+                            // defensive.
+                            try {
+                                SPFCaseList innerCases = innerRegion.getSpfCases().cloneEmbedPathConstraint(thenExpr);
+                                varUtil.getSpfCases().addAll(innerCases);
+                            } catch (StaticRegionException sre) {
+                                System.out.println("Unable to instantiate spfCases: " + sre.toString());
+                                canVeritest = false;
+                                break;
+                            }
+                            // MWW: end of new code
+
                             for(Expression e: innerRegion.getOutputVars()) {
                                 varUtil.defLocalVars.add(e);
                             }
@@ -545,6 +590,8 @@ public class VeritestingMain {
                             }
                             Expression elseExpr1 = innerRegion.getSummaryExpression();
                             elseExpr1 = replaceCondition(elseExpr1, conditionExpression);
+
+                            // MWW: what is this business?
                             if (elseExpr1 != null) {
                                 if (elseExpr != null)
                                     elseExpr =
@@ -592,7 +639,7 @@ public class VeritestingMain {
                         thenUseNum = Util.whichPred(cfg, thenPred, commonSucc);
                     if(elsePred != null)
                         elseUseNum = Util.whichPred(cfg, elsePred, commonSucc);
-                    VeritestingRegion veritestingRegion = constructVeritestingRegion(thenExpr, elseExpr,
+                    VeritestingRegion veritestingRegion =   constructVeritestingRegion(thenExpr, elseExpr,
                             thenPLAssignSPF, elsePLAssignSPF,
                             currUnit, commonSucc,
                             thenUseNum, elseUseNum, summarizedRegionStartBB);
@@ -779,6 +826,11 @@ public class VeritestingMain {
         veritestingRegion.setEndBBNum(endBBNum);
         veritestingRegion.setIsMethodSummary(true);
         veritestingRegion.setSummarizedRegionStartBB(summarizedRegionStartBB);
+
+        // MWW: adding the spfCases
+        veritestingRegion.setSpfCases(varUtil.getSpfCases());
+        // MWW: end addition
+
         return veritestingRegion;
     }
 

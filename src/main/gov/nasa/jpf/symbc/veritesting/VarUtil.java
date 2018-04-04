@@ -4,6 +4,8 @@ import com.ibm.wala.ssa.*;
 
 import com.ibm.wala.types.TypeReference;
 import gov.nasa.jpf.symbc.VeritestingListener;
+import gov.nasa.jpf.symbc.veritesting.SPFCase.SPFCase;
+import gov.nasa.jpf.symbc.veritesting.SPFCase.SPFCaseList;
 import za.ac.sun.cs.green.expr.Expression;
 import za.ac.sun.cs.green.expr.IntConstant;
 
@@ -16,6 +18,7 @@ import java.util.Iterator;
 // How does this class cohere?
 
 public class VarUtil {
+    private SPFCaseList spfCases;
     String className;
     String methodName;
     IR ir;
@@ -35,6 +38,9 @@ public class VarUtil {
 
     // contains the return values hole expression found in the region
     public Expression retValVar;
+
+    public void addSpfCase(SPFCase c) { spfCases.addCase(c); }
+    public SPFCaseList getSpfCases() { return spfCases; }
 
     public static final int getPathCounter() { pathCounter++; return pathCounter; }
 
@@ -81,6 +87,7 @@ public class VarUtil {
     }
 
     public VarUtil(IR _ir, String _className, String _methodName) {
+        spfCases = new SPFCaseList();
         varsMap = new HashMap<> ();
         defLocalVars = new HashSet<>();
         holeHashMap = new HashMap<>();
@@ -516,6 +523,7 @@ public class VarUtil {
         defLocalVars.clear();
         varCache.clear();
         holeHashMap.clear();
+        spfCases = new SPFCaseList();
         retValVar = null;
     }
 

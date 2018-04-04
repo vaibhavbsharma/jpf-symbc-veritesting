@@ -27,8 +27,8 @@ public class SPFCase {
         reason.simplify();
     }
 
-    void embedPathConstraint(Expression e) throws StaticRegionException {
-        pathConstraint = new Operation(Operation.Operator.AND, e, pathConstraint);
+    SPFCase cloneEmbedPathConstraint(Expression e) throws StaticRegionException {
+        return new SPFCase(new Operation(Operation.Operator.AND, e, pathConstraint), reason.copy());
     }
 
     Expression spfPredicate() throws StaticRegionException {

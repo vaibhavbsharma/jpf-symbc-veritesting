@@ -13,6 +13,8 @@ import com.ibm.wala.util.strings.Atom;
 import gov.nasa.jpf.symbc.VeritestingListener;
 import gov.nasa.jpf.symbc.veritesting.HoleExpression;
 import gov.nasa.jpf.symbc.veritesting.InvokeInfo;
+import gov.nasa.jpf.symbc.veritesting.SPFCase.ArrayBoundsReason;
+import gov.nasa.jpf.symbc.veritesting.SPFCase.SPFCase;
 import gov.nasa.jpf.symbc.veritesting.VarUtil;
 import za.ac.sun.cs.green.expr.Expression;
 
@@ -103,6 +105,12 @@ public class MyIVisitor implements SSAInstruction.IVisitor {
         TypeReference arrayType = instruction.getElementType();
         Expression arrayRefHole = varUtil.addVal(arrayRef);
         Expression arrayIndexHole = varUtil.addVal(arrayIndex);
+
+        // MWW: new code!
+        ArrayBoundsReason reason = new ArrayBoundsReason(arrayRefHole, arrayIndexHole);
+        SPFCase c = new SPFCase(pathLabelHole, reason);
+        varUtil.addSpfCase(c);
+        // MWW: end new code!
 
         Expression arrayLoadHole = varUtil.addArrayLoadVal(arrayRefHole, arrayIndexHole,arrayType, HoleExpression.HoleType.ARRAYLOAD, instruction, pathLabelHole);
         SPFExpr = new Operation(Operator.IMPLIES, arrayLoadHole, new Operation(Operator.EQ, lhsExpr, arrayLoadResult));

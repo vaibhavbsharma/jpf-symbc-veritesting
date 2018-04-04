@@ -3,6 +3,7 @@ package gov.nasa.jpf.symbc.veritesting.SPFCase;
 import gov.nasa.jpf.symbc.veritesting.StaticRegionException;
 import gov.nasa.jpf.symbc.veritesting.Visitors.FillAstHoleVisitor;
 import za.ac.sun.cs.green.expr.Expression;
+import za.ac.sun.cs.green.expr.Operation;
 
 import java.util.HashMap;
 
@@ -11,14 +12,24 @@ public class ArrayBoundsReason implements SPFCaseReason {
     Expression arrayExpr;
     Expression indexExpr;
 
+    // Note: these are transient (per instantiation).
+    // The instantiate(), simplify() and spfPredicate()
+    // methods should be called in succession before
+    // a subsequent call to instantiate(), or incorrect
+    // results may occur.
+
     Expression instantiatedArrayExpr = null;
     Expression instantiatedIndexExpr = null;
-
     Expression predicate = null;
 
     public ArrayBoundsReason(Expression arrayExpr, Expression indexExpr) {
         this.arrayExpr = arrayExpr;
         this.indexExpr = indexExpr;
+    }
+
+    public SPFCaseReason copy() {
+        // we do not copy transient data...
+        return new ArrayBoundsReason(arrayExpr, indexExpr);
     }
 
     @Override
@@ -49,6 +60,7 @@ public class ArrayBoundsReason implements SPFCaseReason {
     @Override
     public void instantiate(HashMap<Expression, Expression> holeHashMap) throws StaticRegionException {
         FillAstHoleVisitor visitor  = new FillAstHoleVisitor(holeHashMap);
+
         instantiatedArrayExpr = visitor.visit(arrayExpr);
         instantiatedIndexExpr = visitor.visit(indexExpr);
     }
@@ -67,6 +79,6 @@ public class ArrayBoundsReason implements SPFCaseReason {
 
     @Override
     public Expression getInstantiatedSPFPredicate() throws StaticRegionException {
-        return null;
+        return Operation.TRUE;
     }
 }

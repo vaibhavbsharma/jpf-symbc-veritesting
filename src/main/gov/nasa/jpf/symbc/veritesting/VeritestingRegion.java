@@ -40,23 +40,13 @@ public class VeritestingRegion {
     private SPFCaseList spfCases = new SPFCaseList();
 
     // Should not be necessary, if we have a good interface!
-    //public SPFCaseList getSpfCases() { return spfCases; }
+    public SPFCaseList getSpfCases() { return spfCases; }
+    public void setSpfCases(SPFCaseList list) { spfCases = list; }
 
     public void addSPFCase(SPFCase c) { spfCases.addCase(c); }
 
     // Behavior
     // add more here for other aspects of region: segments with return, e.g.
-    public void embedPathConstraint(Expression e) throws StaticRegionException {
-        spfCases.embedPathConstraint(e);
-    }
-
-    public void instantiate(HashMap<Expression, Expression> holeHashMap) throws StaticRegionException {
-        spfCases.instantiate(holeHashMap);
-    }
-
-    public void simplify() throws StaticRegionException {
-        spfCases.simplify();
-    }
 
     public Expression spfPathPredicate() throws StaticRegionException {
         return spfCases.spfPredicate();
