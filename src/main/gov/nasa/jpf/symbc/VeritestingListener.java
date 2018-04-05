@@ -125,8 +125,6 @@ public class VeritestingListener extends PropertyListenerAdapter implements Publ
                 Expression regionSummary;
                 try {
                     regionSummary = instantiateHoles(ti, region); // fill holes in region
-                    if (regionSummary == null)
-                        return; //problem filling holes, abort veritesting
    		            newCG.makeVeritestingCG(region, regionSummary, ti);
                 } catch (StaticRegionException sre) {
                     System.out.println(sre.toString());
