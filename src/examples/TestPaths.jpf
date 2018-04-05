@@ -10,7 +10,8 @@ symbolic.method=TestPaths.testMe2(sym#sym)
 
 symbolic.dp=z3bitvector
 
-listener = .symbc.SymbolicChoiceChangingListener
+listener = .symbc.VeritestingListener
+veritestingMode = 3
 symbolic.debug=false
 
 vm.storage.class=nil

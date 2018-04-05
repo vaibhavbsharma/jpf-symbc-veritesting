@@ -41,6 +41,7 @@ import com.ibm.wala.util.graph.impl.GraphInverter;
 import com.ibm.wala.util.io.FileProvider;
 import com.ibm.wala.util.strings.StringStuff;
 import gov.nasa.jpf.symbc.VeritestingListener;
+import gov.nasa.jpf.symbc.veritesting.SPFCase.SPFCaseList;
 import gov.nasa.jpf.symbc.veritesting.Visitors.MyIVisitor;
 import x10.wala.util.NatLoop;
 import x10.wala.util.NatLoopSolver;
@@ -294,7 +295,6 @@ public class VeritestingMain {
                         new Operation(Operation.Operator.AND, negCondition, elseExpr));
 
         MyIVisitor myIVisitor = new MyIVisitor(varUtil, thenUseNum, elseUseNum, true);
-        //TODO there could be multiple outputs of this region, keep going until you don't find any more Phi's
         Expression phiExprSPF, finalPathExpr = pathExpr1;
         Iterator<SSAInstruction> iterator = commonSucc.iterator();
         while(iterator.hasNext()) {
@@ -331,6 +331,10 @@ public class VeritestingMain {
         veritestingRegion.setHoleHashMap(hashMap);
         veritestingRegion.setSummarizedRegionStartBB(summarizedRegionStartBB);
 
+        // MWW: adding the spfCases
+        veritestingRegion.setSpfCases(varUtil.getSpfCases());
+        // MWW: end addition
+
         pathLabelVarNum++;
         return veritestingRegion;
     }
@@ -341,6 +345,8 @@ public class VeritestingMain {
 
     // What can we tease apart here?
     //
+    // For one thing, we should simply construct a new varUtil each time this method is called; when
+    // we recursively invoke it, we just save off the entire structure rather than do it piecemeal.
 
     public void doAnalysis(ISSABasicBlock startingUnit, ISSABasicBlock endingUnit) throws InvalidClassFileException {
         //System.out.println("Starting doAnalysis");
@@ -363,6 +369,9 @@ public class VeritestingMain {
             } else if (succs.size() == 2 && !startingPointsHistory.contains(currUnit)) {
                 startingPointsHistory.add(currUnit);
                 //fix this varUtil reset because it screws up varUtil.holeHashMap
+
+                // MWW: why is this reset here?  Why does it not occur prior to the
+                // other recursive call for doAnalysis?
                 varUtil.reset();
 
                 ISSABasicBlock thenUnit = Util.getTakenSuccessor(cfg, currUnit);
@@ -393,7 +402,6 @@ public class VeritestingMain {
 
                 // Create thenExpr
                 while (thenUnit != commonSucc) { // the meet point not reached yet
-                    boolean isPhithenUnit = false;
                     while(cfg.getNormalSuccessors(thenUnit).size() > 1 && thenUnit != commonSucc && canVeritest) {  //TODO: Support exceptionalSuccessors in the future
                         if (VeritestingListener.veritestingMode == 1) {
                             canVeritest = false;
@@ -402,6 +410,8 @@ public class VeritestingMain {
                         assert(VeritestingListener.veritestingMode == 2 || VeritestingListener.veritestingMode == 3);
                         //instead of giving up, try to compute a summary of everything from thenUnit up to commonSucc
                         //to allow complex regions
+
+
                         HashMap<Expression, Expression> savedHoleHashMap = saveHoleHashMap();
                         HashMap<String, Expression> savedVarCache = saveVarCache();
 
@@ -420,7 +430,7 @@ public class VeritestingMain {
                         if(VeritestingListener.veritestingRegions.containsKey(key)) { // we are able to summarize the inner region, try to sallow it
                             System.out.println("Veritested inner region with key = " + key);
                             //visit all instructions up to and including the condition
-                            BlockSummary blockSummary = new BlockSummary(thenUnit, thenExpr, canVeritest, isPhithenUnit).invoke();
+                            BlockSummary blockSummary = new BlockSummary(thenUnit, thenExpr, canVeritest).invoke();
                             canVeritest = blockSummary.isCanVeritest();
                             thenExpr = blockSummary.getExpression(); // outer region thenExpr
                             Expression conditionExpression = blockSummary.getIfExpression();
@@ -438,6 +448,18 @@ public class VeritestingMain {
 
                             //start swallow holes from inner region to the outer region by taking a copy of the inner holes to the outer region
                             VeritestingRegion innerRegion = VeritestingListener.veritestingRegions.get(key);
+                            // MWW: new code.  Note: really exception should never occur, so perhaps this is *too*
+                            // defensive.
+                            try {
+                                SPFCaseList innerCases = innerRegion.getSpfCases().cloneEmbedPathConstraint(thenExpr);
+                                varUtil.getSpfCases().addAll(innerCases);
+                            } catch (StaticRegionException sre) {
+                                System.out.println("Unable to instantiate spfCases: " + sre.toString());
+                                canVeritest = false;
+                                break;
+                            }
+                            // MWW: end of new code
+
                             for(Expression e: innerRegion.getOutputVars()) {
                                 varUtil.defLocalVars.add(e);
                             }
@@ -458,12 +480,11 @@ public class VeritestingMain {
                             }
                             thenPred = null;
                             thenUnit = commonSuccthenUnit;
-                            isPhithenUnit = true;
                             summarizedRegionStartBB.addAll(innerRegion.summarizedRegionStartBB);
                         } else canVeritest = false;
                     }
                     if (!canVeritest || thenUnit == commonSucc) break;
-                    BlockSummary blockSummary = new BlockSummary(thenUnit, thenExpr, canVeritest, isPhithenUnit, thenPLAssignSPF).invoke();
+                    BlockSummary blockSummary = new BlockSummary(thenUnit, thenExpr, canVeritest, thenPLAssignSPF).invoke();
                     canVeritest = blockSummary.isCanVeritest();
                     thenExpr = blockSummary.getExpression();
                     //we should not encounter a BB with more than one successor at this point
@@ -492,7 +513,6 @@ public class VeritestingMain {
 
                 // Create elseExpr
                 while (canVeritest && elseUnit != commonSucc) {
-                    boolean isPhielseUnit = false;
                     while(cfg.getNormalSuccessors(elseUnit).size() > 1 && elseUnit != commonSucc && canVeritest) {
                         if (VeritestingListener.veritestingMode == 1) {
                             canVeritest = false;
@@ -503,19 +523,28 @@ public class VeritestingMain {
                         //to allow complex regions
                         HashMap<Expression, Expression> savedHoleHashMap = saveHoleHashMap();
                         HashMap<String, Expression> savedVarCache = saveVarCache();
+                        SPFCaseList savedCaseList = varUtil.getSpfCases();
+
                         doAnalysis(elseUnit, commonSucc);
+                        // MWW: Note: you can merge maps in one go with putAll as in e.g., the following:
+                        // varUtil.holeHashMap.putAll(savedHoleHashMap);
+                        // so these loops are not necessary.
+
+                        // Also: doesn't this information get added *again* when we take it from the
+                        // inner veritestingRegion?
                         for(Map.Entry<Expression, Expression> entry: savedHoleHashMap.entrySet()) {
                             varUtil.holeHashMap.put(entry.getKey(), entry.getValue());
                         }
                         for(Map.Entry<String, Expression> entry: savedVarCache.entrySet()) {
                             varUtil.varCache.put(entry.getKey(), entry.getValue());
                         }
+
                         int offset = ((IBytecodeMethod) (ir.getMethod())).getBytecodeIndex(elseUnit.getLastInstructionIndex());
                         String key = currentClassName + "." + methodName + methodSig + "#" + offset;
                         if(VeritestingListener.veritestingRegions.containsKey(key)) {
                             System.out.println("Veritested inner region with key = " + key);
                             //visit all instructions up to and including the condition
-                            BlockSummary blockSummary = new BlockSummary(elseUnit, elseExpr, canVeritest, isPhielseUnit).invoke();
+                            BlockSummary blockSummary = new BlockSummary(elseUnit, elseExpr, canVeritest).invoke();
                             canVeritest = blockSummary.isCanVeritest();
                             elseExpr = blockSummary.getExpression();
                             Expression conditionExpression = blockSummary.getIfExpression();
@@ -534,6 +563,18 @@ public class VeritestingMain {
 
 
                             VeritestingRegion innerRegion = VeritestingListener.veritestingRegions.get(key);
+                            // MWW: new code.  Note: really exception should never occur, so perhaps this is *too*
+                            // defensive.
+                            try {
+                                SPFCaseList innerCases = innerRegion.getSpfCases().cloneEmbedPathConstraint(thenExpr);
+                                varUtil.getSpfCases().addAll(innerCases);
+                            } catch (StaticRegionException sre) {
+                                System.out.println("Unable to instantiate spfCases: " + sre.toString());
+                                canVeritest = false;
+                                break;
+                            }
+                            // MWW: end of new code
+
                             for(Expression e: innerRegion.getOutputVars()) {
                                 varUtil.defLocalVars.add(e);
                             }
@@ -545,6 +586,8 @@ public class VeritestingMain {
                             }
                             Expression elseExpr1 = innerRegion.getSummaryExpression();
                             elseExpr1 = replaceCondition(elseExpr1, conditionExpression);
+
+                            // MWW: what is this business?
                             if (elseExpr1 != null) {
                                 if (elseExpr != null)
                                     elseExpr =
@@ -554,12 +597,11 @@ public class VeritestingMain {
                             }
                             elsePred = null;
                             elseUnit = commonSuccelseUnit;
-                            isPhielseUnit = true;
                             summarizedRegionStartBB.addAll(innerRegion.summarizedRegionStartBB);
                         } else canVeritest = false;
                     }
                     if (!canVeritest || elseUnit == commonSucc) break;
-                    BlockSummary blockSummary = new BlockSummary(elseUnit, elseExpr, canVeritest, isPhielseUnit, elsePLAssignSPF).invoke();
+                    BlockSummary blockSummary = new BlockSummary(elseUnit, elseExpr, canVeritest, elsePLAssignSPF).invoke();
                     canVeritest = blockSummary.isCanVeritest();
                     elseExpr = blockSummary.getExpression();
                     //we should not encounter a BB with more than one successor at this point
@@ -592,7 +634,7 @@ public class VeritestingMain {
                         thenUseNum = Util.whichPred(cfg, thenPred, commonSucc);
                     if(elsePred != null)
                         elseUseNum = Util.whichPred(cfg, elsePred, commonSucc);
-                    VeritestingRegion veritestingRegion = constructVeritestingRegion(thenExpr, elseExpr,
+                    VeritestingRegion veritestingRegion =   constructVeritestingRegion(thenExpr, elseExpr,
                             thenPLAssignSPF, elsePLAssignSPF,
                             currUnit, commonSucc,
                             thenUseNum, elseUseNum, summarizedRegionStartBB);
@@ -692,7 +734,7 @@ public class VeritestingMain {
             ISSABasicBlock commonSucc = cfg.getIPdom(currUnit.getNumber());
             if (succs.size() == 1 || succs.size() == 0) {
                 //Assuming that it would be ok to visit a BB that starts with a phi expression
-                BlockSummary blockSummary = new BlockSummary(currUnit, methodExpression, canVeritestMethod, false).invoke();
+                BlockSummary blockSummary = new BlockSummary(currUnit, methodExpression, canVeritestMethod).invoke();
                 canVeritestMethod = blockSummary.isCanVeritest();
                 methodExpression = blockSummary.getExpression();
                 assert(blockSummary.getIfExpression() == null);
@@ -717,7 +759,7 @@ public class VeritestingMain {
             }
             else if (succs.size() == 2) {
                 //Summarize instructions before the condition
-                BlockSummary blockSummary = new BlockSummary(currUnit, methodExpression, canVeritestMethod, false).invoke();
+                BlockSummary blockSummary = new BlockSummary(currUnit, methodExpression, canVeritestMethod).invoke();
                 canVeritestMethod = blockSummary.isCanVeritest();
                 methodExpression = blockSummary.getExpression();
                 Expression conditionExpression = blockSummary.getIfExpression();
@@ -779,6 +821,11 @@ public class VeritestingMain {
         veritestingRegion.setEndBBNum(endBBNum);
         veritestingRegion.setIsMethodSummary(true);
         veritestingRegion.setSummarizedRegionStartBB(summarizedRegionStartBB);
+
+        // MWW: adding the spfCases
+        veritestingRegion.setSpfCases(varUtil.getSpfCases());
+        // MWW: end addition
+
         return veritestingRegion;
     }
 
@@ -795,20 +842,18 @@ public class VeritestingMain {
         private Expression ifExpression = null;
 
         private boolean canVeritest;
-        private boolean isPhiUnit;
 
-        public BlockSummary(ISSABasicBlock thenUnit, Expression thenExpr, boolean canVeritest, boolean isPhithenUnit) {
+        public BlockSummary(ISSABasicBlock thenUnit, Expression thenExpr, boolean canVeritest) {
             this.unit = thenUnit;
             this.expression = thenExpr;
             this.canVeritest = canVeritest;
-            this.isPhiUnit = isPhithenUnit;
         }
 
-        public BlockSummary(ISSABasicBlock thenUnit, Expression thenExpr, boolean canVeritest, boolean isPhithenUnit, Expression pathLabelHole ) {
+        public BlockSummary(ISSABasicBlock thenUnit, Expression thenExpr, boolean canVeritest,
+                            Expression pathLabelHole ) {
             this.unit = thenUnit;
             this.expression = thenExpr;
             this.canVeritest = canVeritest;
-            this.isPhiUnit = isPhithenUnit;
             this.pathLabelHole = pathLabelHole;
         }
 
@@ -827,10 +872,8 @@ public class VeritestingMain {
         public BlockSummary invoke() {
             MyIVisitor myIVisitor;
             Iterator<SSAInstruction> ssaInstructionIterator = unit.iterator();
-            if(isPhiUnit && ssaInstructionIterator.hasNext()){
-                assert(ssaInstructionIterator.next() instanceof SSAPhiInstruction);
-            }
             while (ssaInstructionIterator.hasNext()) {
+                //phi expressions are summarized in the constructVeritestingRegion method, dont try to summarize them here
                 myIVisitor = new MyIVisitor(varUtil, -1, -1, false, pathLabelHole);
                 ssaInstructionIterator.next().visit(myIVisitor);
 

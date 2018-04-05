@@ -84,10 +84,10 @@ public class VeritestingPerf {
         int temp = 1;
         if (length > 0) {
             //     System.out.println("executing then branch");
-            temp = x[index];
+            temp = 2;
         } else {
             // System.out.println("executing else branch");
-            temp = 2;
+            temp = x[index];
         }
         System.out.println("now temp =" + temp);
         return temp;

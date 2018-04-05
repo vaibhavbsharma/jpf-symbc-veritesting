@@ -4,6 +4,8 @@ import com.ibm.wala.ssa.*;
 
 import com.ibm.wala.types.TypeReference;
 import gov.nasa.jpf.symbc.VeritestingListener;
+import gov.nasa.jpf.symbc.veritesting.SPFCase.SPFCase;
+import gov.nasa.jpf.symbc.veritesting.SPFCase.SPFCaseList;
 import za.ac.sun.cs.green.expr.Expression;
 import za.ac.sun.cs.green.expr.IntConstant;
 
@@ -16,6 +18,7 @@ import java.util.Iterator;
 // How does this class cohere?
 
 public class VarUtil {
+    private SPFCaseList spfCases;
     String className;
     String methodName;
     IR ir;
@@ -35,6 +38,9 @@ public class VarUtil {
 
     // contains the return values hole expression found in the region
     public Expression retValVar;
+
+    public void addSpfCase(SPFCase c) { spfCases.addCase(c); }
+    public SPFCaseList getSpfCases() { return spfCases; }
 
     public static final int getPathCounter() { pathCounter++; return pathCounter; }
 
@@ -81,6 +87,7 @@ public class VarUtil {
     }
 
     public VarUtil(IR _ir, String _className, String _methodName) {
+        spfCases = new SPFCaseList();
         varsMap = new HashMap<> ();
         defLocalVars = new HashSet<>();
         holeHashMap = new HashMap<>();
@@ -390,7 +397,7 @@ public class VarUtil {
     }
 
     public Expression addDefVal(int def) {
-        //this assumes that we dont need to do anything special for intermediate vars defined in a region
+        //this assumes that we dont need to do anything special for lhsExpr vars defined in a region
         if(isLocalVariable(def)) {
             return makeLocalOutputVar(def);
         }
@@ -405,12 +412,12 @@ public class VarUtil {
         return ret;
     }*/
 
-    public Expression addArrayLoadVal(Expression arrayRef, Expression arrayIndex, TypeReference arrayType, HoleExpression.HoleType holeType, SSAArrayLoadInstruction instructionName, Expression pathLabelHole) {
+    public Expression addArrayLoadVal(Expression arrayRef, Expression arrayIndex, Expression lhsSide, TypeReference arrayType, HoleExpression.HoleType holeType, SSAArrayLoadInstruction instructionName, Expression pathLabelHole) {
         assert(holeType == HoleExpression.HoleType.ARRAYLOAD);
         HoleExpression holeExpression = new HoleExpression(nextInt());
         holeExpression.setHoleVarName(instructionName.toString());
         holeExpression.setHole(true, holeType);
-        holeExpression.setArrayInfo(arrayRef, arrayIndex, arrayType, pathLabelHole);
+        holeExpression.setArrayInfo(arrayRef, arrayIndex, lhsSide, arrayType, pathLabelHole);
         varCache.put(holeExpression.getHoleVarName(), holeExpression);
         holeExpression.toString();
         return holeExpression;
@@ -516,6 +523,7 @@ public class VarUtil {
         defLocalVars.clear();
         varCache.clear();
         holeHashMap.clear();
+        spfCases = new SPFCaseList();
         retValVar = null;
     }
 

@@ -18,6 +18,7 @@ public class SPFCaseList {
     // List manipulation
     public List<SPFCase> getCases() { return cases; }
     public void addCase(SPFCase c) { cases.add(c); }
+    public void addAll(SPFCaseList cl) {cases.addAll(cl.cases); }
 
     // behavior
     public void instantiate(HashMap<Expression, Expression> holeHashMap) throws StaticRegionException {
@@ -28,8 +29,10 @@ public class SPFCaseList {
         for (SPFCase c: cases) { c.simplify(); }
     }
 
-    public void embedPathConstraint(Expression e) throws StaticRegionException {
-        for (SPFCase c: cases) {c.embedPathConstraint(e);}
+    public SPFCaseList cloneEmbedPathConstraint(Expression e) throws StaticRegionException {
+        SPFCaseList cl = new SPFCaseList();
+        for (SPFCase c: cases) {cl.cases.add(c.cloneEmbedPathConstraint(e)); }
+        return cl;
     }
 
     public Expression spfPredicate() throws StaticRegionException {
@@ -40,8 +43,10 @@ public class SPFCaseList {
         return result;
     }
 
+    // MWW: Negation is flakey in Green for some reason, so I am simulating it with
+    // <pred> == false.
     public Expression staticNominalPredicate() throws StaticRegionException {
-        Expression result = new Operation(Operation.Operator.NOT, spfPredicate());
+        Expression result = new Operation(Operation.Operator.EQ, spfPredicate(), Operation.FALSE);
         return result;
     }
 

@@ -1,8 +1,11 @@
 package gov.nasa.jpf.symbc.veritesting.SPFCase;
 
+import gov.nasa.jpf.symbc.veritesting.HoleExpression;
 import gov.nasa.jpf.symbc.veritesting.StaticRegionException;
 import gov.nasa.jpf.symbc.veritesting.Visitors.FillAstHoleVisitor;
 import za.ac.sun.cs.green.expr.Expression;
+import za.ac.sun.cs.green.expr.IntConstant;
+import za.ac.sun.cs.green.expr.Operation;
 
 import java.util.HashMap;
 
@@ -10,15 +13,28 @@ public class ArrayBoundsReason implements SPFCaseReason {
 
     Expression arrayExpr;
     Expression indexExpr;
+    Expression arrayLengthExpr;
+
+    // Note: these are transient (per instantiation).
+    // The instantiate(), simplify() and spfPredicate()
+    // methods should be called in succession before
+    // a subsequent call to instantiate(), or incorrect
+    // results may occur.
 
     Expression instantiatedArrayExpr = null;
     Expression instantiatedIndexExpr = null;
-
+    Expression instantiatedLengthExpr = null;
     Expression predicate = null;
 
-    public ArrayBoundsReason(Expression arrayExpr, Expression indexExpr) {
+    public ArrayBoundsReason(Expression arrayExpr, Expression indexExpr, Expression arrayLengthExpr) {
         this.arrayExpr = arrayExpr;
         this.indexExpr = indexExpr;
+        this.arrayLengthExpr = arrayLengthExpr;
+    }
+
+    public SPFCaseReason copy() {
+        // we do not copy transient data...
+        return new ArrayBoundsReason(arrayExpr, indexExpr, arrayLengthExpr);
     }
 
     @Override
@@ -33,7 +49,7 @@ public class ArrayBoundsReason implements SPFCaseReason {
 
     @Override
     protected Object clone() throws CloneNotSupportedException {
-        return super.clone();
+        return copy();
     }
 
     @Override
@@ -49,14 +65,34 @@ public class ArrayBoundsReason implements SPFCaseReason {
     @Override
     public void instantiate(HashMap<Expression, Expression> holeHashMap) throws StaticRegionException {
         FillAstHoleVisitor visitor  = new FillAstHoleVisitor(holeHashMap);
+
         instantiatedArrayExpr = visitor.visit(arrayExpr);
         instantiatedIndexExpr = visitor.visit(indexExpr);
+        instantiatedLengthExpr = new IntConstant(((HoleExpression)arrayLengthExpr).getArrayInfo().length());
     }
 
     @Override
     public void simplify() throws StaticRegionException {
         assert(instantiatedArrayExpr != null);
         assert(instantiatedIndexExpr != null);
+        assert(instantiatedLengthExpr != null);
+
+        // optimized case for concrete index/length
+        if (instantiatedIndexExpr instanceof IntConstant &&
+                instantiatedLengthExpr instanceof IntConstant) {
+            int index = ((IntConstant)instantiatedIndexExpr).getValue();
+            int length = ((IntConstant)instantiatedLengthExpr).getValue();
+
+            if (index < 0 && index >= length) {
+                predicate = Operation.TRUE;
+            } else {
+                predicate = Operation.FALSE;
+            }
+        } else {
+            predicate = new Operation(Operation.Operator.OR,
+                    new Operation(Operation.Operator.LT, instantiatedIndexExpr, new IntConstant(0)),
+                    new Operation(Operation.Operator.GE, instantiatedIndexExpr, instantiatedLengthExpr));
+        }
 
         // MWW: This relies on some information that is not yet stored in the holeHashMap: we need to
         // store the array size information in order to be able to access it here.
@@ -67,6 +103,7 @@ public class ArrayBoundsReason implements SPFCaseReason {
 
     @Override
     public Expression getInstantiatedSPFPredicate() throws StaticRegionException {
-        return null;
+        assert(predicate != null);
+        return predicate;
     }
 }

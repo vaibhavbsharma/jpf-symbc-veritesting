@@ -49,6 +49,7 @@ import za.ac.sun.cs.green.expr.Operation;
 
 import java.io.PrintWriter;
 import java.util.*;
+import gov.nasa.jpf.symbc.veritesting.StaticRegionException;
 
 public class VeritestingListener extends PropertyListenerAdapter implements PublisherExtension {
 
@@ -124,7 +125,9 @@ public class VeritestingListener extends PropertyListenerAdapter implements Publ
                 Expression regionSummary;
                 try {
                     regionSummary = instantiateHoles(ti, region); // fill holes in region
-                    newCG.makeVeritestingCG(region, regionSummary, ti);
+                    if (regionSummary == null)
+                        return; //problem filling holes, abort veritesting
+   		            newCG.makeVeritestingCG(region, regionSummary, ti);
                 } catch (StaticRegionException sre) {
                     System.out.println(sre.toString());
                     return; //problem filling holes, abort veritesting
@@ -155,7 +158,7 @@ public class VeritestingListener extends PropertyListenerAdapter implements Publ
         }
     }
 
-    /*
+   /*
     public long generateHashCode(String key) {
         FNV1 fnv = new FNV1a64();
         fnv.init(key);
@@ -249,7 +252,8 @@ public class VeritestingListener extends PropertyListenerAdapter implements Publ
             finalSummaryExpression = new Operation(Operation.Operator.AND, summaryExpression, fillHolesOutput.additionalAST);
         FillAstHoleVisitor visitor = new FillAstHoleVisitor(fillHolesOutput.holeHashMap);
         finalSummaryExpression = visitor.visit(finalSummaryExpression); //not constant-folding for now
-        region.instantiate(fillHolesOutput.holeHashMap);
+        region.getSpfCases().instantiate(fillHolesOutput.holeHashMap);
+        region.getSpfCases().simplify();
         // exitTransitionsFillASTHoles(fillHolesOutput.holeHashMap);
 
         // pc._addDet(new GreenConstraint(finalSummaryExpression));
@@ -448,7 +452,7 @@ public class VeritestingListener extends PropertyListenerAdapter implements Publ
     // either all of them get written or none of them do and then SPF takes over
     private boolean populateOutputs(HashSet<Expression> outputVars,
                                     HashMap<Expression, Expression> holeHashMap,
-                                    StackFrame stackFrame, ThreadInfo ti) {
+                                    StackFrame stackFrame, ThreadInfo ti) throws StaticRegionException {
         for (Expression expression: outputVars) {
             Expression finalValue;
             assert (expression instanceof HoleExpression);
@@ -592,33 +596,40 @@ public class VeritestingListener extends PropertyListenerAdapter implements Publ
                     HoleExpression.ArrayInfoHole arrayInfoHole = keyHoleExpression.getArrayInfo();
                     indexAttr =
                             (gov.nasa.jpf.symbc.numeric.Expression) stackFrame.getLocalAttr(((HoleExpression) (arrayInfoHole.arrayIndexHole)).getLocalStackSlot());
-                    switch (((HoleExpression) arrayInfoHole.arrayIndexHole).getHoleType()) {
+                    HoleExpression indexHole = (HoleExpression) arrayInfoHole.arrayIndexHole;
+                    HoleExpression arrayRefHole = ((HoleExpression) arrayInfoHole.arrayRefHole);
+
+                    switch (indexHole.getHoleType()) {
                         // what happens for field inputs?
                         // This code appears to be similar between both kinds of holes
                         case LOCAL_INPUT: //case array index is local input
-                            int arrayRef = stackFrame.getLocalVariable(((HoleExpression) arrayInfoHole.arrayRefHole).getLocalStackSlot());
-                            //int arrayRef = stackFrame.peek(((HoleExpression)arrayInfoHole.arrayRefHole).getLocalStackSlot());
+                            int arrayRef = stackFrame.getLocalVariable(arrayRefHole.getLocalStackSlot());
                             ElementInfo ei = ti.getElementInfo(arrayRef);
                             int arrayLength = ((ArrayFields) ei.getFields()).arrayLength();
+
+                            // MWW: modified to be able to extract array length from spfCase.
+                            arrayInfoHole.setLength(arrayLength);
+                            // MWW: end of modification.
+
                             TypeReference arrayType = arrayInfoHole.arrayType;
                             Expression pathLabelConstraint = arrayInfoHole.getPathLabelHole();
                             Expression arrayConstraint;
                             if (indexAttr == null) //attribute is null so index is concrete
                             {
                                 int indexVal = stackFrame.getLocalVariable(((HoleExpression) arrayInfoHole.arrayIndexHole).getLocalStackSlot());
-                                if (indexVal < 0 || indexVal >= arrayLength) //checking concerte index is out of bound
+                                if (indexVal < 0 || indexVal >= arrayLength) //checking concrete index is out of bound
                                     return true;
                                 int value = ei.getIntElement(indexVal);
                                 finalValueGreen = SPFToGreenExpr(new IntegerConstant(value));
-                                retHoleHashMap.put(keyHoleExpression, finalValueGreen);
                             } else { //index is symbolic - fun starts here :)
                                 finalValueGreen = SPFToGreenExpr(indexAttr);
+                                Expression lhsExpr = retHoleHashMap.get(arrayInfoHole.lhsExpr);
                                 Expression[] arraySymbConstraint = new Expression[arrayLength];
-                                Expression arrayLoadResult = new IntVariable("arrayLoadResult", Integer.MIN_VALUE, Integer.MAX_VALUE);
+                                //Expression arrayLoadResult = new IntVariable("arrayLoadResult", Integer.MIN_VALUE, Integer.MAX_VALUE);
                                 for (int i = 0; i < arrayLength; i++) {//constructing the symbolic index constraint
                                     Expression exp1 = new Operation(Operation.Operator.EQ, finalValueGreen, new IntConstant(i));
                                     int value = ei.getIntElement(i);
-                                    Expression exp2 = new Operation(Operation.Operator.EQ, arrayLoadResult, new IntConstant(value)); //loadArrayElement(ei, arrayType)
+                                    Expression exp2 = new Operation(Operation.Operator.EQ, lhsExpr, new IntConstant(value)); //loadArrayElement(ei, arrayType)
                                     arraySymbConstraint[i] = new Operation(Operation.Operator.IMPLIES, exp1, exp2);
                                 }
                                 arrayConstraint = unrollGreenOrConstraint(arraySymbConstraint);
@@ -653,7 +664,10 @@ public class VeritestingListener extends PropertyListenerAdapter implements Publ
     }
 
 
-    private HashMap<Expression, Expression> fillInputHoles(HashMap<Expression, Expression> holeHashMap, StackFrame stackFrame, ThreadInfo ti, HashMap<Expression, Expression> retHoleHashMap) {
+    private HashMap<Expression, Expression> fillInputHoles(HashMap<Expression, Expression> holeHashMap,
+                                                           StackFrame stackFrame, ThreadInfo ti,
+                                                           HashMap<Expression, Expression> retHoleHashMap)
+            throws StaticRegionException {
         //resolve all input holes inside the current region's summary
         for (HashMap.Entry<Expression, Expression> entry : holeHashMap.entrySet()) {
             Expression key = entry.getKey(), finalValueGreen;
@@ -804,7 +818,7 @@ public class VeritestingListener extends PropertyListenerAdapter implements Publ
     gov.nasa.jpf.symbc.numeric.Expression fillFieldInputHole(
             ThreadInfo ti,
             StackFrame stackFrame,
-            HoleExpression.FieldInfo fieldInputInfo) {
+            HoleExpression.FieldInfo fieldInputInfo) throws StaticRegionException {
 
         boolean isStatic = fieldInputInfo.isStaticField;
         int objRef = -1;
@@ -821,7 +835,7 @@ public class VeritestingListener extends PropertyListenerAdapter implements Publ
             try {
                 ci = ClassLoaderInfo.getCurrentResolvedClassInfo(fieldInputInfo.className);
             } catch (ClassInfoException e) {
-                return null;
+                throw new StaticRegionException("fillFieldInputHole: class loader failed to resolve class name " + fieldInputInfo.className);
             }
             ElementInfo eiFieldOwner;
             if (!isStatic) eiFieldOwner = ti.getElementInfo(objRef);
@@ -854,7 +868,7 @@ public class VeritestingListener extends PropertyListenerAdapter implements Publ
     void fillFieldOutputHole(ThreadInfo ti,
                              StackFrame stackFrame,
                              HoleExpression.FieldInfo fieldInputInfo,
-                             gov.nasa.jpf.symbc.numeric.Expression finalValue) {
+                             gov.nasa.jpf.symbc.numeric.Expression finalValue) throws StaticRegionException {
         boolean isStatic = false;
         int objRef = -1;
         int stackSlot = fieldInputInfo.callSiteStackSlot;
@@ -866,7 +880,12 @@ public class VeritestingListener extends PropertyListenerAdapter implements Publ
                     fieldInputInfo.fieldName + "' on null object");
             assert (false);
         } else {
-            ClassInfo ci = ClassLoaderInfo.getCurrentResolvedClassInfo(fieldInputInfo.className);
+            ClassInfo ci;
+            try {
+                ci = ClassLoaderInfo.getCurrentResolvedClassInfo(fieldInputInfo.className);
+            } catch (ClassInfoException e) {
+                throw new StaticRegionException("fillFieldInputHole: class loader failed to resolve class name " + fieldInputInfo.className);
+            }
             ElementInfo eiFieldOwner;
             if (!isStatic) eiFieldOwner = ti.getModifiableElementInfo(objRef);
             else eiFieldOwner = ci.getModifiableStaticElementInfo();
@@ -1115,7 +1134,7 @@ public class VeritestingListener extends PropertyListenerAdapter implements Publ
             return paramEqList;
         }
 
-        public FillInputHolesMS invoke() {
+        public FillInputHolesMS invoke() throws StaticRegionException {
             gov.nasa.jpf.symbc.numeric.Expression spfExpr;
             Expression greenExpr;
             paramEqList = new ArrayList<>();
@@ -1126,7 +1145,7 @@ public class VeritestingListener extends PropertyListenerAdapter implements Publ
                 assert (methodKeyHole.isHole());
                 switch (methodKeyHole.getHoleType()) {
                     //LOCAL_INPUTs can be mapped to parameters at the call site, non-parameter local inputs
-                    // need to be mapped to intermediate variables since we cannot create a stack for the summarized method
+                    // need to be mapped to lhsExpr variables since we cannot create a stack for the summarized method
                     case LOCAL_INPUT:
                         //get the latest value written into this local, not the value in the local at the beginning of
                         //this region
@@ -1150,7 +1169,7 @@ public class VeritestingListener extends PropertyListenerAdapter implements Publ
                                         methodKeyHole,
                                         callSiteInfo.paramList.get(methodLocalStackSlot)));
                             } else {
-                                //Local variables in the method summary should just become intermediate variables
+                                //Local variables in the method summary should just become lhsExpr variables
                                 gov.nasa.jpf.symbc.numeric.Expression finalValueSPF =
                                         makeSymbolicInteger(methodKeyHole.getHoleVarName() + pathLabelCount);
                                 Expression finalValueGreen = SPFToGreenExpr(finalValueSPF);
