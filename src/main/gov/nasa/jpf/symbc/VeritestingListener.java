@@ -118,13 +118,13 @@ public class VeritestingListener extends PropertyListenerAdapter implements Publ
         // shouldn't veritestingRegion non-null be invariant at this point?
         if (veritestingRegions != null && veritestingRegions.containsKey(key)) {
             VeritestingRegion region = veritestingRegions.get(key);
-            VeriPCChoiceGenerator newCG;
+            VeriPCChoiceGenerator newCG = new VeriPCChoiceGenerator(4);
 
             if (!ti.isFirstStepInsn()) { // first time around
                 Expression regionSummary;
                 try {
                     regionSummary = instantiateHoles(ti, region); // fill holes in region
-                    newCG = makeVeritestingCG(region, regionSummary, ti);
+                    newCG.makeVeritestingCG(region, regionSummary, ti);
                 } catch (StaticRegionException sre) {
                     System.out.println(sre.toString());
                     return; //problem filling holes, abort veritesting
@@ -154,38 +154,6 @@ public class VeritestingListener extends PropertyListenerAdapter implements Publ
             }
         }
     }
-
-    // MWW: It would probably be better if this code migrated to the VeriPCChoiceGenerator.
-    // As it is the CG is 1/2 responsible for creating its choices, and the
-    // VeritestingListener is 1/2 responsible (below).
-
-    // 4 cases (they may be UNSAT, but that's ok):
-    // 0: staticNominalNoReturn
-    // 1: thenException
-    // 2: elseException
-    // 3: staticNominalReturn
-    // NB: then and else constraints are the same (here).  We will tack on the additional
-    // constraint for the 'then' and 'else' branches when we execute the choice generator.
-    private PathCondition createPC(PathCondition pc, Expression regionSummary, Expression constraint) {
-        PathCondition pcCopy = pc.make_copy();
-        Expression copyConstraint = new Operation(Operation.Operator.AND, regionSummary, constraint);
-        pcCopy._addDet(new GreenConstraint(copyConstraint));
-        return pcCopy;
-    }
-
-    private VeriPCChoiceGenerator makeVeritestingCG(VeritestingRegion region, Expression regionSummary, ThreadInfo ti) throws StaticRegionException {
-
-        VeriPCChoiceGenerator cg = new VeriPCChoiceGenerator(4); //including a choice for nominal case
-        PathCondition pc = ((PCChoiceGenerator) ti.getVM().getSystemState().getChoiceGenerator()).getCurrentPC();
-
-        cg.setPC(createPC(pc, regionSummary, region.staticNominalPredicate()), 0);
-        cg.setPC(createPC(pc, regionSummary, region.spfPathPredicate()), 1);
-        cg.setPC(createPC(pc, regionSummary, region.spfPathPredicate()), 2);
-        // TODO: create the path preicate for the 'return' case.
-
-        return cg;
-    }
-
 
     /*
     public long generateHashCode(String key) {

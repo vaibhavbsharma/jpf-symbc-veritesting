@@ -42,11 +42,14 @@ import gov.nasa.jpf.symbc.bytecode.IFNONNULL;
 import gov.nasa.jpf.symbc.bytecode.IF_ICMPEQ;
 import gov.nasa.jpf.symbc.numeric.PCChoiceGenerator;
 import gov.nasa.jpf.symbc.numeric.PathCondition;
+import gov.nasa.jpf.symbc.veritesting.StaticRegionException;
+import gov.nasa.jpf.symbc.veritesting.VeritestingRegion;
 import gov.nasa.jpf.vm.ChoiceGenerator;
 import gov.nasa.jpf.vm.Instruction;
 import gov.nasa.jpf.vm.StackFrame;
 import gov.nasa.jpf.vm.ThreadInfo;
 import gov.nasa.jpf.symbc.numeric.Comparator;
+import za.ac.sun.cs.green.expr.Operation;
 
 import java.util.HashMap;
 
@@ -107,8 +110,9 @@ public class VeriPCChoiceGenerator extends PCChoiceGenerator {
     }
 
 
-    public kind getKind(Instruction instruction) {
+    private kind getKind(Instruction instruction) {
         switch (instruction.getMnemonic()) {
+            case "ifeq":
             case "ifge":
             case "ifle":
             case "ifgt":
@@ -129,8 +133,12 @@ public class VeriPCChoiceGenerator extends PCChoiceGenerator {
     }
 
     // MWW: I see vey similar code in InstuctionInfo.  Why?
+    //TODO: Fix that after talking with Vaibhav
     public Comparator getComparator(Instruction instruction) {
         switch (instruction.getMnemonic()) {
+            case "ifeq":
+            case "if_icmpeq":
+                return Comparator.EQ;
             case "ifge":
             case "if_icmpge":
                 return Comparator.GE;
@@ -143,16 +151,18 @@ public class VeriPCChoiceGenerator extends PCChoiceGenerator {
             case "iflt":
             case "if_icmplt":
                 return Comparator.LT;
-            case "if_icmpeq":
-                return Comparator.EQ;
             default:
                 return null;
         }
     }
 
     // MWW: I see vey similar code in InstuctionInfo.  Why?
+    //TODO: Fix that after talking with Vaibhav
     public Comparator getNegComparator(Instruction instruction) {
         switch (instruction.getMnemonic()) {
+            case "ifeq":
+            case "if_icmpeq":
+                return Comparator.NE;
             case "ifge":
             case "if_icmpge":
                 return Comparator.LT;
@@ -165,8 +175,6 @@ public class VeriPCChoiceGenerator extends PCChoiceGenerator {
             case "iflt":
             case "if_icmplt":
                 return Comparator.GE;
-            case "if_icmpeq":
-                return Comparator.NE;
             default:
                 return null;
         }
@@ -193,7 +201,7 @@ public class VeriPCChoiceGenerator extends PCChoiceGenerator {
     }
 
     // MWW: Why are we looking up the choice generator here?   We are *in* the choice generator.
-
+    // Soha: You are right, I fixed that.
     private Instruction executeBinaryIf(Comparator byteCodeOp, Comparator byteCodeNegOp, Instruction instructionToExecute, int choice) {
         StackFrame sf = ti.getModifiableTopFrame();
 
@@ -204,15 +212,17 @@ public class VeriPCChoiceGenerator extends PCChoiceGenerator {
             //System.out.println("Execute IF_ICMPEQ: The conditions are concrete");
             return instructionToExecute.execute(ti);
         } else {
-            ChoiceGenerator<?> cg;
-            cg = ti.getVM().getSystemState().getChoiceGenerator();
-            assert (cg instanceof PCChoiceGenerator) : "expected PCChoiceGenerator, got: " + cg;
-            boolean conditionValue = (Integer) cg.getNextChoice() == 1 ? false : true;
+            //ChoiceGenerator<?> cg;
+            //cg = ti.getVM().getSystemState().getChoiceGenerator();
+            //assert (cg instanceof PCChoiceGenerator) : "expected PCChoiceGenerator, got: " + cg;
+            //boolean conditionValue = (Integer) cg.getNextChoice() == 1 ? false : true;
+            boolean conditionValue = (Integer) this.getNextChoice() == 1 ? false : true;
             int	v2 = sf.pop();
             int	v1 = sf.pop();
             //System.out.println("Execute IF_ICMPEQ: "+ conditionValue);
             PathCondition pc;
-            pc = ((VeriPCChoiceGenerator) ti.getVM().getChoiceGenerator()).getCurrentPC();
+            // pc = ((VeriPCChoiceGenerator) ti.getVM().getChoiceGenerator()).getCurrentPC();
+            pc = this.getCurrentPC();
             assert pc != null;
 
             if (conditionValue) {
@@ -227,7 +237,8 @@ public class VeriPCChoiceGenerator extends PCChoiceGenerator {
                     ti.getVM().getSystemState().setIgnored(true);
                 }else{
                     //pc.solve();
-                    ((PCChoiceGenerator) cg).setCurrentPC(pc);
+                    //((PCChoiceGenerator) cg).setCurrentPC(pc);
+                    this.setCurrentPC(pc);
                     //	System.out.println(((PCChoiceGenerator) cg).getCurrentPC());
                 }
                 return ((IF_ICMPEQ) instructionToExecute).getTarget();
@@ -243,7 +254,8 @@ public class VeriPCChoiceGenerator extends PCChoiceGenerator {
                     ti.getVM().getSystemState().setIgnored(true);
                 }else {
                     //pc.solve();
-                    ((PCChoiceGenerator) cg).setCurrentPC(pc);
+                    //((PCChoiceGenerator) cg).setCurrentPC(pc);
+                    this.setCurrentPC(pc);
                     //System.out.println(((PCChoiceGenerator) cg).getCurrentPC());
                 }
                 return instructionToExecute.getNext(ti);
@@ -268,15 +280,16 @@ public class VeriPCChoiceGenerator extends PCChoiceGenerator {
     }
 
     // MWW: you are *in* the choice generator - why are you looking it up?!?
+    // Soha: You are right, I fixed that.
 
     public Instruction executeUnaryIf(Comparator byteCodeOp, Comparator byteCodeNegOp, Instruction instruction, int choice) {
         StackFrame sf = ti.getModifiableTopFrame();
         IntegerExpression sym_v = (IntegerExpression) sf.getOperandAttr();
-        ChoiceGenerator<?> cg;
+//        ChoiceGenerator<?> cg;
 
         boolean conditionValue;
-        cg = ti.getVM().getSystemState().getChoiceGenerator();
-        assert (cg instanceof PCChoiceGenerator) : "expected PCChoiceGenerator, got: " + cg;
+//        cg = ti.getVM().getSystemState().getChoiceGenerator();
+//        assert (cg instanceof PCChoiceGenerator) : "expected PCChoiceGenerator, got: " + cg;
         conditionValue = choice == 1 ? false : true;
 
         sf.pop();
@@ -302,7 +315,9 @@ public class VeriPCChoiceGenerator extends PCChoiceGenerator {
         PathCondition veritestingPc = ((VeriPCChoiceGenerator)ti.getVM().getChoiceGenerator()).getCurrentPC();
         pc.appendPathcondition(veritestingPc);
 */
-        pc = ((VeriPCChoiceGenerator) ti.getVM().getChoiceGenerator()).getCurrentPC();
+ //       pc = ((VeriPCChoiceGenerator) ti.getVM().getChoiceGenerator()).getCurrentPC();
+
+        pc = this.getCurrentPC();
 
         if (conditionValue) {
             pc._addDet(byteCodeOp, sym_v, 0);
@@ -310,7 +325,8 @@ public class VeriPCChoiceGenerator extends PCChoiceGenerator {
                 ti.getVM().getSystemState().setIgnored(true);
             } else {
                 //pc.solve();
-                ((PCChoiceGenerator) cg).setCurrentPC(pc);
+//                ((PCChoiceGenerator) cg).setCurrentPC(pc);
+                this.setCurrentPC(pc);
                 //System.out.println(((PCChoiceGenerator) cg).getCurrentPC());
             }
             return ((IfInstruction) instruction).getTarget();
@@ -320,10 +336,39 @@ public class VeriPCChoiceGenerator extends PCChoiceGenerator {
                 ti.getVM().getSystemState().setIgnored(true);
             } else {
                 //pc.solve();
-                ((PCChoiceGenerator) cg).setCurrentPC(pc);
+                //((PCChoiceGenerator) cg).setCurrentPC(pc);
+                this.setCurrentPC(pc);
                 //System.out.println(((PCChoiceGenerator) cg).getCurrentPC());
             }
             return instruction.getNext(ti);
         }
+    }
+
+    // MWW: It would probably be better if this code migrated to the VeriPCChoiceGenerator.
+    // As it is the CG is 1/2 responsible for creating its choices, and the
+    // VeritestingListener is 1/2 responsible (below).
+
+    // 4 cases (they may be UNSAT, but that's ok):
+    // 0: staticNominalNoReturn
+    // 1: thenException
+    // 2: elseException
+    // 3: staticNominalReturn
+    // NB: then and else constraints are the same (here).  We will tack on the additional
+    // constraint for the 'then' and 'else' branches when we execute the choice generator.
+    private PathCondition createPC(PathCondition pc, za.ac.sun.cs.green.expr.Expression regionSummary, za.ac.sun.cs.green.expr.Expression constraint) {
+        PathCondition pcCopy = pc.make_copy();
+        za.ac.sun.cs.green.expr.Expression copyConstraint = new Operation(Operation.Operator.AND, regionSummary, constraint);
+        pcCopy._addDet(new GreenConstraint(copyConstraint));
+        return pcCopy;
+    }
+
+    public void makeVeritestingCG(VeritestingRegion region, za.ac.sun.cs.green.expr.Expression regionSummary, ThreadInfo ti) throws StaticRegionException {
+
+        PathCondition pc = ((PCChoiceGenerator) ti.getVM().getSystemState().getChoiceGenerator()).getCurrentPC();
+
+        setPC(createPC(pc, regionSummary, region.staticNominalPredicate()), 0);
+        setPC(createPC(pc, regionSummary, region.spfPathPredicate()), 1);
+        setPC(createPC(pc, regionSummary, region.spfPathPredicate()), 2);
+        // TODO: create the path preicate for the 'return' case.
     }
 }
