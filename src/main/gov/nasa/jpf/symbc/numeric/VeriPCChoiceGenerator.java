@@ -112,6 +112,7 @@ public class VeriPCChoiceGenerator extends PCChoiceGenerator {
 
     private kind getKind(Instruction instruction) {
         switch (instruction.getMnemonic()) {
+            case "ifeq":
             case "ifge":
             case "ifle":
             case "ifgt":
@@ -132,8 +133,12 @@ public class VeriPCChoiceGenerator extends PCChoiceGenerator {
     }
 
     // MWW: I see vey similar code in InstuctionInfo.  Why?
+    //TODO: Fix that after talking with Vaibhav
     public Comparator getComparator(Instruction instruction) {
         switch (instruction.getMnemonic()) {
+            case "ifeq":
+            case "if_icmpeq":
+                return Comparator.EQ;
             case "ifge":
             case "if_icmpge":
                 return Comparator.GE;
@@ -146,16 +151,18 @@ public class VeriPCChoiceGenerator extends PCChoiceGenerator {
             case "iflt":
             case "if_icmplt":
                 return Comparator.LT;
-            case "if_icmpeq":
-                return Comparator.EQ;
             default:
                 return null;
         }
     }
 
     // MWW: I see vey similar code in InstuctionInfo.  Why?
+    //TODO: Fix that after talking with Vaibhav
     public Comparator getNegComparator(Instruction instruction) {
         switch (instruction.getMnemonic()) {
+            case "ifeq":
+            case "if_icmpeq":
+                return Comparator.NE;
             case "ifge":
             case "if_icmpge":
                 return Comparator.LT;
@@ -168,8 +175,6 @@ public class VeriPCChoiceGenerator extends PCChoiceGenerator {
             case "iflt":
             case "if_icmplt":
                 return Comparator.GE;
-            case "if_icmpeq":
-                return Comparator.NE;
             default:
                 return null;
         }
