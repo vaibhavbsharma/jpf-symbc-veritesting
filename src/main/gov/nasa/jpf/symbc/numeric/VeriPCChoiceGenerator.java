@@ -370,12 +370,8 @@ public class VeriPCChoiceGenerator extends PCChoiceGenerator {
 
     public void makeVeritestingCG(VeritestingRegion region, Expression regionSummary, ThreadInfo ti) throws StaticRegionException {
         assert(regionSummary != null);
-        PathCondition pc;
-        ChoiceGenerator cg = ti.getVM().getSystemState().getChoiceGenerator();
-        if(cg instanceof PCChoiceGenerator)
-            pc = ((PCChoiceGenerator) cg).getCurrentPC();
-        else
-            pc = new PathCondition();
+        PathCondition pc = ((PCChoiceGenerator)(ti.getVM().getSystemState().getChoiceGenerator())).getCurrentPC();
+
         setPC(createPC(pc, regionSummary, region.staticNominalPredicate()), 0);
         setPC(createPC(pc, regionSummary, region.spfPathPredicate()), 1);
         setPC(createPC(pc, regionSummary, region.spfPathPredicate()), 2);
