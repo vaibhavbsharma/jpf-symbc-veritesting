@@ -117,6 +117,7 @@ public class VeriPCChoiceGenerator extends PCChoiceGenerator {
             case "ifle":
             case "ifgt":
             case "iflt":
+            case "ifne":
                 return kind.UNARYIF;
             case "if_icmpeq":
             case "if_icmpge":
@@ -151,6 +152,8 @@ public class VeriPCChoiceGenerator extends PCChoiceGenerator {
             case "iflt":
             case "if_icmplt":
                 return Comparator.LT;
+            case "ifne":
+                return Comparator.NE;
             default:
                 return null;
         }
@@ -175,6 +178,8 @@ public class VeriPCChoiceGenerator extends PCChoiceGenerator {
             case "iflt":
             case "if_icmplt":
                 return Comparator.GE;
+            case "ifne":
+                return Comparator.EQ;
             default:
                 return null;
         }
@@ -363,9 +368,12 @@ public class VeriPCChoiceGenerator extends PCChoiceGenerator {
     }
 
     public void makeVeritestingCG(VeritestingRegion region, za.ac.sun.cs.green.expr.Expression regionSummary, ThreadInfo ti) throws StaticRegionException {
-
-        PathCondition pc = ((PCChoiceGenerator) ti.getVM().getSystemState().getChoiceGenerator()).getCurrentPC();
-
+        PathCondition pc;
+        ChoiceGenerator cg = ti.getVM().getSystemState().getChoiceGenerator();
+        if(cg instanceof PCChoiceGenerator)
+            pc = ((PCChoiceGenerator) cg).getCurrentPC();
+        else
+            pc = new PathCondition();
         setPC(createPC(pc, regionSummary, region.staticNominalPredicate()), 0);
         setPC(createPC(pc, regionSummary, region.spfPathPredicate()), 1);
         setPC(createPC(pc, regionSummary, region.spfPathPredicate()), 2);
