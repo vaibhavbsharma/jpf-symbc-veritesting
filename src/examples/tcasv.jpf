@@ -8,8 +8,9 @@ vm.storage.class=nil
 
 #coverage.include=tcasv
 
-#listener = .symbc.VeritestingListener
+listener = .symbc.VeritestingListener
 #,gov.nasa.jpf.listener.CoverageAnalyzer
-listener = .symbc.SymbolicListener
+#listener = .symbc.SymbolicListener
 #listener = .listener.ChoiceTracker
 symbolic.dp=z3bitvector
+veritestingMode=3

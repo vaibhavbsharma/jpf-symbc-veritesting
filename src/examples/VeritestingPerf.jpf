@@ -13,14 +13,14 @@ symbolic.debug=false
 
 ######## testing ArrrayLoad  ######
 #testing inRange concrete Index
-symbolic.method=VeritestingPerf.inRangeloadArrayTC(sym#sym)
+#symbolic.method=VeritestingPerf.inRangeloadArrayTC(sym#sym)
 
 #symbolic.method=VeritestingPerf.innerCatchOutRangeloadArrayTC(sym#sym)
 
 #testing inRange symbolic Index
 #symbolic.method=VeritestingPerf.catchOutRangeloadArrayTC(sym#sym)
 
-#symbolic.method=VeritestingPerf.outRangeloadArrayTC(sym#sym)
+symbolic.method=VeritestingPerf.outRangeloadArrayTC(sym#sym)
 
 #symbolic.method=VeritestingPerf.boundedOutRangeloadArrayTC(sym#sym)
 #symbolic.method=VeritestingPerf.ifNull(con)

@@ -248,7 +248,8 @@ public class VeritestingMain {
             HashSet<Integer> visited = new HashSet<>();
             NatLoopSolver.findAllLoops(cfg, uninverteddom, loops, visited, cfg.getNode(0));
             // Here is where the magic happens.
-            if(!methodAnalysis) doAnalysis(cfg.entry(), null);
+            if(!methodAnalysis)
+                doAnalysis(cfg.entry(), null);
             else doMethodAnalysis(cfg.entry(), cfg.exit());
         } catch (InvalidClassFileException e) {
             e.printStackTrace();
@@ -298,7 +299,10 @@ public class VeritestingMain {
         Expression phiExprSPF, finalPathExpr = pathExpr1;
         Iterator<SSAInstruction> iterator = commonSucc.iterator();
         while(iterator.hasNext()) {
-            // visit instructions one at a time.  Why the break on non-phi instructions?
+            // visit instructions one at a time, break on the first non-phi statement because a region summary starts at
+            // the condition and ends at the meet point. The meet point ends at the first non-phi statement. Any outer
+            // region that encapsulates this inner region will have to summarize statements that appear after the first
+            // non-phi statement in this basic block.
             iterator.next().visit(myIVisitor);
             if (myIVisitor.hasPhiExpr()) {
                 phiExprSPF = myIVisitor.getPhiExprSPF(thenPLAssignSPF, elsePLAssignSPF);
@@ -879,7 +883,6 @@ public class VeritestingMain {
 
                 if (!myIVisitor.canVeritest()) {
                     canVeritest = false;
-                    System.out.println("Cannot veritest SSAInstruction: " + myIVisitor.getLastInstruction());
                     break;
                 }
                 if(myIVisitor.isInvoke()) {
