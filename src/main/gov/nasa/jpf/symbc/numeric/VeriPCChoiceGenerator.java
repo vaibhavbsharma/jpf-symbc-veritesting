@@ -50,6 +50,7 @@ import gov.nasa.jpf.vm.StackFrame;
 import gov.nasa.jpf.vm.ThreadInfo;
 import gov.nasa.jpf.symbc.numeric.Comparator;
 import za.ac.sun.cs.green.expr.Operation;
+import za.ac.sun.cs.green.expr.Expression;
 
 import java.util.HashMap;
 
@@ -117,6 +118,7 @@ public class VeriPCChoiceGenerator extends PCChoiceGenerator {
             case "ifle":
             case "ifgt":
             case "iflt":
+            case "ifne":
                 return kind.UNARYIF;
             case "if_icmpeq":
             case "if_icmpge":
@@ -151,6 +153,8 @@ public class VeriPCChoiceGenerator extends PCChoiceGenerator {
             case "iflt":
             case "if_icmplt":
                 return Comparator.LT;
+            case "ifne":
+                return Comparator.NE;
             default:
                 return null;
         }
@@ -175,6 +179,8 @@ public class VeriPCChoiceGenerator extends PCChoiceGenerator {
             case "iflt":
             case "if_icmplt":
                 return Comparator.GE;
+            case "ifne":
+                return Comparator.EQ;
             default:
                 return null;
         }
@@ -355,16 +361,16 @@ public class VeriPCChoiceGenerator extends PCChoiceGenerator {
     // 3: staticNominalReturn
     // NB: then and else constraints are the same (here).  We will tack on the additional
     // constraint for the 'then' and 'else' branches when we execute the choice generator.
-    private PathCondition createPC(PathCondition pc, za.ac.sun.cs.green.expr.Expression regionSummary, za.ac.sun.cs.green.expr.Expression constraint) {
+    private PathCondition createPC(PathCondition pc, Expression regionSummary, Expression constraint) {
         PathCondition pcCopy = pc.make_copy();
         za.ac.sun.cs.green.expr.Expression copyConstraint = new Operation(Operation.Operator.AND, regionSummary, constraint);
         pcCopy._addDet(new GreenConstraint(copyConstraint));
         return pcCopy;
     }
 
-    public void makeVeritestingCG(VeritestingRegion region, za.ac.sun.cs.green.expr.Expression regionSummary, ThreadInfo ti) throws StaticRegionException {
-
-        PathCondition pc = ((PCChoiceGenerator) ti.getVM().getSystemState().getChoiceGenerator()).getCurrentPC();
+    public void makeVeritestingCG(VeritestingRegion region, Expression regionSummary, ThreadInfo ti) throws StaticRegionException {
+        assert(regionSummary != null);
+        PathCondition pc = ((PCChoiceGenerator)(ti.getVM().getSystemState().getChoiceGenerator())).getCurrentPC();
 
         setPC(createPC(pc, regionSummary, region.staticNominalPredicate()), 0);
         setPC(createPC(pc, regionSummary, region.spfPathPredicate()), 1);
