@@ -247,7 +247,7 @@ public class VeriPCChoiceGenerator extends PCChoiceGenerator {
                     this.setCurrentPC(pc);
                     //	System.out.println(((PCChoiceGenerator) cg).getCurrentPC());
                 }
-                return ((IF_ICMPEQ) instructionToExecute).getTarget();
+                return ((IfInstruction) instructionToExecute).getTarget();
             } else {
                 if (sym_v1 != null){
                     if (sym_v2 != null){ //both are symbolic values
