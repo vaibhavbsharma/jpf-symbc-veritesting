@@ -275,7 +275,7 @@ public class WBSV {
 		WBSV wbs = new WBSV();
 		wbs.update(pedal1, auto1, skid1);
 		wbs.update(pedal2, auto2, skid2);
-		wbs.update(pedal3, auto3, skid3);
+		// wbs.update(pedal3, auto3, skid3);
 	}
 	
 	public static void main(String[] args) {

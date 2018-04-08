@@ -32,18 +32,19 @@ import com.ibm.wala.types.TypeReference;
 import gov.nasa.jpf.Config;
 import gov.nasa.jpf.JPF;
 import gov.nasa.jpf.PropertyListenerAdapter;
-import gov.nasa.jpf.jvm.bytecode.GOTO;
 import gov.nasa.jpf.report.ConsolePublisher;
 import gov.nasa.jpf.report.Publisher;
 import gov.nasa.jpf.report.PublisherExtension;
 import gov.nasa.jpf.symbc.numeric.*;
 import gov.nasa.jpf.symbc.numeric.solvers.SolverTranslator;
 import gov.nasa.jpf.symbc.veritesting.*;
+import gov.nasa.jpf.symbc.veritesting.ChoiceGenerators.StaticBranchChoiceGenerator;
+import gov.nasa.jpf.symbc.veritesting.ChoiceGenerators.StaticPCChoiceGenerator;
+import gov.nasa.jpf.symbc.veritesting.ChoiceGenerators.StaticSummaryChoiceGenerator;
 import gov.nasa.jpf.symbc.veritesting.Visitors.FillAstHoleVisitor;
 import gov.nasa.jpf.vm.*;
 import za.ac.sun.cs.green.expr.Expression;
 import za.ac.sun.cs.green.expr.IntConstant;
-import za.ac.sun.cs.green.expr.IntVariable;
 import za.ac.sun.cs.green.expr.Operation;
 
 import java.io.PrintWriter;
@@ -66,7 +67,14 @@ public class VeritestingListener extends PropertyListenerAdapter implements Publ
     //TODO make veritestingMode = 4 be sound, if a region has exceptional behavior, we shouldn't summarize it
     assuming that the exception will never be triggered
      */
+
+    public static final int DEBUG_OFF = 0;
+    public static final int DEBUG_LIGHT = 1;
+    public static final int DEBUG_MEDIUM = 2;
+    public static final int DEBUG_VERBOSE = 3;
+
     public static int veritestingMode = 0;
+    public static int debug = 0;
 
     public static long totalSolverTime = 0, z3Time = 0;
     public static long parseTime = 0;
@@ -117,64 +125,65 @@ public class VeritestingListener extends PropertyListenerAdapter implements Publ
             discoverRegions(ti); // static analysis to discover regions
         }
 
-        // MWW: giant hack here.  Debugging?
-        if((instructionToExecute.getPosition() == 48)&&(instructionToExecute.getMethodInfo().getName().equals("boundedOutRangeloadArrayTC"))){
-            String key = generateRegionKey(ti, instructionToExecute);
-            System.out.println("key is = " + key);
-        }
         // Here is the real code
         String key = generateRegionKey(ti, instructionToExecute);
 
-        // shouldn't veritestingRegion non-null be invariant at this point?
-        if (veritestingRegions != null && veritestingRegions.containsKey(key)) {
+        if (veritestingRegions.containsKey(key)) {
             VeritestingRegion region = veritestingRegions.get(key);
             if(veritestingMode == 4) {
-                VeriPCChoiceGenerator newCG = new VeriPCChoiceGenerator(4);
-
                 if (!ti.isFirstStepInsn()) { // first time around
                     Expression regionSummary;
+                    StaticPCChoiceGenerator newCG;
+                    if (StaticPCChoiceGenerator.getKind(instructionToExecute) == StaticPCChoiceGenerator.Kind.OTHER) {
+                        newCG = new StaticSummaryChoiceGenerator(region, instructionToExecute);
+                    } else {
+                        newCG = new StaticBranchChoiceGenerator(region, instructionToExecute);
+                    }
+
                     try {
                         regionSummary = instantiateRegion(ti, region); // fill holes in region
+                        // System.out.println(ASTToString(regionSummary));
                         if (regionSummary == null)
                             return;
-                        newCG.makeVeritestingCG(region, regionSummary, ti);
+                        newCG.makeVeritestingCG(regionSummary, ti);
                     } catch (StaticRegionException sre) {
                         System.out.println(sre.toString());
                         return; //problem filling holes, abort veritesting
                     }
 
-                    // construct choice generator
-                    newCG.setOffset(instructionToExecute.getPosition());
-                    newCG.setMethodName(instructionToExecute.getMethodInfo().getFullName());
                     SystemState systemState = vm.getSystemState();
                     systemState.setNextChoiceGenerator(newCG);
                     ti.setNextPC(instructionToExecute);
-                    System.out.println("resume program after veritesting region");
+                    // System.out.println("resume program after creating veritesting region");
                 } else {
                     ChoiceGenerator<?> cg = ti.getVM().getSystemState().getChoiceGenerator();
-                    if (cg instanceof VeriPCChoiceGenerator) {
-                        VeriPCChoiceGenerator vcg = (VeriPCChoiceGenerator) cg;
+                    if (cg instanceof StaticPCChoiceGenerator) {
+                        StaticPCChoiceGenerator vcg = (StaticPCChoiceGenerator) cg;
                         int choice = (Integer) cg.getNextChoice();
-                        PathCondition pc;
-                        if (choice == 0) { // veritesting nominal case
-                            setupSPF(ti, instructionToExecute, region);
-                        } else {
-                            System.out.println("Exploring Exit Transitions");
-                            Instruction nextInstruction = vcg.execute(instructionToExecute, choice);
-                            ti.setNextPC(nextInstruction);
-                        }
+                        Instruction nextInstruction = vcg.execute(ti, instructionToExecute, choice);
+                        ti.setNextPC(nextInstruction);
                     }
                 }
             } else if (veritestingMode >= 1 && veritestingMode <= 3) {
+                // MWW: hopefully this code all goes away sometime soon!
                 try {
                     Expression regionSummary = instantiateRegion(ti, region); // fill holes in region
                     if (regionSummary == null)
                         return;
-                    setupSPF(ti, instructionToExecute, region);
+                    // MWW: for debugging.
+                    // System.out.println(ASTToString(regionSummary));
+
+                    // MWW: added code back in!
+                    PathCondition pc = ((PCChoiceGenerator) ti.getVM().getSystemState().getChoiceGenerator()).getCurrentPC();
+                    pc._addDet(new GreenConstraint(regionSummary));
+                    ((PCChoiceGenerator) ti.getVM().getSystemState().getChoiceGenerator()).setCurrentPC(pc);
+                    // MWW: end of add.
+
+                    Instruction nextInstruction = StaticPCChoiceGenerator.setupSPF(ti, instructionToExecute, region);
+                    ti.setNextPC(nextInstruction);
                 } catch (StaticRegionException sre) {
                     System.out.println(sre.toString());
                 }
-
             }
         }
     }
@@ -194,37 +203,12 @@ public class VeritestingListener extends PropertyListenerAdapter implements Publ
                 "#" + instructionToExecute.getPosition();
     }
 
-    private void setupSPF(ThreadInfo ti, Instruction instructionToExecute, VeritestingRegion region) {
-        Instruction insn = instructionToExecute;
-        while (insn.getPosition() != region.getEndInsnPosition()) {
-            if (insn instanceof GOTO && (((GOTO) insn).getTarget().getPosition() <= region.getEndInsnPosition()))
-                insn = ((GOTO) insn).getTarget();
-            else insn = insn.getNext();
-        }
-
-        // MWW: this looks like a hack!
-        if (insn.getMnemonic().contains("store")) insn = insn.getNext();
-        // MWW: end comment.
-
-        StackFrame modifiableTopFrame = ti.getModifiableTopFrame();
-        int numOperands = 0;
-        StackFrame sf = ti.getTopFrame();
-        InstructionInfo instructionInfo = new InstructionInfo().invoke(sf);
-        if (instructionInfo != null && !region.isMethodSummary())
-            numOperands = instructionInfo.getNumOperands();
-
-        while (numOperands > 0) {
-            modifiableTopFrame.pop();
-            numOperands--;
-        }
-
-        ti.setNextPC(insn);
-        pathLabelCount += 1;
-        region.usedCount++;
-    }
 
 
     private Expression instantiateRegion(ThreadInfo ti, VeritestingRegion region) throws StaticRegionException {
+        // increment path labels for current region.
+        pathLabelCount += 1;
+
         // MWW: Why is this code not in the region class?
         region.ranIntoCount++;
         StackFrame sf = ti.getTopFrame();
@@ -285,12 +269,14 @@ public class VeritestingListener extends PropertyListenerAdapter implements Publ
             //String finalSummaryExpressionString = ASTToString(finalSummaryExpression);
             if (!pc.simplify()) {
                 System.out.println("veritesting region added unsat summary");
+                System.out.println(ASTToString(((GreenConstraint)pc.header).getExp()));
                 assert (false);
             }
         }
         if (!populateOutputs(region.getOutputVars(), fillHolesOutput.holeHashMap, sf, ti)) {
             return null;
         }
+
         return finalSummaryExpression;
     }
 
@@ -735,137 +721,6 @@ public class VeritestingListener extends PropertyListenerAdapter implements Publ
         return null;
     }
 
-    private class InstructionInfo {
-        private int numOperands;
-        private Operation.Operator trueComparator, falseComparator;
-        private Expression condition, negCondition;
-
-        public Expression getCondition() {
-            return condition;
-        }
-
-        public Expression getNegCondition() {
-            return negCondition;
-        }
-
-        public int getNumOperands() {
-            return numOperands;
-        }
-
-        public Operation.Operator getTrueComparator() {
-            return trueComparator;
-        }
-
-        public Operation.Operator getFalseComparator() {
-            return falseComparator;
-        }
-
-        public InstructionInfo invoke(StackFrame stackFrame) {
-            String mnemonic = stackFrame.getPC().getMnemonic();
-            //System.out.println("mne = " + mnemonic);
-            switch (mnemonic) {
-                case "ifeq":
-                    numOperands = 1;
-                    trueComparator = Operation.Operator.EQ;
-                    falseComparator = Operation.Operator.NE;
-                    break;
-                case "ifne":
-                    trueComparator = Operation.Operator.NE;
-                    falseComparator = Operation.Operator.EQ;
-                    numOperands = 1;
-                    break;
-                case "iflt":
-                    trueComparator = Operation.Operator.LT;
-                    falseComparator = Operation.Operator.GE;
-                    numOperands = 1;
-                    break;
-                case "ifle":
-                    trueComparator = Operation.Operator.LE;
-                    falseComparator = Operation.Operator.GT;
-                    numOperands = 1;
-                    break;
-                case "ifgt":
-                    trueComparator = Operation.Operator.GT;
-                    falseComparator = Operation.Operator.LE;
-                    numOperands = 1;
-                    break;
-                case "ifge":
-                    trueComparator = Operation.Operator.GE;
-                    falseComparator = Operation.Operator.LT;
-                    numOperands = 1;
-                    break;
-                case "ifnull":
-                    trueComparator = Operation.Operator.EQ;
-                    falseComparator = Operation.Operator.NE;
-                    numOperands = 1;
-                    break;
-                case "ifnonnull":
-                    trueComparator = Operation.Operator.EQ;
-                    falseComparator = Operation.Operator.NE;
-                    numOperands = 1;
-                    break;
-                case "if_icmpeq":
-                    trueComparator = Operation.Operator.EQ;
-                    falseComparator = Operation.Operator.NE;
-                    numOperands = 2;
-                    break;
-                case "if_icmpne":
-                    trueComparator = Operation.Operator.NE;
-                    falseComparator = Operation.Operator.EQ;
-                    numOperands = 2;
-                    break;
-                case "if_icmpgt":
-                    trueComparator = Operation.Operator.GT;
-                    falseComparator = Operation.Operator.LE;
-                    numOperands = 2;
-                    break;
-                case "if_icmpge":
-                    trueComparator = Operation.Operator.GE;
-                    falseComparator = Operation.Operator.LT;
-                    numOperands = 2;
-                    break;
-                case "if_icmple":
-                    trueComparator = Operation.Operator.LE;
-                    falseComparator = Operation.Operator.GT;
-                    numOperands = 2;
-                    break;
-                case "if_icmplt":
-                    trueComparator = Operation.Operator.LT;
-                    falseComparator = Operation.Operator.GE;
-                    numOperands = 2;
-                    break;
-                default:
-                    return null;
-            }
-            assert (numOperands == 1 || numOperands == 2);
-            IntegerExpression operand1 = null, operand2 = null;
-            boolean isConcreteCondition = true;
-            if (numOperands == 1) {
-                gov.nasa.jpf.symbc.numeric.Expression operand1_expr = (gov.nasa.jpf.symbc.numeric.Expression)
-                        stackFrame.getOperandAttr();
-                operand1 = (IntegerExpression) operand1_expr;
-                if (operand1 == null) operand1 = new IntegerConstant(stackFrame.peek());
-                else isConcreteCondition = false;
-                operand2 = new IntegerConstant(0);
-            }
-            if (numOperands == 2) {
-                operand1 = (IntegerExpression) stackFrame.getOperandAttr(1);
-                if (operand1 == null) operand1 = new IntegerConstant(stackFrame.peek(1));
-                else isConcreteCondition = false;
-                operand2 = (IntegerExpression) stackFrame.getOperandAttr(0);
-                if (operand2 == null) operand2 = new IntegerConstant(stackFrame.peek(0));
-                else isConcreteCondition = false;
-            }
-            if (isConcreteCondition) {
-                return null;
-            } else {
-                condition = new Operation(trueComparator, SPFToGreenExpr(operand1), SPFToGreenExpr(operand2));
-                negCondition = new Operation(falseComparator, SPFToGreenExpr(operand1), SPFToGreenExpr(operand2));
-            }
-            return this;
-        }
-
-    }
 
     public static Expression SPFToGreenExpr(gov.nasa.jpf.symbc.numeric.Expression spfExp) {
         SolverTranslator.Translator toGreenTranslator = new SolverTranslator.Translator();
@@ -874,7 +729,7 @@ public class VeritestingListener extends PropertyListenerAdapter implements Publ
     }
 
     private class FillNonInputHoles {
-        private final VeritestingListener.InstructionInfo instructionInfo;
+        private final InstructionInfo instructionInfo;
         private final boolean isMethodSummary;
         private LinkedHashMap<Expression, Expression> retHoleHashMap;
         private InvokeInfo callSiteInfo;
