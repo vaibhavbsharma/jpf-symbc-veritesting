@@ -20,9 +20,12 @@ symbolic.debug=false
 #testing inRange symbolic Index
 #symbolic.method=VeritestingPerf.catchOutRangeloadArrayTC(sym#sym)
 
-symbolic.method=VeritestingPerf.outRangeloadArrayTC(sym#sym)
+#symbolic.method=VeritestingPerf.outRangeloadArrayTC(sym#sym)
 
 #symbolic.method=VeritestingPerf.boundedOutRangeloadArrayTC(sym#sym)
+
+symbolic.method=VeritestingPerf.createObjectTC(sym#sym)
+
 #symbolic.method=VeritestingPerf.ifNull(con)
 
 #symbolic.method=VeritestingPerf.foo(sym)

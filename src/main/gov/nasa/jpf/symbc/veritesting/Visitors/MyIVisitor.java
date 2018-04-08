@@ -14,6 +14,7 @@ import gov.nasa.jpf.symbc.veritesting.HoleExpression;
 import gov.nasa.jpf.symbc.veritesting.InvokeInfo;
 import gov.nasa.jpf.symbc.veritesting.SPFCase.ArrayBoundsReason;
 import gov.nasa.jpf.symbc.veritesting.SPFCase.SPFCase;
+import gov.nasa.jpf.symbc.veritesting.SPFCase.TrueReason;
 import gov.nasa.jpf.symbc.veritesting.VarUtil;
 import za.ac.sun.cs.green.expr.Expression;
 
@@ -332,10 +333,14 @@ public class MyIVisitor implements SSAInstruction.IVisitor {
         MethodReference methodReference = instruction.getDeclaredTarget();
         CallSiteReference site = instruction.getCallSite();
         //Only adding support for invokeVirtual statements
-        if(instruction.getNumberOfReturnValues() > 1 ||
-                site.getInvocationCode() == IInvokeInstruction.Dispatch.SPECIAL ||
-                site.getInvocationCode() == IInvokeInstruction.Dispatch.INTERFACE) {
+
+        if(instruction.getNumberOfReturnValues() > 1 || site.getInvocationCode() == IInvokeInstruction.Dispatch.INTERFACE) {
             setCanVeritest(false, instruction);
+            return;
+        }
+        else if(site.getInvocationCode() == IInvokeInstruction.Dispatch.SPECIAL){
+            SPFExpr = Operation.FALSE;
+            setCanVeritest(true, instruction);
             return;
         }
         assert(instruction.getNumberOfUses() == instruction.getNumberOfParameters());
@@ -367,7 +372,11 @@ public class MyIVisitor implements SSAInstruction.IVisitor {
     public void visitNew(SSANewInstruction instruction) {
         if(isMeetVisitor) return;
         System.out.println("SSANewInstruction = " + instruction);
-        setCanVeritest(false, instruction);
+        TrueReason reason = new TrueReason(TrueReason.Cause.OBJECT_CREATION);
+        SPFCase c = new SPFCase(pathLabelHole, reason);
+        varUtil.addSpfCase(c);
+        SPFExpr =Operation.FALSE;
+        canVeritest = true;
     }
 
     @Override
@@ -381,7 +390,10 @@ public class MyIVisitor implements SSAInstruction.IVisitor {
     public void visitThrow(SSAThrowInstruction instruction) {
         if(isMeetVisitor) return;
         System.out.println("SSAThrowInstruction = " + instruction);
-        setCanVeritest(false, instruction);
+        TrueReason reason = new TrueReason(TrueReason.Cause.EXCEPTION_THROWN);
+        SPFCase c = new SPFCase(pathLabelHole, reason);
+        varUtil.addSpfCase(c);
+        canVeritest = true;
     }
 
     @Override

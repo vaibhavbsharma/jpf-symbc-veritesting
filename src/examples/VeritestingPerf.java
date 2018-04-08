@@ -14,13 +14,14 @@ public class VeritestingPerf {
 
     public static void main(String[] args) {
         //(new VeritestingPerf()).cfgTest(1);
-        (new VeritestingPerf()).countBitsSet(1);
+        //(new VeritestingPerf()).countBitsSet(1);
         //int x[] = {1, 2};
         //(new VeritestingPerf()).inRangeloadArrayTC(22, 2);
         //(new VeritestingPerf()).innerCatchOutRangeloadArrayTC(22, 2);
         //(new VeritestingPerf()).outRangeloadArrayTC( 22, 2);
         // (new VeritestingPerf()).catchOutRangeloadArrayTC(22, 2);
-      //(new VeritestingPerf()).boundedOutRangeloadArrayTC(22, 2);
+           //(new VeritestingPerf()).boundedOutRangeloadArrayTC(22, 2);
+            (new VeritestingPerf()).createObjectTC(true, true);
         //(new VeritestingPerf()).ifNull("Test");
         //(new VeritestingPerf()).foo(true);
         //(new VeritestingPerf()).segmantTest(22, 2);
@@ -169,7 +170,16 @@ public class VeritestingPerf {
         return y;
     }
 
-
+    public int createObjectTC(boolean x, boolean y) {
+        int a = 0;
+        if (x) {
+            //if (y) {
+       //         TempClass tempClass = new TempClass();
+                a = 1;
+            //} else { tempClass = null; }
+        } else { a=2; }
+        return a;
+    }
 
     int foo(boolean x) {
         int a;

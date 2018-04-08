@@ -879,7 +879,8 @@ public class VeritestingMain {
             while (ssaInstructionIterator.hasNext()) {
                 //phi expressions are summarized in the constructVeritestingRegion method, dont try to summarize them here
                 myIVisitor = new MyIVisitor(varUtil, -1, -1, false, pathLabelHole);
-                ssaInstructionIterator.next().visit(myIVisitor);
+                SSAInstruction instruction = ssaInstructionIterator.next();
+                instruction.visit(myIVisitor);
 
                 if (!myIVisitor.canVeritest()) {
                     canVeritest = false;

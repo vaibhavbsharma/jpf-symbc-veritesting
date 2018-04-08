@@ -9,15 +9,22 @@ import za.ac.sun.cs.green.expr.Operation;
 
 import java.util.HashMap;
 
+
 public class TrueReason implements SPFCaseReason {
 
-    Expression predicate = null;
+    public static enum Cause {
+        OBJECT_CREATION, EXCEPTION_THROWN
+    }
 
-    public TrueReason() {
+    Expression predicate = null;
+    Cause cause;
+
+    public TrueReason(Cause cause) {
+        this.cause = cause;
     }
 
     public SPFCaseReason copy() {
-        return new TrueReason();
+        return new TrueReason(cause);
     }
 
     @Override
@@ -27,7 +34,7 @@ public class TrueReason implements SPFCaseReason {
 
     @Override
     public boolean equals(Object obj) {
-        return super.equals(obj);
+        return ((this.cause == ((TrueReason)obj).cause)) && (super.equals(obj));
     }
 
     @Override
@@ -36,8 +43,7 @@ public class TrueReason implements SPFCaseReason {
     }
 
     @Override
-    public String toString() {
-        return super.toString();
+    public String toString() {return super.toString();
     }
 
     @Override
