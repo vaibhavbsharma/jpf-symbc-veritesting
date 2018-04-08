@@ -142,9 +142,9 @@ public class VeritestingListener extends PropertyListenerAdapter implements Publ
 
                     try {
                         regionSummary = instantiateRegion(ti, region); // fill holes in region
-                        // System.out.println(ASTToString(regionSummary));
                         if (regionSummary == null)
                             return;
+                        System.out.println(ASTToString(regionSummary));
                         newCG.makeVeritestingCG(regionSummary, ti);
                     } catch (StaticRegionException sre) {
                         System.out.println(sre.toString());
@@ -170,12 +170,12 @@ public class VeritestingListener extends PropertyListenerAdapter implements Publ
                     Expression regionSummary = instantiateRegion(ti, region); // fill holes in region
                     if (regionSummary == null)
                         return;
-                    // MWW: for debugging.
-                    // System.out.println(ASTToString(regionSummary));
 
                     // MWW: added code back in!
                     PathCondition pc = ((PCChoiceGenerator) ti.getVM().getSystemState().getChoiceGenerator()).getCurrentPC();
                     pc._addDet(new GreenConstraint(regionSummary));
+                    // MWW: for debugging.
+                    System.out.println("pc: " + pc);
                     ((PCChoiceGenerator) ti.getVM().getSystemState().getChoiceGenerator()).setCurrentPC(pc);
                     // MWW: end of add.
 
@@ -333,6 +333,8 @@ public class VeritestingListener extends PropertyListenerAdapter implements Publ
 
 
     public void publishFinished(Publisher publisher) {
+        if (veritestingMode == 0) return;
+
         PrintWriter pw = publisher.getOut();
         publisher.publishTopicStart("VeritestingListener report (boostPerf = " + boostPerf + ", veritestingMode = " + veritestingMode + ")");
         pw.println("static analysis time = " + staticAnalysisTime / 1000000);

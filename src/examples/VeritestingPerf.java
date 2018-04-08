@@ -14,7 +14,8 @@ public class VeritestingPerf {
 
     public static void main(String[] args) {
         //(new VeritestingPerf()).cfgTest(1);
-        (new VeritestingPerf()).countBitsSet(1);
+        // (new VeritestingPerf()).countBitsSet(1);
+        (new VeritestingPerf()).testNested(1);
                 //int x[] = {1, 2};
                 //(new VeritestingPerf()).inRangeloadArrayTC(22, 2);
                 //(new VeritestingPerf()).innerCatchOutRangeloadArrayTC(22, 2);
@@ -92,10 +93,57 @@ public class VeritestingPerf {
 
     public int nestedRegion(int x) {
         if (x != 0) {
-            if (x != 0) { count = 3; } else { count = 4;  }
+            if (x > 0) { count = 3; } else { count = 4;  }
         } else { count = 5; }
         return count;
     }
+
+    public void testNested(int x) {
+        int count;
+        count = nestedRegion(x);
+        System.out.println("x: " + x + "; count: " + count);
+        assert(x > 0 ? count == 3 : true);
+        assert(x < 0 ? count == 4 : true);
+        assert(x == 0 ? count == 5 : true);
+    }
+
+    // MWW checks correctly: 4/8/2018
+    public void testSimple1(int x) {
+        int count;
+        if (x != 0) {
+            count = 3;
+        } else {
+            count = 4;
+        }
+        assert(x != 0 ? count == 3 : true);
+        assert(x == 0 ? count == 4 : true);
+    }
+
+    // MWW checks correctly: 4/8/2018
+    public void testSimpleFail(int x) {
+        System.out.println("Executing fail case!");
+        int count;
+        if (x > 0) {
+            count = 3;
+        } else {
+            count = 4;
+        }
+        assert(x != 0 ? count == 3 : true);
+        assert(x == 0 ? count == 4 : true);
+    }
+
+    // MWW checks correctly: 4/8/2018
+    public void testSimple2(int x) {
+        int count;
+        if (x != 0) {
+            if (x > 0) { count = 3; } else { count = 4;  }
+        } else { count = 5; }
+
+        assert(x > 0 ? count == 3 : true);
+        assert(x < 0 ? count == 4 : true);
+        assert(x == 0 ? count == 5 : true);
+    }
+
 
     //testing inRangeArrayLoad for symbolic & concrete index
     public int inRangeloadArrayTC(int index, int length) {

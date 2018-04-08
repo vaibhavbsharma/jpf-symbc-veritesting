@@ -4,8 +4,8 @@ sourcepath=${jpf-symbc}/src/examples
 vm.storage.class=nil
 symbolic.debug=false
 
+symbolic.method=VeritestingPerf.testNested(sym)
 #symbolic.method=VeritestingPerf.checkOperator()
-symbolic.method=VeritestingPerf.countBitsSet(sym)
 #symbolic.method=VeritestingPerf.nestedRegion(sym)
 #symbolic.method=VeritestingPerf.cfgTest(sym)
 #symbolic.method=VeritestingPerf.testMe5(sym#sym)
@@ -26,6 +26,7 @@ symbolic.method=VeritestingPerf.countBitsSet(sym)
 #symbolic.method=VeritestingPerf.boundedOutRangeloadArrayTC(sym#sym)
 #symbolic.method=VeritestingPerf.ifNull(con)
 
+
 #symbolic.method=VeritestingPerf.foo(sym)
 
 #symbolic.method=VeritestingPerf.segmantTest(sym#sym)
@@ -41,4 +42,4 @@ symbolic.min_int=-2147483648
 symbolic.max_int=2147483647
 listener = .symbc.VeritestingListener
 #listener = .symbc.SymbolicListener
-veritestingMode = 3
+veritestingMode = 1
