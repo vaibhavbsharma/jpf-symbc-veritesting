@@ -4,7 +4,7 @@ sourcepath=${jpf-symbc}/src/examples
 vm.storage.class=nil
 symbolic.debug=false
 
-symbolic.method=VeritestingPerf.testNested(sym)
+symbolic.method=VeritestingPerf.testSimple1(sym)
 #symbolic.method=VeritestingPerf.checkOperator()
 #symbolic.method=VeritestingPerf.nestedRegion(sym)
 #symbolic.method=VeritestingPerf.cfgTest(sym)

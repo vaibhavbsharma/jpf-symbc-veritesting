@@ -15,7 +15,7 @@ public class VeritestingPerf {
     public static void main(String[] args) {
         //(new VeritestingPerf()).cfgTest(1);
         // (new VeritestingPerf()).countBitsSet(1);
-        (new VeritestingPerf()).testNested(1);
+        (new VeritestingPerf()).testSimple1(1);
                 //int x[] = {1, 2};
                 //(new VeritestingPerf()).inRangeloadArrayTC(22, 2);
                 //(new VeritestingPerf()).innerCatchOutRangeloadArrayTC(22, 2);
@@ -98,18 +98,30 @@ public class VeritestingPerf {
         return count;
     }
 
-    public void testNested(int x) {
-        int count;
-        count = nestedRegion(x);
-        System.out.println("x: " + x + "; count: " + count);
-        assert(x > 0 ? count == 3 : true);
-        assert(x < 0 ? count == 4 : true);
-        assert(x == 0 ? count == 5 : true);
+    // MWW:
+    // Here is the problem.  If I uncomment 'count', then the program works correctly.
+    // There is a problem with nested fields and regions right now.
+    public int simpleRegion(int x) {
+        //int count;
+        if (x > 0) { count = 3; }
+        else { count = 4; }
+        return count;
     }
 
-    // MWW checks correctly: 4/8/2018
-    public void testSimple1(int x) {
+    // this fails.
+    public void testSimple(int x) {
         int count;
+        count = simpleRegion(x);
+        System.out.println("x: " + x + "; count: " + count);
+        assert(x > 0 ? count == 3 : true);
+        assert(x <= 0 ? count == 4 : true);
+    }
+
+    // MWW fails incorrectly: 4/8/2018
+    // If I uncomment count, it works correctly.
+    public void testSimple1(int x) {
+        //int count;
+        System.out.println("Executing success case!");
         if (x != 0) {
             count = 3;
         } else {
