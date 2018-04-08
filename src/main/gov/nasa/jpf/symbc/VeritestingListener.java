@@ -37,7 +37,6 @@ import gov.nasa.jpf.report.ConsolePublisher;
 import gov.nasa.jpf.report.Publisher;
 import gov.nasa.jpf.report.PublisherExtension;
 import gov.nasa.jpf.symbc.numeric.*;
-//import gov.nasa.jpf.symbc.numeric.Comparator;
 import gov.nasa.jpf.symbc.numeric.solvers.SolverTranslator;
 import gov.nasa.jpf.symbc.veritesting.*;
 import gov.nasa.jpf.symbc.veritesting.Visitors.FillAstHoleVisitor;
@@ -70,7 +69,7 @@ public class VeritestingListener extends PropertyListenerAdapter implements Publ
     public static int fieldReadAfterWrite = 0;
     public static int fieldWriteAfterWrite = 0;
     public static int fieldWriteAfterRead = 0;
-    public static final boolean allowFieldReadAfterWrite = false;
+    public static final boolean allowFieldReadAfterWrite = true;
     public static final boolean allowFieldWriteAfterRead = true;
     public static final boolean allowFieldWriteAfterWrite = true;
     private static int methodSummaryRWInterference = 0;
@@ -124,7 +123,7 @@ public class VeritestingListener extends PropertyListenerAdapter implements Publ
             if (!ti.isFirstStepInsn()) { // first time around
                 Expression regionSummary;
                 try {
-                    regionSummary = instantiateHoles(ti, region); // fill holes in region
+                    regionSummary = instantiateRegion(ti, region); // fill holes in region
                     if(regionSummary == null)
                         return;
    		            newCG.makeVeritestingCG(region, regionSummary, ti);
@@ -202,7 +201,8 @@ public class VeritestingListener extends PropertyListenerAdapter implements Publ
         region.usedCount++;
     }
 
-    private Expression instantiateHoles(ThreadInfo ti, VeritestingRegion region) throws StaticRegionException {
+
+    private Expression instantiateRegion(ThreadInfo ti, VeritestingRegion region) throws StaticRegionException {
         // MWW: Why is this code not in the region class?
         region.ranIntoCount++;
         StackFrame sf = ti.getTopFrame();
@@ -249,7 +249,9 @@ public class VeritestingListener extends PropertyListenerAdapter implements Publ
         Expression summaryExpression = region.getSummaryExpression();
         Expression finalSummaryExpression = summaryExpression;
         if (fillHolesOutput.additionalAST != null)
-            finalSummaryExpression = new Operation(Operation.Operator.AND, summaryExpression, fillHolesOutput.additionalAST);
+            if (summaryExpression != null)
+                finalSummaryExpression = new Operation(Operation.Operator.AND, summaryExpression, fillHolesOutput.additionalAST);
+            else finalSummaryExpression = fillHolesOutput.additionalAST;
         FillAstHoleVisitor visitor = new FillAstHoleVisitor(fillHolesOutput.holeHashMap);
         finalSummaryExpression = visitor.visit(finalSummaryExpression); //not constant-folding for now
         region.getSpfCases().instantiate(fillHolesOutput.holeHashMap);
@@ -322,80 +324,83 @@ public class VeritestingListener extends PropertyListenerAdapter implements Publ
     }
 
 
-        public void publishFinished(Publisher publisher) {
-            PrintWriter pw = publisher.getOut();
-            publisher.publishTopicStart("VeritestingListener report (boostPerf = " + boostPerf + ", veritestingMode = " + veritestingMode + ")");
-            pw.println("static analysis time = " + staticAnalysisTime / 1000000);
-            pw.println("totalSolverTime = " + totalSolverTime / 1000000);
-            pw.println("z3Time = " + z3Time / 1000000);
-            pw.println("parsingTime = " + parseTime / 1000000);
-            pw.println("solverAllocTime = " + solverAllocTime / 1000000);
-            pw.println("cleanupTime = " + cleanupTime / 1000000);
-            pw.println("solverCount = " + solverCount);
-            pw.println("(fieldReadAfterWrite, fieldWriteAfterRead, fieldWriteAfterWrite = (" + fieldReadAfterWrite + ", " +
-                    VeritestingListener.fieldWriteAfterRead + ", " + fieldWriteAfterWrite + ")");
-            pw.println("methodSummaryRWInterference = " + methodSummaryRWInterference);
-            if (veritestingMode > 0) {
-                pw.println("# regions = " + VeritestingListener.veritestingRegions.size());
-                int maxSummarizedBranches = getMaxSummarizedBranch(false);
-                ArrayList<Integer> ranIntoByBranch = new ArrayList<>();
-                ArrayList<Integer> usedByBranch = new ArrayList<>();
+    public void publishFinished(Publisher publisher) {
+        PrintWriter pw = publisher.getOut();
+        publisher.publishTopicStart("VeritestingListener report (boostPerf = " + boostPerf + ", veritestingMode = " + veritestingMode + ")");
+        pw.println("static analysis time = " + staticAnalysisTime / 1000000);
+        pw.println("totalSolverTime = " + totalSolverTime / 1000000);
+        pw.println("z3Time = " + z3Time / 1000000);
+        pw.println("parsingTime = " + parseTime / 1000000);
+        pw.println("solverAllocTime = " + solverAllocTime / 1000000);
+        pw.println("cleanupTime = " + cleanupTime / 1000000);
+        pw.println("solverCount = " + solverCount);
+        pw.println("(fieldReadAfterWrite, fieldWriteAfterRead, fieldWriteAfterWrite = (" + fieldReadAfterWrite + ", " +
+                VeritestingListener.fieldWriteAfterRead + ", " + fieldWriteAfterWrite + ")");
+        pw.println("methodSummaryRWInterference = " + methodSummaryRWInterference);
+        if (veritestingMode > 0) {
+            pw.println("# regions = " + VeritestingListener.veritestingRegions.size());
+            int maxSummarizedBranches = getMaxSummarizedBranch(false);
+            ArrayList<Integer> ranIntoByBranch = new ArrayList<>();
+            ArrayList<Integer> usedByBranch = new ArrayList<>();
+            ranIntoByBranch.add(0);
+            usedByBranch.add(0);
+            for (int i = 0; i <= maxSummarizedBranches; i++) {
                 ranIntoByBranch.add(0);
                 usedByBranch.add(0);
-                for (int i = 0; i <= maxSummarizedBranches; i++) {
-                    ranIntoByBranch.add(0);
-                    usedByBranch.add(0);
-                    ArrayList<VeritestingRegion> regions = getRegionsForSummarizedBranchNum(i, false);
-                    for (VeritestingRegion region: regions) {
-                        ranIntoByBranch.set(i, ranIntoByBranch.get(i) + (region.ranIntoCount != 0 ? 1 : 0));
-                        usedByBranch.set(i, usedByBranch.get(i) + (region.usedCount != 0 ? 1 : 0));
-                    }
-                }
-                pw.println("# summarized branches: # regions (#run into, #used)");
-                for (int i = 0; i <= maxSummarizedBranches; i++) {
-                    if (getRegionsForSummarizedBranchNum(i, false).size() != 0) {
-                        pw.println(i + " branches: " + getRegionsForSummarizedBranchNum(i, false).size() + " (" +
-                                ranIntoByBranch.get(i) + ", " + usedByBranch.get(i) + ") ");
-                    }
-                }
-                maxSummarizedBranches = getMaxSummarizedBranch(true);
-                ranIntoByBranch = new ArrayList<>();
-                usedByBranch = new ArrayList<>();
-                ranIntoByBranch.add(0);
-                usedByBranch.add(0);
-                for (int i = 0; i <= maxSummarizedBranches; i++) {
-                    ranIntoByBranch.add(0);
-                    usedByBranch.add(0);
-                    ArrayList<VeritestingRegion> regions = getRegionsForSummarizedBranchNum(i, true);
-                    for (VeritestingRegion region: regions) {
-                        ranIntoByBranch.set(i, ranIntoByBranch.get(i) + (region.ranIntoCount != 0 ? 1 : 0));
-                        usedByBranch.set(i, usedByBranch.get(i) + (region.usedCount != 0 ? 1 : 0));
-                    }
-                }
-                pw.println("# summarized methods: # regions (#run into, #used)");
-                for (int i = 0; i <= maxSummarizedBranches; i++) {
-                    if (getRegionsForSummarizedBranchNum(i, true).size() != 0) {
-                        pw.println(i + " branches: " + getRegionsForSummarizedBranchNum(i, true).size() + " (" +
-                                ranIntoByBranch.get(i) + ", " + usedByBranch.get(i) + ") ");
-                    }
-                }
-                ArrayList<String> regions = new ArrayList<>();
-                for (HashMap.Entry<String, VeritestingRegion> entry : veritestingRegions.entrySet()) {
-                    regions.add(entry.getKey());
-                }
-
-                System.out.println("Sorted regions:");
-                regions.sort(String::compareTo);
-                for (String region: regions) {
-                    System.out.println(region);
+                ArrayList<VeritestingRegion> regions = getRegionsForSummarizedBranchNum(i, false);
+                for (VeritestingRegion region: regions) {
+                    ranIntoByBranch.set(i, ranIntoByBranch.get(i) + (region.ranIntoCount != 0 ? 1 : 0));
+                    usedByBranch.set(i, usedByBranch.get(i) + (region.usedCount != 0 ? 1 : 0));
                 }
             }
-
+            pw.println("# summarized branches: # regions (#run into, #used)");
+            for (int i = 0; i <= maxSummarizedBranches; i++) {
+                if (getRegionsForSummarizedBranchNum(i, false).size() != 0) {
+                    pw.println(i + " branches: " + getRegionsForSummarizedBranchNum(i, false).size() + " (" +
+                            ranIntoByBranch.get(i) + ", " + usedByBranch.get(i) + ") ");
+                }
+            }
+            maxSummarizedBranches = getMaxSummarizedBranch(true);
+            ranIntoByBranch = new ArrayList<>();
+            usedByBranch = new ArrayList<>();
+            ranIntoByBranch.add(0);
+            usedByBranch.add(0);
+            for (int i = 0; i <= maxSummarizedBranches; i++) {
+                ranIntoByBranch.add(0);
+                usedByBranch.add(0);
+                ArrayList<VeritestingRegion> regions = getRegionsForSummarizedBranchNum(i, true);
+                for (VeritestingRegion region: regions) {
+                    ranIntoByBranch.set(i, ranIntoByBranch.get(i) + (region.ranIntoCount != 0 ? 1 : 0));
+                    usedByBranch.set(i, usedByBranch.get(i) + (region.usedCount != 0 ? 1 : 0));
+                }
+            }
+            pw.println("# summarized methods: # regions (#run into, #used)");
+            for (int i = 0; i <= maxSummarizedBranches; i++) {
+                if (getRegionsForSummarizedBranchNum(i, true).size() != 0) {
+                    pw.println(i + " branches: " + getRegionsForSummarizedBranchNum(i, true).size() + " (" +
+                            ranIntoByBranch.get(i) + ", " + usedByBranch.get(i) + ") ");
+                }
+            }
+            ArrayList<String> regions = new ArrayList<>();
+            for (HashMap.Entry<String, VeritestingRegion> entry : veritestingRegions.entrySet()) {
+                regions.add(entry.getKey());
+            }
         }
+        ArrayList<String> regions = new ArrayList<>();
+        for (Map.Entry<String, VeritestingRegion> entry : veritestingRegions.entrySet()) {
+            regions.add(entry.getKey());
+        }
+        System.out.println("Sorted regions:");
+        regions.sort(String::compareTo);
+        for (String region: regions) {
+            System.out.println(region);
+        }
+
+    }
 
     private ArrayList<VeritestingRegion> getRegionsForSummarizedBranchNum(int numBranch, boolean methodSummary) {
         ArrayList<VeritestingRegion> ret = new ArrayList<>();
-        for (HashMap.Entry<String, VeritestingRegion> entry : veritestingRegions.entrySet()) {
+        for (Map.Entry<String, VeritestingRegion> entry : veritestingRegions.entrySet()) {
             VeritestingRegion region = entry.getValue();
             if (region.getNumBranchesSummarized() == numBranch) {
                 if (!methodSummary || region.isMethodSummary())
@@ -407,7 +412,7 @@ public class VeritestingListener extends PropertyListenerAdapter implements Publ
 
     private int getMaxSummarizedBranch(boolean methodSummary) {
         int maxSummarizedBranch = 0;
-        for (HashMap.Entry<String, VeritestingRegion> entry : veritestingRegions.entrySet()) {
+        for (Map.Entry<String, VeritestingRegion> entry : veritestingRegions.entrySet()) {
             VeritestingRegion region = entry.getValue();
             if (region.getNumBranchesSummarized() > maxSummarizedBranch) {
                 if (!methodSummary || (region.isMethodSummary()))
@@ -418,43 +423,16 @@ public class VeritestingListener extends PropertyListenerAdapter implements Publ
     }
 
     /*
-    private Comparator GreenToSPFComparator(Operation.Operator operator) {
-        switch (operator) {
-            case EQ:
-                return Comparator.EQ;
-            case NE:
-                return Comparator.NE;
-            case LT:
-                return Comparator.LT;
-            case LE:
-                return Comparator.LE;
-            case GT:
-                return Comparator.GT;
-            case GE:
-                return Comparator.GE;
-            case AND:
-                return Comparator.LOGICAL_AND;
-            case OR:
-                return Comparator.LOGICAL_OR;
-            default:
-                System.out.println("Cannot convert Green operator (" + operator + ") to SPF comparator");
-                assert (false);
-                break;
-        }
-        return null;
-    }
-    */
-
-    /*
     write all outputs of the veritesting region
      */
     //TODO make this method write the outputs atomically,
     // either all of them get written or none of them do and then SPF takes over
     private boolean populateOutputs(HashSet<Expression> outputVars,
-                                    HashMap<Expression, Expression> holeHashMap,
+                                            LinkedHashMap<Expression, Expression> holeHashMap,
                                     StackFrame stackFrame, ThreadInfo ti) throws StaticRegionException {
         for (Expression expression: outputVars) {
             Expression finalValue;
+
             assert (expression instanceof HoleExpression);
             HoleExpression holeExpression = (HoleExpression) expression;
             assert (holeHashMap.containsKey(holeExpression));
@@ -468,7 +446,7 @@ public class VeritestingListener extends PropertyListenerAdapter implements Publ
                         HoleExpression.FieldInfo fieldInfo = holeExpression.getFieldInfo();
                         assert (fieldInfo != null);
                         finalValue = holeHashMap.get(fieldInfo.writeValue);
-                        fillFieldOutputHole(ti, stackFrame, fieldInfo, GreenToSPFExpression(finalValue));
+                        fillFieldHole(ti, stackFrame, holeExpression, holeHashMap, false, GreenToSPFExpression(finalValue));
                     }
                     break;
             }
@@ -484,101 +462,29 @@ public class VeritestingListener extends PropertyListenerAdapter implements Publ
     /*
     Load from local variable stack slots IntegerExpression objects and store them into holeHashMap
      */
-    //TODO Handle read after write on class fields
     //if a read after write happens on a class field, the read operation should return the latest value written to
     //the field
     private FillHolesOutput fillHoles(VeritestingRegion region,
                                       InstructionInfo instructionInfo,
-                                      StackFrame stackFrame,
-                                      ThreadInfo ti) throws StaticRegionException {
-        HashMap<Expression, Expression> holeHashMap = region.getHoleHashMap();
-        HashMap<Expression, Expression> retHoleHashMap = new HashMap<>();
+                                      final StackFrame stackFrame,
+                                      final ThreadInfo ti) throws StaticRegionException {
+        LinkedHashMap<Expression, Expression> holeHashMap = region.getHoleHashMap();
+        LinkedHashMap<Expression, Expression> retHoleHashMap = new LinkedHashMap<>();
         Expression additionalAST = null;
-        retHoleHashMap = fillNonInputHoles(holeHashMap, instructionInfo, retHoleHashMap);
-        retHoleHashMap = fillInputHoles(holeHashMap, stackFrame, ti, retHoleHashMap);
+        FillNonInputHoles fillNonInputHoles =
+                new FillNonInputHoles(retHoleHashMap, null, holeHashMap, instructionInfo, false);
+        if (fillNonInputHoles.invoke()) return null;
+        retHoleHashMap = fillNonInputHoles.retHoleHashMap;
+        FillInputHoles fillInputHoles =
+                new FillInputHoles(stackFrame, ti, retHoleHashMap, null, holeHashMap, false).invoke();
+        if (fillInputHoles.failure()) return null;
+        retHoleHashMap = fillInputHoles.retHoleHashMap;
+        FillInvokeHole fillInvokeHole = new FillInvokeHole(stackFrame, ti, holeHashMap, retHoleHashMap, additionalAST).invoke();
+        if (fillInvokeHole.is()) return null;
+        retHoleHashMap = fillInvokeHole.getRetHoleHashMap();
+        additionalAST = fillInvokeHole.getAdditionalAST();
 
-        // resolve all invoke holes in the current region's summary expression
-        boolean concreteException = fillArrayLoadHoles(region, holeHashMap, instructionInfo, stackFrame, ti, retHoleHashMap);
-        if (concreteException)
-            return null;
 
-        // MWW: Why is this not in a fillInvokeHole method?
-        for (HashMap.Entry<Expression, Expression> entry : holeHashMap.entrySet()) {
-            Expression key = entry.getKey();
-            //gov.nasa.jpf.symbc.numeric.Expression spfExpr;
-            assert (key instanceof HoleExpression);
-            HoleExpression keyHoleExpression = (HoleExpression) key;
-            assert (keyHoleExpression.isHole());
-            switch (keyHoleExpression.getHoleType()) {
-                case INVOKE:
-                    InvokeInfo callSiteInfo = keyHoleExpression.getInvokeInfo();
-                    ClassInfo ci = null;
-                    if (callSiteInfo.isVirtualInvoke) {
-                        Expression callingObject = retHoleHashMap.get(callSiteInfo.paramList.get(0));
-                        ci = ti.getClassInfo(((IntConstant) callingObject).getValue());
-                    }
-                    if (callSiteInfo.isStaticInvoke) {
-                        ci = ClassLoaderInfo.getCurrentResolvedClassInfo(callSiteInfo.className);
-                    }
-
-                    // if ci failure null, that means either MyIVisitor.visitInvoke has a bug or we failed to load the class
-                    assert (ci != null);
-                    //Change the class name based on the call site object reference
-                    callSiteInfo.className = ci.getName();
-                    //If there exists a invokeVirtual for a method that we weren't able to summarize, skip veritesting
-                    String key1 = callSiteInfo.className + "." + callSiteInfo.methodName + callSiteInfo.methodSignature + "#0";
-                    //FNV1 fnv = new FNV1a64();
-                    //fnv.init(key1);
-                    //long hash = fnv.getHash();
-                    if (!veritestingRegions.containsKey(key1)) {
-                        System.out.println("Could not find method summary for " +
-                                callSiteInfo.className + "." + callSiteInfo.methodName + "#0");
-                        return null;
-                    }
-                    //All holes in callSiteInfo.paramList will also be present in holeHashmap and will be filled up here
-                    for (Expression h : callSiteInfo.paramList) {
-                        if (h instanceof HoleExpression) assert (holeHashMap.containsKey(h));
-                    }
-                    VeritestingRegion methodSummary = veritestingRegions.get(key1);
-                    HashMap<Expression, Expression> methodHoles = methodSummary.getHoleHashMap();
-                    if (hasRWInterference(holeHashMap, methodHoles)) {
-                        methodSummaryRWInterference++;
-                        System.out.println("method summary hole interferes with outer region");
-                        return null;
-                    }
-                    FillNonInputHolesMS fillNonInputHolesMS =
-                            new FillNonInputHolesMS(retHoleHashMap, callSiteInfo, methodHoles);
-                    if (fillNonInputHolesMS.invoke()) return null;
-                    retHoleHashMap = fillNonInputHolesMS.retHoleHashMap;
-
-                    FillInputHolesMS fillInputHolesMS = new FillInputHolesMS(stackFrame, ti, retHoleHashMap, callSiteInfo, methodHoles).invoke();
-                    if (fillInputHolesMS.failure()) return null;
-                    ArrayList<Expression> paramEqList = fillInputHolesMS.getParamEqList();
-                    retHoleHashMap = fillInputHolesMS.retHoleHashMap;
-
-                    Expression retValEq = null;
-                    if (methodSummary.retVal != null)
-                        retValEq = new Operation(Operation.Operator.EQ, methodSummary.retVal, keyHoleExpression);
-                    Expression mappingOperation = retValEq;
-                    for (int i = 0; i < paramEqList.size(); i++) {
-                        //paramList.length-1 because there won't be a constraint created for the object reference which failure always
-                        //parameter 0
-                        if (mappingOperation != null)
-                            mappingOperation = new Operation(Operation.Operator.AND, mappingOperation, paramEqList.get(i));
-                        else mappingOperation = paramEqList.get(i);
-                    }
-                    if (methodSummary.getSummaryExpression() != null)
-                        mappingOperation = new Operation(Operation.Operator.AND, mappingOperation, methodSummary.getSummaryExpression());
-                    if (additionalAST != null)
-                        additionalAST = new Operation(Operation.Operator.AND, additionalAST, mappingOperation);
-                    else additionalAST = mappingOperation;
-                    Expression finalValueGreen = SPFToGreenExpr(makeSymbolicInteger(keyHoleExpression.getHoleVarName() + pathLabelCount));
-                    retHoleHashMap.put(keyHoleExpression, finalValueGreen);
-                    methodSummary.ranIntoCount++;
-                    methodSummary.usedCount++;
-                    break;
-            }
-        }
         return new FillHolesOutput(retHoleHashMap, additionalAST);
     }
 
@@ -664,128 +570,27 @@ public class VeritestingListener extends PropertyListenerAdapter implements Publ
     }
 
 
-    private HashMap<Expression, Expression> fillInputHoles(HashMap<Expression, Expression> holeHashMap,
-                                                           StackFrame stackFrame, ThreadInfo ti,
-                                                           HashMap<Expression, Expression> retHoleHashMap)
-            throws StaticRegionException {
-        //resolve all input holes inside the current region's summary
-        for (HashMap.Entry<Expression, Expression> entry : holeHashMap.entrySet()) {
-            Expression key = entry.getKey(), finalValueGreen;
-            gov.nasa.jpf.symbc.numeric.Expression finalValueSPF;
-            assert (key instanceof HoleExpression);
-            HoleExpression keyHoleExpression = (HoleExpression) key;
-            assert (keyHoleExpression.isHole());
-            switch (keyHoleExpression.getHoleType()) {
-                case FIELD_INPUT:
-                    //get the latest value written into this field, not the value in the field at the beginning of
-                    //this region
-                    if (keyHoleExpression.dependsOn != null) {
-                        HoleExpression holeExpression = (HoleExpression) keyHoleExpression.dependsOn;
-                        assert (holeExpression.getHoleType() == HoleExpression.HoleType.FIELD_OUTPUT);
-                        assert (holeExpression.isLatestWrite);
-                        assert (retHoleHashMap.containsKey(holeExpression.getFieldInfo().writeValue));
-                        retHoleHashMap.put(keyHoleExpression, retHoleHashMap.get(holeExpression.getFieldInfo().writeValue));
-                    } else {
-                        HoleExpression.FieldInfo fieldInfo = keyHoleExpression.getFieldInfo();
-                        assert (fieldInfo != null);
-                        finalValueSPF = fillFieldInputHole(ti, stackFrame, fieldInfo);
-                        assert (finalValueSPF != null);
-                        finalValueGreen = SPFToGreenExpr(finalValueSPF);
-                        retHoleHashMap.put(keyHoleExpression, finalValueGreen);
-                    }
-                    break;
-                case LOCAL_INPUT:
-                    //get the latest value written into this local, not the value in the local at the beginning of
-                    //this region
-                    if (keyHoleExpression.dependsOn != null) {
-                        HoleExpression holeExpression = (HoleExpression) keyHoleExpression.dependsOn;
-                        assert (holeExpression.getHoleType() == HoleExpression.HoleType.LOCAL_OUTPUT);
-                        assert (holeExpression.isLatestWrite);
-                        assert (retHoleHashMap.containsKey(holeExpression));
-                        retHoleHashMap.put(keyHoleExpression, retHoleHashMap.get(holeExpression));
-                    } else {
-                        finalValueSPF =
-                                (gov.nasa.jpf.symbc.numeric.Expression) stackFrame.getLocalAttr(keyHoleExpression.getLocalStackSlot());
-                        if (finalValueSPF == null)
-                            finalValueSPF = new IntegerConstant(stackFrame.getLocalVariable(keyHoleExpression.getLocalStackSlot()));
-                        finalValueGreen = SPFToGreenExpr(finalValueSPF);
-                        retHoleHashMap.put(keyHoleExpression, finalValueGreen);
-                    }
-                    break;
-                default:
-                    break;
-            }
-        }
-        return retHoleHashMap;
-    }
-
-    private HashMap<Expression, Expression> fillNonInputHoles(HashMap<Expression, Expression> holeHashMap,
-                                                              InstructionInfo instructionInfo,
-                                                              HashMap<Expression, Expression> retHoleHashMap) {
-        //resolve all non-input holes inside the current region's summary
-        for (HashMap.Entry<Expression, Expression> entry : holeHashMap.entrySet()) {
-            Expression key = entry.getKey(), finalValueGreen;
-            gov.nasa.jpf.symbc.numeric.Expression finalValueSPF;
-            assert (key instanceof HoleExpression);
-            HoleExpression keyHoleExpression = (HoleExpression) key;
-            assert (keyHoleExpression.isHole());
-            switch (keyHoleExpression.getHoleType()) {
-                case LOCAL_OUTPUT:
-                case INTERMEDIATE:
-                    finalValueSPF =
-                            makeSymbolicInteger(keyHoleExpression.getHoleVarName() + pathLabelCount);
-                    finalValueGreen = SPFToGreenExpr(finalValueSPF);
-                    retHoleHashMap.put(keyHoleExpression, finalValueGreen);
-                    break;
-                case FIELD_OUTPUT:
-                /*HoleExpression.FieldInfo fieldInfo = keyHoleExpression.getFieldInfo();
-                finalValueSPF =
-                        makeSymbolicInteger(((HoleExpression)fieldInfo.writeValue).getHoleVarName() + pathLabelCount);
-                finalValueGreen = SPFToGreenExpr(finalValueSPF);*/
-                    retHoleHashMap.put(keyHoleExpression, null);
-                    break;
-                case NONE:
-                    System.out.println("expression marked as hole with NONE hole type: " +
-                            keyHoleExpression.toString());
-                    assert (false);
-                    break;
-                case CONDITION:
-                    assert (instructionInfo != null);
-                    finalValueGreen = instructionInfo.getCondition();
-                    assert (finalValueGreen != null);
-                    retHoleHashMap.put(keyHoleExpression, finalValueGreen);
-                    break;
-                case NEGCONDITION:
-                    assert (instructionInfo != null);
-                    finalValueGreen = instructionInfo.getNegCondition();
-                    assert (finalValueGreen != null);
-                    retHoleHashMap.put(keyHoleExpression, finalValueGreen);
-                    break;
-                case FIELD_INPUT:
-                case LOCAL_INPUT:
-                    break;
-            }
-        }
-        return retHoleHashMap;
-    }
-
-
     /*
-        Checks if a method's holeHashMap has a read-write interference with the outer region's holeHashmap.
-        The only kind of interference allowed failure a both the outer region and the method reading the same field.
-         */
-    private boolean hasRWInterference(HashMap<Expression, Expression> holeHashMap, HashMap<Expression, Expression> methodHoles) {
-        for (HashMap.Entry<Expression, Expression> entry : methodHoles.entrySet()) {
+    Checks if a method's holeHashMap has a read-write interference with the outer region's holeHashmap.
+    The only kind of interference allowed failure a both the outer region and the method reading the same field.
+     */
+    private boolean hasRWInterference(LinkedHashMap<Expression, Expression> holeHashMap,
+                                      LinkedHashMap<Expression, Expression> methodHoles, InvokeInfo callSiteInfo,
+                                      StackFrame stackFrame) {
+        for(Map.Entry<Expression, Expression> entry: methodHoles.entrySet()) {
             HoleExpression holeExpression = (HoleExpression) entry.getKey();
             if (!(holeExpression.getHoleType() == HoleExpression.HoleType.FIELD_INPUT ||
                     holeExpression.getHoleType() == HoleExpression.HoleType.FIELD_OUTPUT)) continue;
-            if (holeExpression.getHoleType() == HoleExpression.HoleType.FIELD_OUTPUT) {
-                if (VarUtil.fieldHasRWOperation(holeExpression, HoleExpression.HoleType.FIELD_OUTPUT, holeHashMap) ||
-                        VarUtil.fieldHasRWOperation(holeExpression, HoleExpression.HoleType.FIELD_INPUT, holeHashMap))
+            if(holeExpression.getHoleType() == HoleExpression.HoleType.FIELD_OUTPUT) {
+                if(VarUtil.fieldHasRWOperation(holeExpression, HoleExpression.HoleType.FIELD_OUTPUT, holeHashMap,
+                        callSiteInfo, stackFrame) ||
+                        VarUtil.fieldHasRWOperation(holeExpression, HoleExpression.HoleType.FIELD_INPUT, holeHashMap,
+                                callSiteInfo, stackFrame))
                     return true;
             }
-            if (holeExpression.getHoleType() == HoleExpression.HoleType.FIELD_INPUT) {
-                if (VarUtil.fieldHasRWOperation(holeExpression, HoleExpression.HoleType.FIELD_INPUT, holeHashMap))
+            if(holeExpression.getHoleType() == HoleExpression.HoleType.FIELD_INPUT) {
+                if(VarUtil.fieldHasRWOperation(holeExpression, HoleExpression.HoleType.FIELD_OUTPUT, holeHashMap,
+                        callSiteInfo, stackFrame))
                     return true;
             }
         }
@@ -815,17 +620,43 @@ public class VeritestingListener extends PropertyListenerAdapter implements Publ
         return unrolledConstraint;
     }
 
-    gov.nasa.jpf.symbc.numeric.Expression fillFieldInputHole(
-            ThreadInfo ti,
-            StackFrame stackFrame,
-            HoleExpression.FieldInfo fieldInputInfo) throws StaticRegionException {
 
-        boolean isStatic = fieldInputInfo.isStaticField;
+
+
+    gov.nasa.jpf.symbc.numeric.Expression fillFieldHole(ThreadInfo ti, StackFrame stackFrame,
+                                                        HoleExpression holeExpression,
+                                                        LinkedHashMap<Expression, Expression> retHoleHashMap,
+                                                        boolean isRead,
+                                                        gov.nasa.jpf.symbc.numeric.Expression finalValue)
+        throws StaticRegionException {
+        HoleExpression.FieldInfo fieldInputInfo = holeExpression.getFieldInfo();
+        final boolean isStatic = fieldInputInfo.isStaticField;
         int objRef = -1;
         //get the object reference from fieldInputInfo.use's local stack slot if not from the call site stack slot
-        int stackSlot = fieldInputInfo.callSiteStackSlot;
-        if (stackSlot == -1) stackSlot = fieldInputInfo.localStackSlot;
-        if (!isStatic) objRef = stackFrame.getLocalVariable(stackSlot);
+        int stackSlot = -1;
+        if(ti.getTopFrame().getClassInfo().getName().equals(holeExpression.getClassName()) &&
+                ti.getTopFrame().getMethodInfo().getName().equals(holeExpression.getMethodName()))
+            stackSlot = fieldInputInfo.localStackSlot;
+        else {
+            stackSlot = fieldInputInfo.callSiteStackSlot;
+            if(stackSlot == -1 && !fieldInputInfo.isStaticField)
+                assert(false);
+        }
+        //this field is being loaded from an object reference that is itself a hole
+        // this object reference hole should be filled already because holes are stored in a LinkedHashMap
+        // that keeps holes in the order they were created while traversing the WALA IR
+        if(stackSlot == -1 && !fieldInputInfo.isStaticField) {
+            gov.nasa.jpf.symbc.numeric.Expression objRefExpression =
+                    GreenToSPFExpression(retHoleHashMap.get(fieldInputInfo.useHole));
+            assert(objRefExpression instanceof IntegerConstant);
+            objRef = ((IntegerConstant) objRefExpression).value();
+        }
+        if (!isStatic && (stackSlot != -1)) {
+            objRef = stackFrame.getLocalVariable(stackSlot);
+            assert(objRef != 0);
+            //load the class name dynamically based on the object reference
+            fieldInputInfo.className = ti.getClassInfo(objRef).getName();
+        }
         if (objRef == 0) {
             System.out.println("java.lang.NullPointerException" + "referencing field '" +
                     fieldInputInfo.fieldName + "' on null object");
@@ -838,8 +669,14 @@ public class VeritestingListener extends PropertyListenerAdapter implements Publ
                 throw new StaticRegionException("fillFieldInputHole: class loader failed to resolve class name " + fieldInputInfo.className);
             }
             ElementInfo eiFieldOwner;
-            if (!isStatic) eiFieldOwner = ti.getElementInfo(objRef);
-            else eiFieldOwner = ci.getStaticElementInfo();
+            if (!isStatic) {
+                if (isRead) eiFieldOwner = ti.getElementInfo(objRef);
+                else eiFieldOwner = ti.getModifiableElementInfo(objRef);
+            }
+            else {
+                if(isRead) eiFieldOwner = ci.getStaticElementInfo();
+                else eiFieldOwner = ci.getModifiableStaticElementInfo();
+            }
             FieldInfo fieldInfo = null;
             if (ci != null && !isStatic)
                 fieldInfo = ci.getInstanceField(fieldInputInfo.fieldName);
@@ -850,66 +687,30 @@ public class VeritestingListener extends PropertyListenerAdapter implements Publ
                         + "' in " + eiFieldOwner);
                 assert (false);
             } else {
-                Object fieldAttr = eiFieldOwner.getFieldAttr(fieldInfo);
-                if (fieldAttr != null) {
-                    return (gov.nasa.jpf.symbc.numeric.Expression) fieldAttr;
-                } else {
-                    if (fieldInfo.getStorageSize() == 1) {
-                        return (gov.nasa.jpf.symbc.numeric.Expression) new IntegerConstant(eiFieldOwner.get1SlotField(fieldInfo));
+                if(isRead) {
+                    Object fieldAttr = eiFieldOwner.getFieldAttr(fieldInfo);
+                    if (fieldAttr != null) {
+                        return (gov.nasa.jpf.symbc.numeric.Expression) fieldAttr;
                     } else {
-                        return (gov.nasa.jpf.symbc.numeric.Expression) new IntegerConstant(eiFieldOwner.get2SlotField(fieldInfo));
+                        if (fieldInfo.getStorageSize() == 1) {
+                            return new IntegerConstant(eiFieldOwner.get1SlotField(fieldInfo));
+                        } else {
+                            return new IntegerConstant(eiFieldOwner.get2SlotField(fieldInfo));
+                        }
+                    }
+                } else {
+                    int fieldSize = fieldInfo.getStorageSize();
+                    if (fieldSize == 1) {
+                        eiFieldOwner.set1SlotField(fieldInfo, 0); // field value should not matter (I think)
+                        eiFieldOwner.setFieldAttr(fieldInfo, finalValue);
+                    } else {
+                        eiFieldOwner.set2SlotField(fieldInfo, 0); // field value should not matter (I think)
+                        eiFieldOwner.setFieldAttr(fieldInfo, finalValue);
                     }
                 }
             }
         }
         return null;
-    }
-
-    void fillFieldOutputHole(ThreadInfo ti,
-                             StackFrame stackFrame,
-                             HoleExpression.FieldInfo fieldInputInfo,
-                             gov.nasa.jpf.symbc.numeric.Expression finalValue) throws StaticRegionException {
-        boolean isStatic = false;
-        int objRef = -1;
-        int stackSlot = fieldInputInfo.callSiteStackSlot;
-        if (stackSlot == -1) stackSlot = fieldInputInfo.localStackSlot;
-        if (stackSlot == -1) isStatic = true;
-        else objRef = stackFrame.getLocalVariable(stackSlot);
-        if (objRef == 0) {
-            System.out.println("java.lang.NullPointerException" + "referencing field '" +
-                    fieldInputInfo.fieldName + "' on null object");
-            assert (false);
-        } else {
-            ClassInfo ci;
-            try {
-                ci = ClassLoaderInfo.getCurrentResolvedClassInfo(fieldInputInfo.className);
-            } catch (ClassInfoException e) {
-                throw new StaticRegionException("fillFieldInputHole: class loader failed to resolve class name " + fieldInputInfo.className);
-            }
-            ElementInfo eiFieldOwner;
-            if (!isStatic) eiFieldOwner = ti.getModifiableElementInfo(objRef);
-            else eiFieldOwner = ci.getModifiableStaticElementInfo();
-            FieldInfo fieldInfo = null;
-
-            if (ci != null && !isStatic)
-                fieldInfo = ci.getInstanceField(fieldInputInfo.fieldName);
-            if (ci != null && isStatic)
-                fieldInfo = ci.getStaticField(fieldInputInfo.fieldName);
-            if (fieldInfo == null) {
-                System.out.println("java.lang.NoSuchFieldError" + "referencing field '" + fieldInputInfo.fieldName
-                        + "' in " + eiFieldOwner);
-                assert (false);
-            } else {
-                int fieldSize = fieldInfo.getStorageSize();
-                if (fieldSize == 1) {
-                    eiFieldOwner.set1SlotField(fieldInfo, 0); // field value should not matter (I think)
-                    eiFieldOwner.setFieldAttr(fieldInfo, finalValue);
-                } else {
-                    eiFieldOwner.set2SlotField(fieldInfo, 0); // field value should not matter (I think)
-                    eiFieldOwner.setFieldAttr(fieldInfo, finalValue);
-                }
-            }
-        }
     }
 
     private class InstructionInfo {
@@ -1050,57 +851,85 @@ public class VeritestingListener extends PropertyListenerAdapter implements Publ
         return toGreenTranslator.getExpression();
     }
 
-    private class FillNonInputHolesMS {
-        private HashMap<Expression, Expression> retHoleHashMap;
+    private class FillNonInputHoles {
+        private final VeritestingListener.InstructionInfo instructionInfo;
+        private final boolean isMethodSummary;
+        private LinkedHashMap<Expression, Expression> retHoleHashMap;
         private InvokeInfo callSiteInfo;
-        private HashMap<Expression, Expression> methodHoles;
+        private LinkedHashMap<Expression, Expression> methodHoles;
 
-        public FillNonInputHolesMS(HashMap<Expression, Expression> retHoleHashMap, InvokeInfo callSiteInfo, HashMap<Expression, Expression> methodHoles) {
+        public FillNonInputHoles(LinkedHashMap<Expression, Expression> retHoleHashMap, InvokeInfo callSiteInfo,
+                                 LinkedHashMap<Expression, Expression> methodHoles, InstructionInfo instructionInfo,
+                                 boolean isMethodSummary) {
             this.retHoleHashMap = retHoleHashMap;
             this.callSiteInfo = callSiteInfo;
             this.methodHoles = methodHoles;
+            this.instructionInfo = instructionInfo;
+            this.isMethodSummary = isMethodSummary;
         }
 
         public boolean invoke() {
             gov.nasa.jpf.symbc.numeric.Expression spfExpr;
             Expression greenExpr;//fill all holes inside the method summary
-            for (HashMap.Entry<Expression, Expression> entry1 : methodHoles.entrySet()) {
+            for(Map.Entry<Expression, Expression> entry1 : methodHoles.entrySet()) {
                 Expression methodKeyExpr = entry1.getKey();
                 assert (methodKeyExpr instanceof HoleExpression);
                 HoleExpression methodKeyHole = (HoleExpression) methodKeyExpr;
                 assert (methodKeyHole.isHole());
                 switch (methodKeyHole.getHoleType()) {
                     case CONDITION:
-                        System.out.println("unsupported condition hole in method summary");
-                        return true;
+                        if(isMethodSummary) {
+                            System.out.println("unsupported condition hole in method summary");
+                            return true;
+                        } else {
+                            assert(instructionInfo != null);
+                            greenExpr = instructionInfo.getCondition();
+                            assert (greenExpr != null);
+                            retHoleHashMap.put(methodKeyExpr, greenExpr);
+                        }
+                        break;
                     case NEGCONDITION:
-                        System.out.println("unsupported negCondition hole in method summary");
-                        return true;
-                    case INVOKE:
-                        System.out.println("unsupported invoke hole in method summary");
-                        return true;
+                        if(isMethodSummary) {
+                            System.out.println("unsupported negCondition hole in method summary");
+                            return true;
+                        } else {
+                            assert (instructionInfo != null);
+                            greenExpr = instructionInfo.getNegCondition();
+                            assert (greenExpr != null);
+                            retHoleHashMap.put(methodKeyExpr, greenExpr);
+                        }
+                        break;
                     case LOCAL_OUTPUT:
                     case INTERMEDIATE:
                         spfExpr = makeSymbolicInteger(methodKeyHole.getHoleVarName() + pathLabelCount);
                         greenExpr = SPFToGreenExpr(spfExpr);
                         retHoleHashMap.put(methodKeyHole, greenExpr);
                         break;
-                    case NONE:
-                        break;
                     case FIELD_OUTPUT:
-                        HoleExpression.FieldInfo methodKeyHoleFieldInfo = methodKeyHole.getFieldInfo();
-                        if (!methodKeyHoleFieldInfo.isStaticField) {
-                            if (methodKeyHoleFieldInfo.localStackSlot == 0) {
-                                assert (callSiteInfo.paramList.size() > 0);
-                                methodKeyHoleFieldInfo.callSiteStackSlot = ((HoleExpression) callSiteInfo.paramList.get(0)).getLocalStackSlot();
-                                methodKeyHole.setFieldInfo(methodKeyHoleFieldInfo.className, methodKeyHoleFieldInfo.fieldName,
-                                        methodKeyHoleFieldInfo.localStackSlot, methodKeyHoleFieldInfo.callSiteStackSlot, methodKeyHoleFieldInfo.writeValue,
-                                        methodKeyHoleFieldInfo.isStaticField);
-                            } else return true;
+                        if(isMethodSummary) {
+                            HoleExpression.FieldInfo methodKeyHoleFieldInfo = methodKeyHole.getFieldInfo();
+                            if (!methodKeyHoleFieldInfo.isStaticField) {
+                                if (methodKeyHoleFieldInfo.localStackSlot == 0) {
+                                    assert (callSiteInfo.paramList.size() > 0);
+                                    methodKeyHoleFieldInfo.callSiteStackSlot = ((HoleExpression) callSiteInfo.paramList.get(0)).getLocalStackSlot();
+                                    methodKeyHole.setFieldInfo(methodKeyHoleFieldInfo.className, methodKeyHoleFieldInfo.fieldName,
+                                            methodKeyHoleFieldInfo.methodName,
+                                            methodKeyHoleFieldInfo.localStackSlot, methodKeyHoleFieldInfo.callSiteStackSlot, methodKeyHoleFieldInfo.writeValue,
+                                            methodKeyHoleFieldInfo.isStaticField, methodKeyHoleFieldInfo.useHole);
+                                } else return true;
+                            }
+                            //populateOutputs does not use the value mapped to methodKeyHole for FIELD_OUTPUT holes
                         }
-                        //populateOutputs does not use the value mapped to methodKeyHole for FIELD_OUTPUT holes
                         retHoleHashMap.put(methodKeyHole, null);
                         break;
+                    case NONE:
+                        System.out.println("expression marked as hole with NONE hole type: " +
+                                methodKeyHole.toString());
+                        assert (false);
+                        break;
+                    case INVOKE:
+                    case FIELD_INPUT:
+                    case LOCAL_INPUT:
                     default:
                         break;
                 }
@@ -1109,21 +938,25 @@ public class VeritestingListener extends PropertyListenerAdapter implements Publ
         }
     }
 
-    private class FillInputHolesMS {
+    private class FillInputHoles {
+        private final boolean isMethodSummary;
         private boolean failure;
-        private StackFrame stackFrame;
-        private ThreadInfo ti;
-        private HashMap<Expression, Expression> retHoleHashMap;
+        private final StackFrame stackFrame;
+        private final ThreadInfo ti;
+        private LinkedHashMap<Expression, Expression> retHoleHashMap;
         private InvokeInfo callSiteInfo;
-        private HashMap<Expression, Expression> methodHoles;
+        private LinkedHashMap<Expression, Expression> methodHoles;
         private ArrayList<Expression> paramEqList;
 
-        public FillInputHolesMS(StackFrame stackFrame, ThreadInfo ti, HashMap<Expression, Expression> retHoleHashMap, InvokeInfo callSiteInfo, HashMap<Expression, Expression> methodHoles) {
+        public FillInputHoles(StackFrame stackFrame, ThreadInfo ti, LinkedHashMap<Expression, Expression> retHoleHashMap,
+                              InvokeInfo callSiteInfo, LinkedHashMap<Expression, Expression> methodHoles,
+                              boolean isMethodSummary) {
             this.stackFrame = stackFrame;
             this.ti = ti;
             this.retHoleHashMap = retHoleHashMap;
             this.callSiteInfo = callSiteInfo;
             this.methodHoles = methodHoles;
+            this.isMethodSummary = isMethodSummary;
         }
 
         boolean failure() {
@@ -1134,11 +967,12 @@ public class VeritestingListener extends PropertyListenerAdapter implements Publ
             return paramEqList;
         }
 
-        public FillInputHolesMS invoke() throws StaticRegionException {
+        public FillInputHoles invoke() throws StaticRegionException {
             gov.nasa.jpf.symbc.numeric.Expression spfExpr;
             Expression greenExpr;
             paramEqList = new ArrayList<>();
-            for (HashMap.Entry<Expression, Expression> entry1 : methodHoles.entrySet()) {
+            for(Map.Entry<Expression, Expression> entry1 : methodHoles.entrySet()) {
+
                 Expression methodKeyExpr = entry1.getKey();
                 assert (methodKeyExpr instanceof HoleExpression);
                 HoleExpression methodKeyHole = (HoleExpression) methodKeyExpr;
@@ -1156,22 +990,32 @@ public class VeritestingListener extends PropertyListenerAdapter implements Publ
                             assert (retHoleHashMap.containsKey(holeExpression));
                             retHoleHashMap.put(methodKeyHole, retHoleHashMap.get(holeExpression));
                         } else {
-                            //local inputs used in method summary have to come from the filled-up holes in paramList
-                            if (methodKeyHole.getLocalStackSlot() < callSiteInfo.paramList.size()) {
-                                int methodLocalStackSlot = methodKeyHole.getLocalStackSlot();
-                                //int callSiteLocalStackSlot = ((HoleExpression)callSiteInfo.paramList[methodLocalStackSlot]).getLocalStackSlot();
-                                //methodKeyHole.setLocalStackSlot(callSiteLocalStackSlot);
-                                if (callSiteInfo.paramList.get(methodLocalStackSlot) instanceof HoleExpression)
-                                    retHoleHashMap.put(methodKeyHole, retHoleHashMap.get(callSiteInfo.paramList.get(methodLocalStackSlot)));
-                                else //a constant could have been passed as an argument instead of a variable
-                                    retHoleHashMap.put(methodKeyHole, callSiteInfo.paramList.get(methodLocalStackSlot));
-                                paramEqList.add(new Operation(Operation.Operator.EQ,
-                                        methodKeyHole,
-                                        callSiteInfo.paramList.get(methodLocalStackSlot)));
+                            if(isMethodSummary) {
+                                //local inputs used in method summary have to come from the filled-up holes in paramList
+                                if (methodKeyHole.getLocalStackSlot() < callSiteInfo.paramList.size()) {
+                                    int methodLocalStackSlot = methodKeyHole.getLocalStackSlot();
+                                    if (callSiteInfo.paramList.get(methodLocalStackSlot) instanceof HoleExpression) {
+                                        //int callSiteLocalStackSlot = ((HoleExpression)callSiteInfo.paramList.get(methodLocalStackSlot)).getLocalStackSlot();
+                                        //methodKeyHole.setLocalStackSlot(callSiteLocalStackSlot);
+                                        retHoleHashMap.put(methodKeyHole, retHoleHashMap.get(callSiteInfo.paramList.get(methodLocalStackSlot)));
+                                    }
+                                    else //a constant could have been passed as an argument instead of a variable
+                                        retHoleHashMap.put(methodKeyHole, callSiteInfo.paramList.get(methodLocalStackSlot));
+                                    paramEqList.add(new Operation(Operation.Operator.EQ,
+                                            methodKeyHole,
+                                            callSiteInfo.paramList.get(methodLocalStackSlot)));
+                                } else {
+                                    //Local variables in the method summary should just become intermediate variables
+                                    gov.nasa.jpf.symbc.numeric.Expression finalValueSPF =
+                                            makeSymbolicInteger(methodKeyHole.getHoleVarName() + pathLabelCount);
+                                    Expression finalValueGreen = SPFToGreenExpr(finalValueSPF);
+                                    retHoleHashMap.put(methodKeyHole, finalValueGreen);
+                                }
                             } else {
-                                //Local variables in the method summary should just become lhsExpr variables
                                 gov.nasa.jpf.symbc.numeric.Expression finalValueSPF =
-                                        makeSymbolicInteger(methodKeyHole.getHoleVarName() + pathLabelCount);
+                                        (gov.nasa.jpf.symbc.numeric.Expression) stackFrame.getLocalAttr(methodKeyHole.getLocalStackSlot());
+                                if (finalValueSPF == null)
+                                    finalValueSPF = new IntegerConstant(stackFrame.getLocalVariable(methodKeyHole.getLocalStackSlot()));
                                 Expression finalValueGreen = SPFToGreenExpr(finalValueSPF);
                                 retHoleHashMap.put(methodKeyHole, finalValueGreen);
                             }
@@ -1189,20 +1033,25 @@ public class VeritestingListener extends PropertyListenerAdapter implements Publ
                         } else {
                             HoleExpression.FieldInfo methodKeyHoleFieldInfo = methodKeyHole.getFieldInfo();
                             assert (methodKeyHoleFieldInfo != null);
-                            if (!methodKeyHoleFieldInfo.isStaticField) {
-                                if (methodKeyHoleFieldInfo.localStackSlot == 0) {
-                                    assert (callSiteInfo.paramList.size() > 0);
-                                    int callSiteStackSlot = ((HoleExpression) callSiteInfo.paramList.get(0)).getLocalStackSlot();
-                                    methodKeyHoleFieldInfo.callSiteStackSlot = callSiteStackSlot;
-                                } else {
-                                    // method summary uses a field from an object that failure a local inside the method
-                                    // this cannot be handled during veritesting because we cannot create an object
-                                    // when using a method summary
-                                    failure = true;
-                                    return this;
+                            if(isMethodSummary) {
+                                if (!methodKeyHoleFieldInfo.isStaticField) {
+                                    if (methodKeyHoleFieldInfo.localStackSlot == 0) {
+                                        assert (callSiteInfo.paramList.size() > 0);
+                                        assert(HoleExpression.isLocal(callSiteInfo.paramList.get(0)));
+                                        int callSiteStackSlot = ((HoleExpression)
+                                                callSiteInfo.paramList.get(0)).getGlobalOrLocalStackSlot(ti.getTopFrame().getClassInfo().getName(),
+                                                ti.getTopFrame().getMethodInfo().getName());
+                                        methodKeyHoleFieldInfo.callSiteStackSlot = callSiteStackSlot;
+                                    } else {
+                                        // method summary uses a field from an object that failure a local inside the method
+                                        // this cannot be handled during veritesting because we cannot create an object
+                                        // when using a method summary
+                                        failure = true;
+                                        return this;
+                                    }
                                 }
                             }
-                            spfExpr = fillFieldInputHole(ti, stackFrame, methodKeyHoleFieldInfo);
+                            spfExpr = fillFieldHole(ti, stackFrame, methodKeyHole, retHoleHashMap, true, null);
                             if (spfExpr == null) {
                                 failure = true;
                                 return this;
@@ -1211,11 +1060,227 @@ public class VeritestingListener extends PropertyListenerAdapter implements Publ
                             retHoleHashMap.put(methodKeyHole, greenExpr);
                         }
                         break;
-                    default:
+                    case INVOKE:
+                        if(isMethodSummary) {
+                            //Update the global stack slot of holes used in the invoke-call of method summary
+                            // based on the caller's paramList for all local holes
+                            InvokeInfo methodCallSiteInfo = methodKeyHole.getInvokeInfo();
+                            for(int i=0; i<methodCallSiteInfo.paramList.size(); i++) {
+                                if(HoleExpression.isLocal(methodCallSiteInfo.paramList.get(i))) {
+                                    assert(methodCallSiteInfo.paramList.get(i) instanceof HoleExpression);
+                                    HoleExpression h = (HoleExpression) methodCallSiteInfo.paramList.get(i);
+                                    int methodCallSiteStackSlot = h.getLocalStackSlot();
+                                    if(methodCallSiteStackSlot < callSiteInfo.paramList.size()) {
+                                        if(HoleExpression.isLocal(callSiteInfo.paramList.get(methodCallSiteStackSlot))) {
+                                            assert(callSiteInfo.paramList.get(methodCallSiteStackSlot) instanceof HoleExpression);
+                                            HoleExpression callSiteHole = (HoleExpression) callSiteInfo.paramList.get(methodCallSiteStackSlot);
+                                            //It is important to use getGlobalOrLocalStackSlot here, not getLocalStackSlot
+                                            // because we would like the caller's globalStackSlot to be used if possible
+                                            h.setGlobalStackSlot(callSiteHole.getGlobalOrLocalStackSlot(ti.getTopFrame().getClassInfo().getName(),
+                                                    ti.getTopFrame().getMethodInfo().getName()));
+                                            methodCallSiteInfo.paramList.set(i, h);
+                                        }
+                                        else {
+                                            Expression callSiteExpression = callSiteInfo.paramList.get(methodCallSiteStackSlot);
+                                            methodCallSiteInfo.paramList.set(i, callSiteExpression);
+                                            if(callSiteExpression instanceof HoleExpression) {
+                                                if (methodHoles.containsKey(callSiteInfo.paramList.get(methodCallSiteStackSlot)) == false)
+                                                    methodHoles.put(callSiteExpression, callSiteExpression);
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
                         break;
+                    default: break;
                 }
             }
             failure = false;
+            return this;
+        }
+    }
+
+    private class FillMethodSummary {
+        private boolean myResult;
+        private StackFrame stackFrame;
+        private ThreadInfo ti;
+        private LinkedHashMap<Expression, Expression> holeHashMap;
+        private LinkedHashMap<Expression, Expression> retHoleHashMap;
+        private Expression additionalAST;
+        private HoleExpression keyHoleExpression;
+        private InvokeInfo callSiteInfo;
+        private VeritestingRegion methodSummary;
+
+        public FillMethodSummary(StackFrame stackFrame, ThreadInfo ti, LinkedHashMap<Expression, Expression> holeHashMap,
+                                 LinkedHashMap<Expression, Expression> retHoleHashMap, Expression additionalAST,
+                                 HoleExpression keyHoleExpression, InvokeInfo callSiteInfo, VeritestingRegion methodSummary) {
+            this.stackFrame = stackFrame;
+            this.ti = ti;
+            this.holeHashMap = holeHashMap;
+            this.retHoleHashMap = retHoleHashMap;
+            this.additionalAST = additionalAST;
+            this.keyHoleExpression = keyHoleExpression;
+            this.callSiteInfo = callSiteInfo;
+            this.methodSummary = methodSummary;
+        }
+
+        boolean is() {
+            return myResult;
+        }
+
+        public LinkedHashMap<Expression, Expression> getRetHoleHashMap() {
+            return retHoleHashMap;
+        }
+
+        public Expression getAdditionalAST() {
+            return additionalAST;
+        }
+
+        public FillMethodSummary invoke() throws StaticRegionException {
+            FillNonInputHoles fillNonInputHoles;
+            LinkedHashMap<Expression, Expression> methodHoles = methodSummary.getHoleHashMap();
+            if(hasRWInterference(holeHashMap, methodHoles, callSiteInfo, stackFrame)) {
+                methodSummaryRWInterference++;
+                System.out.println("method summary hole interferes with outer region for method ("
+                        + methodSummary.getClassName() + ", " + methodSummary.getMethodName() + ")");
+                myResult = true;
+                return this;
+            }
+            fillNonInputHoles =
+                    new FillNonInputHoles(retHoleHashMap, callSiteInfo, methodHoles, null, true);
+            if (fillNonInputHoles.invoke()) {
+                myResult = true;
+                return this;
+            }
+            retHoleHashMap = fillNonInputHoles.retHoleHashMap;
+
+            FillInputHoles fillInputHolesMS =
+                    new FillInputHoles(stackFrame, ti, retHoleHashMap, callSiteInfo, methodHoles, true).invoke();
+            if (fillInputHolesMS.failure()) {
+                myResult = true;
+                return this;
+            }
+            ArrayList<Expression> paramEqList = fillInputHolesMS.getParamEqList();
+            retHoleHashMap = fillInputHolesMS.retHoleHashMap;
+
+            FillInvokeHole fillInvokeHole = new FillInvokeHole(stackFrame, ti, methodHoles, retHoleHashMap, additionalAST).invoke();
+            if (fillInvokeHole.is()) {
+                myResult = true;
+                return this;
+            }
+            retHoleHashMap = fillInvokeHole.getRetHoleHashMap();
+            additionalAST = fillInvokeHole.getAdditionalAST();
+
+            Expression retValEq = null;
+            if (methodSummary.retVal != null)
+                retValEq = new Operation(Operation.Operator.EQ, methodSummary.retVal, keyHoleExpression);
+            Expression mappingOperation = retValEq;
+            for(int i=0; i < paramEqList.size(); i++) {
+                //paramList.length-1 because there won't be a constraint created for the object reference
+                if(mappingOperation != null)
+                    mappingOperation = new Operation(Operation.Operator.AND, mappingOperation, paramEqList.get(i));
+                else mappingOperation = paramEqList.get(i);
+            }
+            if (methodSummary.getSummaryExpression() != null)
+                mappingOperation = new Operation(Operation.Operator.AND, mappingOperation, methodSummary.getSummaryExpression());
+            if (additionalAST != null)
+                additionalAST = new Operation(Operation.Operator.AND, additionalAST, mappingOperation);
+            else additionalAST = mappingOperation;
+            Expression finalValueGreen = SPFToGreenExpr(makeSymbolicInteger(keyHoleExpression.getHoleVarName() + pathLabelCount));
+            retHoleHashMap.put(keyHoleExpression, finalValueGreen);
+            methodSummary.ranIntoCount++;
+            methodSummary.usedCount++;
+            myResult = false;
+            return this;
+        }
+    }
+
+    private class FillInvokeHole {
+        private boolean myResult;
+        private StackFrame stackFrame;
+        private ThreadInfo ti;
+        private LinkedHashMap<Expression, Expression> holeHashMap;
+        private LinkedHashMap<Expression, Expression> retHoleHashMap;
+        private Expression additionalAST;
+
+        public FillInvokeHole(StackFrame stackFrame, ThreadInfo ti, LinkedHashMap<Expression, Expression> holeHashMap,
+                              LinkedHashMap<Expression, Expression> retHoleHashMap, Expression additionalAST) {
+            this.stackFrame = stackFrame;
+            this.ti = ti;
+            this.holeHashMap = holeHashMap;
+            this.retHoleHashMap = retHoleHashMap;
+            this.additionalAST = additionalAST;
+        }
+
+        boolean is() {
+            return myResult;
+        }
+
+        public LinkedHashMap<Expression, Expression> getRetHoleHashMap() {
+            return retHoleHashMap;
+        }
+
+        public Expression getAdditionalAST() {
+            return additionalAST;
+        }
+
+        public FillInvokeHole invoke() throws StaticRegionException {
+            // resolve all invoke holes in the current region's summary expression
+            for(Map.Entry<Expression, Expression> entry : holeHashMap.entrySet()) {
+                Expression key = entry.getKey();
+                assert (key instanceof HoleExpression);
+                HoleExpression keyHoleExpression = (HoleExpression) key;
+                assert (keyHoleExpression.isHole());
+                switch (keyHoleExpression.getHoleType()) {
+                    case INVOKE:
+                        InvokeInfo callSiteInfo = keyHoleExpression.getInvokeInfo();
+                        ClassInfo ci = null;
+                        if (callSiteInfo.isVirtualInvoke) {
+                            Expression callingObject = retHoleHashMap.get(callSiteInfo.paramList.get(0));
+                            ci = ti.getClassInfo(((IntConstant) callingObject).getValue());
+                        }
+                        if (callSiteInfo.isStaticInvoke) {
+                            ci = ClassLoaderInfo.getCurrentResolvedClassInfo(callSiteInfo.className);
+                        }
+
+                        // if ci failure null, that means either MyIVisitor.visitInvoke has a bug or we failed to load the class
+                        assert(ci != null);
+                        //Change the class name based on the call site object reference
+                        callSiteInfo.className = ci.getName();
+                        //If there exists a invokeVirtual for a method that we weren't able to summarize, skip veritesting
+                        String key1 = callSiteInfo.className + "." + callSiteInfo.methodName + callSiteInfo.methodSignature + "#0";
+                        FNV1 fnv = new FNV1a64();
+                        fnv.init(key1);
+                        long hash = fnv.getHash();
+                        if(!veritestingRegions.containsKey(key1)) {
+                            System.out.println("Could not find method summary for " +
+                                    callSiteInfo.className+"."+callSiteInfo.methodName+"#0");
+                            myResult = true;
+                            return this;
+                        }
+                        //All holes in callSiteInfo.paramList will also be present in holeHashmap and will be filled up here
+                        for (Expression h : callSiteInfo.paramList) {
+                            if (h instanceof HoleExpression) {
+                                if (holeHashMap.containsKey(h) == false) {
+                                    System.out.println("invokeHole's holeHashmap does not contain hole: " + h.toString());
+                                    assert(false);
+                                }
+                            }
+                        }
+                        VeritestingRegion methodSummary = veritestingRegions.get(key1);
+                        FillMethodSummary fillMethodSummary = new FillMethodSummary(stackFrame, ti, holeHashMap,
+                                retHoleHashMap, additionalAST, keyHoleExpression, callSiteInfo, methodSummary).invoke();
+                        if (fillMethodSummary.is()) {
+                            myResult = true;
+                            return this;
+                        }
+                        retHoleHashMap = fillMethodSummary.getRetHoleHashMap();
+                        additionalAST = fillMethodSummary.getAdditionalAST();
+                        break;
+                }
+            }
+            myResult = false;
             return this;
         }
     }

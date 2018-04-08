@@ -15,32 +15,33 @@ public class VeritestingPerf {
     public static void main(String[] args) {
         //(new VeritestingPerf()).cfgTest(1);
         (new VeritestingPerf()).countBitsSet(1);
-        //int x[] = {1, 2};
-        //(new VeritestingPerf()).inRangeloadArrayTC(22, 2);
-        //(new VeritestingPerf()).innerCatchOutRangeloadArrayTC(22, 2);
-        //(new VeritestingPerf()).outRangeloadArrayTC( 22, 2);
-        // (new VeritestingPerf()).catchOutRangeloadArrayTC(22, 2);
-      //(new VeritestingPerf()).boundedOutRangeloadArrayTC(22, 2);
-        //(new VeritestingPerf()).ifNull("Test");
-        //(new VeritestingPerf()).foo(true);
-        //(new VeritestingPerf()).segmantTest(22, 2);
+                //int x[] = {1, 2};
+                //(new VeritestingPerf()).inRangeloadArrayTC(22, 2);
+                //(new VeritestingPerf()).innerCatchOutRangeloadArrayTC(22, 2);
+                //(new VeritestingPerf()).outRangeloadArrayTC( 22, 2);
+                // (new VeritestingPerf()).catchOutRangeloadArrayTC(22, 2);
+                //(new VeritestingPerf()).boundedOutRangeloadArrayTC(22, 2);
+                //(new VeritestingPerf()).ifNull("Test");
+                //(new VeritestingPerf()).foo(true);
+                //(new VeritestingPerf()).segmantTest(22, 2);
 
-        // System.out.println("!!!!!!!!!!!!!!! Start Testing! ");
-        //  (new VeritestingPerf()).testMe2(0,true);
-    }
-
-
+                // System.out.println("!!!!!!!!!!!!!!! Start Testing! ");
+                //  (new VeritestingPerf()).testMe2(0,true);
+        //(new VeritestingPerf()).nestedRegion(1);
+        //int x[] = {1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20};
+//        (new VeritestingPerf()).inRangeloadArrayTC( 22, 10);
 //        (new VeritestingPerf()).outRangeloadArrayTC( 2, 10);
-    //       (new VeritestingPerf()).outRangeConcreteTC( 20, 10);
-    //(new VeritestingPerf()).testMe5(x, 1);
-    //(new VeritestingPerf()).testMe6(x, 12, -1, 1);
-    //(new VeritestingPerf()).testMe4(x, 12, -1, 1);
-    //       (new VeritestingPerf()).arrayTest(x, 6);
-    //(new VeritestingPerf()).checkOperator();
+        //       (new VeritestingPerf()).outRangeConcreteTC( 20, 10);
+        //(new VeritestingPerf()).testMe5(x, 1);
+        //(new VeritestingPerf()).testMe6(x, 12, -1, 1);
+        //(new VeritestingPerf()).testMe4(x, 12, -1, 1);
+        //       (new VeritestingPerf()).arrayTest(x, 6);
+        //(new VeritestingPerf()).checkOperator();
 //        ArrayList<Integer> list = new ArrayList<>();
 //        list.add(Debug.makeSymbolicInteger("a1"));
 //        list.add(Debug.makeSymbolicInteger("a2"));
 //        (new VeritestingPerf()).countArrayList(list);
+    }
 
     public static void testMe2(int x, boolean b) {
         System.out.println("!!!!!!!!!!!!!!! First step! ");
@@ -71,10 +72,28 @@ public class VeritestingPerf {
 
     public int countBitsSet(int x) {
         TempClass tempClass = new TempClassDerived();
+        count = 1;
+        //TempClass tempClass = new TempClass();
         while (x != 0) {
-            if ((x & 1) != 0) count += tempClass.getOne(1);
+            if ((x & 1) != 0) {
+                // nested field access test case 1
+                //count += tempClass.tempClass2.tempInt2;
+                //nested field access test case 2
+                //TempClass2 tempClass2 = tempClass.tempClass2;
+                //tempClass2.tempInt2 += count;
+                //tempClass.tempInt = 1; //creates r/w interference with tempClass.getOne's method summary
+                count += tempClass.getOne(0); //method summary test + higher order region test
+                //count += tempClass.myInt; //use this to test dynamic field access
+            }
             x = x >>> 1; // logical right shift
         }
+        return count;
+    }
+
+    public int nestedRegion(int x) {
+        if (x != 0) {
+            if (x != 0) { count = 3; } else { count = 4;  }
+        } else { count = 5; }
         return count;
     }
 
@@ -318,42 +337,74 @@ public class VeritestingPerf {
 
 class TempClassDerived extends TempClass {
 
-    private int tempInt = 1; //change this to 2 to test read after write on a class field inside a Veritesting region
+    public static int tempInt = 1; //change this to 2 to test read after write on a class field inside a Veritesting region
 
-    public int getTempInt(int a) {
-        TempClass2 t = new TempClass2();
-        t.tempMethod();
+    public int myInt = 1;
+
+    public int getAnotherAnotherTempInt(int a) {
+        //TempClass2 t = new TempClass2();
+        //t.tempMethod();
         return tempInt;
     }
 
+    public int getAnotherTempInt(int a) {
+        //TempClass2 t = new TempClass2();
+        //t.tempMethod();
+        //return tempInt;
+        return getAnotherAnotherTempInt(myInt);
+    }
+
+    public int getTempInt(int a) {
+        //TempClass2 t = new TempClass2();
+        //t.tempMethod();
+        //return tempInt;
+        return getAnotherTempInt(myInt);
+    }
+
     public int getOne(int a) {
-        /*tempInt = a + 1; //LOCAL_INPUT,  FIELD_OUTPUT holes
+        //read-after-write test on tempInt field
+        tempInt = a +1; //LOCAL_INPUT,  FIELD_OUTPUT holes
         a = tempInt + 2; //LOCAL_OUTPUT, FIELD_INPUT holes
-        tempInt = a + 3; //LOCAL_INPUT,  FIELD_INPUT holes
-*/
+        tempInt = a+ 3; //LOCAL_INPUT,  FIELD_INPUT holes
+
         //VeritestingPerf.count += 1;
-        return tempInt;
+        //return tempInt;
+        //return nestedRegion(myInt);
+        return getTempInt(tempInt);
+    }
+
+    public int nestedRegion(int x) {
+        if (x != 0) {
+            if (x != 0) { tempInt = 3; } else { tempInt = 4;  }
+        } else { tempInt = 5; }
+        return tempInt + x;
     }
 }
 
 class TempClass {
 
-    private int tempInt = 1;
+    public static int tempInt = 1;
+
+    public int myInt = 1;
+
+    public TempClass() {
+        this.tempClass2 = new TempClass2();
+    }
 
     public int getTempInt() {
         return tempInt;
     }
 
-    public int getOne(int a) {
-        tempInt = a;
-        return tempInt;
-    }
+    public int getOne(int a) { tempInt = a; return tempInt; }
+
+    TempClass2 tempClass2;
 }
 
 class TempClass2 {
-    public int tempMethod() {
-        return 0;
-    }
+
+    public int tempInt2 = 1;
+
+    public int tempMethod() { return 0;}
 }
 
 

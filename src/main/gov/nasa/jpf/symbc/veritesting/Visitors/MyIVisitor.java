@@ -99,7 +99,7 @@ public class MyIVisitor implements SSAInstruction.IVisitor {
         if(isMeetVisitor) return;
         System.out.println("SSAArrayLoadInstruction = " + instruction);
         int lhs = instruction.getDef();
-        Expression lhsExpr = varUtil.makeIntermediateVar(lhs);
+        Expression lhsExpr = varUtil.makeIntermediateVar(lhs, true);
         // Expression arrayLoadResult = new IntVariable("arrayLoadResult", Integer.MIN_VALUE, Integer.MAX_VALUE);
         int arrayRef = instruction.getUse(0);
         int arrayIndex = instruction.getUse(1);
@@ -138,8 +138,8 @@ public class MyIVisitor implements SSAInstruction.IVisitor {
         int operand2 = instruction.getUse(1);
         //variables written to in a veritesting region will always become intermediates because they will be
         //phi'd at the end of the region or be written into a class field later
-        //lhsExpr will also be a lhsExpr variable if we are summarizing a method
-        Expression lhsExpr = varUtil.makeIntermediateVar(lhs);
+        //lhsExpr will also be a intermediate variable if we are summarizing a method
+        Expression lhsExpr = varUtil.makeIntermediateVar(lhs, true);
         Expression operand1Expr = varUtil.addVal(operand1);
         Expression operand2Expr = varUtil.addVal(operand2);
 
@@ -284,7 +284,7 @@ public class MyIVisitor implements SSAInstruction.IVisitor {
         FieldReference fieldReference = instruction.getDeclaredField();
         Atom declaringClass = fieldReference.getDeclaringClass().getName().getClassName();
         Atom fieldName = fieldReference.getName();
-        System.out.println("declaringClass = " + declaringClass + ", methodName = " + fieldName);
+        System.out.println("declaringClass = " + declaringClass + ", currentMethodName = " + fieldName);
         int def = instruction.getDef(0);
         if(varUtil.addFieldInputVal(def, objRef, declaringClass.toString(), fieldName.toString(),
                 HoleExpression.HoleType.FIELD_INPUT, instruction.isStatic()) == null) {
@@ -314,10 +314,10 @@ public class MyIVisitor implements SSAInstruction.IVisitor {
         String fieldName = fieldReference.getName().toString();
         intermediateVarName += objRef + ".";
         intermediateVarName += className + "." + fieldName;
-        Expression intermediate = varUtil.makeIntermediateVar(intermediateVarName);
+        Expression intermediate = varUtil.makeIntermediateVar(intermediateVarName, false);
         Expression writeVal = varUtil.addVal(instruction.getVal());
         SPFExpr = new Operation(Operator.EQ, intermediate, writeVal);
-        if(varUtil.addFieldOutputVal(intermediate, objRef, className.toString(), fieldName.toString(),
+        if(varUtil.addFieldOutputVal(intermediate, objRef, className, fieldName.toString(),
                 HoleExpression.HoleType.FIELD_OUTPUT, instruction.isStatic()) == null) {
             setCanVeritest(false, instruction);
         } else {
@@ -349,15 +349,15 @@ public class MyIVisitor implements SSAInstruction.IVisitor {
         for(int i=0; i < instruction.getNumberOfParameters(); i++) {
             paramList.add(varUtil.addVal(instruction.getUse(i)));
         }
-        InvokeInfo virtualInfo = new InvokeInfo();
-        virtualInfo.isVirtualInvoke = (site.getInvocationCode() == IInvokeInstruction.Dispatch.VIRTUAL);
-        virtualInfo.isStaticInvoke = (site.getInvocationCode() == IInvokeInstruction.Dispatch.STATIC);
-        virtualInfo.setDefVal(defVal);
-        virtualInfo.setClassName(declaringClass.toString());
-        virtualInfo.setMethodName(methodName.toString());
-        virtualInfo.setMethodSignature(methodSig);
-        virtualInfo.setParamList(paramList);
-        varUtil.addInvokeVirtualHole(virtualInfo);
+        InvokeInfo callSiteInfo = new InvokeInfo();
+        callSiteInfo.isVirtualInvoke = (site.getInvocationCode() == IInvokeInstruction.Dispatch.VIRTUAL);
+        callSiteInfo.isStaticInvoke = (site.getInvocationCode() == IInvokeInstruction.Dispatch.STATIC);
+        callSiteInfo.setDefVal(defVal);
+        callSiteInfo.setClassName(declaringClass.toString());
+        callSiteInfo.setMethodName(methodName.toString());
+        callSiteInfo.setMethodSignature(methodSig);
+        callSiteInfo.setParamList(paramList);
+        varUtil.addInvokeHole(callSiteInfo);
         invokeClassName = declaringClass.toString();
         isInvoke = true;
         setCanVeritest(true, instruction);
