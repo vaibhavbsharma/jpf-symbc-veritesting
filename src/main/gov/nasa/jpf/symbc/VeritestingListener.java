@@ -57,6 +57,15 @@ public class VeritestingListener extends PropertyListenerAdapter implements Publ
 
     //TODO: make these into configuration options
     public static boolean boostPerf = false;
+    /* In the jpf file, if
+    veritestingMode = 1, then only regions that don't contain other regions are summarized and instantiated,
+    veritestingMode = 2, then regions that contain other regions will also be summarized if they don't contain method calls
+    veritestingMode = 3, then regions that contain other regions and method calls will be summarized but their
+    exceptional behavior will not be explored
+    veritestingMode = 4, includes all of the above + explores exceptional paths in regions
+    //TODO make veritestingMode = 4 be sound, if a region has exceptional behavior, we shouldn't summarize it
+    assuming that the exception will never be triggered
+     */
     public static int veritestingMode = 0;
 
     public static long totalSolverTime = 0, z3Time = 0;
@@ -77,8 +86,8 @@ public class VeritestingListener extends PropertyListenerAdapter implements Publ
     public VeritestingListener(Config conf, JPF jpf) {
         if (conf.hasValue("veritestingMode")) {
             veritestingMode = conf.getInt("veritestingMode");
-            if (veritestingMode < 0 || veritestingMode > 3) {
-                System.out.println("Warning: veritestingMode should be between 0 and 3 (both 0 and 3 included)");
+            if (veritestingMode < 0 || veritestingMode > 4) {
+                System.out.println("Warning: veritestingMode should be between 0 and 4 (both 0 and 4 included)");
                 System.out.println("Warning: resetting veritestingMode to 0 (aka use vanilla SPF)");
                 veritestingMode = 0;
             }
@@ -88,6 +97,7 @@ public class VeritestingListener extends PropertyListenerAdapter implements Publ
             System.out.println("* Warning: set veritestingMode to 1 to use veritesting with simple regions");
             System.out.println("* Warning: set veritestingMode to 2 to use veritesting with complex regions");
             System.out.println("* Warning: set veritestingMode to 3 to use veritesting with complex regions and method summaries");
+            System.out.println("* Warning: set veritestingMode to 4 to use veritesting with complex regions, method summaries, and exceptional behavior");
             System.out.println("* Warning: resetting veritestingMode to 0 (aka use vanilla SPF)");
             veritestingMode = 0;
         }
@@ -118,41 +128,53 @@ public class VeritestingListener extends PropertyListenerAdapter implements Publ
         // shouldn't veritestingRegion non-null be invariant at this point?
         if (veritestingRegions != null && veritestingRegions.containsKey(key)) {
             VeritestingRegion region = veritestingRegions.get(key);
-            VeriPCChoiceGenerator newCG = new VeriPCChoiceGenerator(4);
+            if(veritestingMode == 4) {
+                VeriPCChoiceGenerator newCG = new VeriPCChoiceGenerator(4);
 
-            if (!ti.isFirstStepInsn()) { // first time around
-                Expression regionSummary;
-                try {
-                    regionSummary = instantiateRegion(ti, region); // fill holes in region
-                    if(regionSummary == null)
-                        return;
-   		            newCG.makeVeritestingCG(region, regionSummary, ti);
-                } catch (StaticRegionException sre) {
-                    System.out.println(sre.toString());
-                    return; //problem filling holes, abort veritesting
-                }
+                if (!ti.isFirstStepInsn()) { // first time around
+                    Expression regionSummary;
+                    try {
+                        regionSummary = instantiateRegion(ti, region); // fill holes in region
+                        if (regionSummary == null)
+                            return;
+                        newCG.makeVeritestingCG(region, regionSummary, ti);
+                    } catch (StaticRegionException sre) {
+                        System.out.println(sre.toString());
+                        return; //problem filling holes, abort veritesting
+                    }
 
-                // construct choice generator
-                newCG.setOffset(instructionToExecute.getPosition());
-                newCG.setMethodName(instructionToExecute.getMethodInfo().getFullName());
-                SystemState systemState = vm.getSystemState();
-                systemState.setNextChoiceGenerator(newCG);
-                ti.setNextPC(instructionToExecute);
-                System.out.println("resume program after veritesting region");
-            } else {
-                ChoiceGenerator<?> cg = ti.getVM().getSystemState().getChoiceGenerator();
-                if (cg instanceof VeriPCChoiceGenerator) {
-                    VeriPCChoiceGenerator vcg = (VeriPCChoiceGenerator)cg;
-                    int choice = (Integer) cg.getNextChoice();
-                    PathCondition pc;
-                    if (choice == 0) { // veritesting nominal case
-                        setupSPF(ti, instructionToExecute, region);
-                    } else {
-                        System.out.println("Exploring Exit Transitions");
-                        Instruction nextInstruction = vcg.execute(instructionToExecute, choice);
-                        ti.setNextPC(nextInstruction);
+                    // construct choice generator
+                    newCG.setOffset(instructionToExecute.getPosition());
+                    newCG.setMethodName(instructionToExecute.getMethodInfo().getFullName());
+                    SystemState systemState = vm.getSystemState();
+                    systemState.setNextChoiceGenerator(newCG);
+                    ti.setNextPC(instructionToExecute);
+                    System.out.println("resume program after veritesting region");
+                } else {
+                    ChoiceGenerator<?> cg = ti.getVM().getSystemState().getChoiceGenerator();
+                    if (cg instanceof VeriPCChoiceGenerator) {
+                        VeriPCChoiceGenerator vcg = (VeriPCChoiceGenerator) cg;
+                        int choice = (Integer) cg.getNextChoice();
+                        PathCondition pc;
+                        if (choice == 0) { // veritesting nominal case
+                            setupSPF(ti, instructionToExecute, region);
+                        } else {
+                            System.out.println("Exploring Exit Transitions");
+                            Instruction nextInstruction = vcg.execute(instructionToExecute, choice);
+                            ti.setNextPC(nextInstruction);
+                        }
                     }
                 }
+            } else if (veritestingMode >= 1 && veritestingMode <= 3) {
+                try {
+                    Expression regionSummary = instantiateRegion(ti, region); // fill holes in region
+                    if (regionSummary == null)
+                        return;
+                    setupSPF(ti, instructionToExecute, region);
+                } catch (StaticRegionException sre) {
+                    System.out.println(sre.toString());
+                }
+
             }
         }
     }

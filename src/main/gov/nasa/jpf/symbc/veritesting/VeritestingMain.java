@@ -407,14 +407,12 @@ public class VeritestingMain {
                 // Create thenExpr
                 while (thenUnit != commonSucc) { // the meet point not reached yet
                     while(cfg.getNormalSuccessors(thenUnit).size() > 1 && thenUnit != commonSucc && canVeritest) {  //TODO: Support exceptionalSuccessors in the future
-                        if (VeritestingListener.veritestingMode == 1) {
+                        if (VeritestingListener.veritestingMode < 2) {
                             canVeritest = false;
                             break;
                         }
-                        assert(VeritestingListener.veritestingMode == 2 || VeritestingListener.veritestingMode == 3);
                         //instead of giving up, try to compute a summary of everything from thenUnit up to commonSucc
                         //to allow complex regions
-
 
                         HashMap<Expression, Expression> savedHoleHashMap = saveHoleHashMap();
                         HashMap<String, Expression> savedVarCache = saveVarCache();
@@ -517,11 +515,10 @@ public class VeritestingMain {
                 // Create elseExpr
                 while (canVeritest && elseUnit != commonSucc) {
                     while(cfg.getNormalSuccessors(elseUnit).size() > 1 && elseUnit != commonSucc && canVeritest) {
-                        if (VeritestingListener.veritestingMode == 1) {
+                        if (VeritestingListener.veritestingMode < 2) {
                             canVeritest = false;
                             break;
                         }
-                        assert(VeritestingListener.veritestingMode == 2 || VeritestingListener.veritestingMode == 3);
                         //instead of giving up, try to compute a summary of everything from elseUnit up to commonSucc
                         //to allow complex regions
                         HashMap<Expression, Expression> savedHoleHashMap = saveHoleHashMap();
@@ -720,7 +717,7 @@ public class VeritestingMain {
 
     public void doMethodAnalysis(ISSABasicBlock startingUnit, ISSABasicBlock endingUnit) throws InvalidClassFileException {
         assert(methodAnalysis);
-        if(VeritestingListener.veritestingMode != 3) {
+        if(VeritestingListener.veritestingMode < 3) {
             return;
         }
         //System.out.println("Starting doMethodAnalysis");

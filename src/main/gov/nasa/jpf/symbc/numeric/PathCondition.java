@@ -349,7 +349,7 @@ public class PathCondition implements Comparable<PathCondition> {
 	}
 	
 	public boolean simplify() {
-		if(this.header instanceof GreenConstraint)
+		if((this.header instanceof GreenConstraint) && SymbolicInstructionFactory.debugMode)
 			System.out.println("constraint on pc to simplify is = " + this);
 
 		if (SymbolicInstructionFactory.greenSolver == null)
