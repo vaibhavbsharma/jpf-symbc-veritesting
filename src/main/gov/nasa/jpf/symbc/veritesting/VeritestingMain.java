@@ -354,6 +354,9 @@ public class VeritestingMain {
 
     public void doAnalysis(ISSABasicBlock startingUnit, ISSABasicBlock endingUnit) throws InvalidClassFileException {
         //System.out.println("Starting doAnalysis");
+        boolean thenCreateThrow = false;
+        boolean elseCreateThrow = false;
+
         ISSABasicBlock currUnit = startingUnit;
         if (startingPointsHistory.contains(startingUnit)) return;
         Expression methodExpression = null;
@@ -495,7 +498,23 @@ public class VeritestingMain {
                     assert(blockSummary.getIfExpression() == null);
                     //cannot handle returns inside a if-then-else
                     if(blockSummary.getIsExitNode()) canVeritest = false;
+                    //SH: supporting new object or throw instructions
                     if (!canVeritest) break;
+                    if (blockSummary.hasNewOrThrow){ //SH: skip to the end of the region when a new Object or throw instruction encountered
+                        thenUnit = commonSucc;
+                        ISSABasicBlock endBlock = thenPred;
+                        boolean notEnd = true;
+                        while(notEnd){
+                            endBlock = cfg.getNormalSuccessors(endBlock).iterator().next();
+                            if(endBlock  == commonSucc){
+                                notEnd = false;
+                            }
+                            else
+                                thenPred = endBlock;
+                        }
+                        thenCreateThrow = true;
+                        break;
+                    }
                     thenPred = thenUnit;
                     thenUnit = cfg.getNormalSuccessors(thenUnit).iterator().next();
                     if (thenUnit == endingUnit) break;
@@ -570,7 +589,7 @@ public class VeritestingMain {
                             // MWW: new code.  Note: really exception should never occur, so perhaps this is *too*
                             // defensive.
                             try {
-                                SPFCaseList innerCases = innerRegion.getSpfCases().cloneEmbedPathConstraint(thenExpr);
+                                SPFCaseList innerCases = innerRegion.getSpfCases().cloneEmbedPathConstraint(elseExpr);
                                 varUtil.getSpfCases().addAll(innerCases);
                             } catch (StaticRegionException sre) {
                                 System.out.println("Unable to instantiate spfCases: " + sre.toString());
@@ -613,6 +632,21 @@ public class VeritestingMain {
                     //cannot handle returns inside a if-then-else
                     if(blockSummary.getIsExitNode()) canVeritest = false;
                     if (!canVeritest) break;
+                    if (blockSummary.hasNewOrThrow){ //SH: skip to the end of the region when a new Object or throw instruction encountered
+                        elseUnit = commonSucc;
+                        ISSABasicBlock endBlock = elsePred;
+                        boolean notEnd = true;
+                        while(notEnd){
+                            endBlock = cfg.getNormalSuccessors(endBlock).iterator().next();
+                            if(endBlock  == commonSucc){
+                                notEnd = false;
+                            }
+                            else
+                                elsePred = endBlock;
+                        }
+                        elseCreateThrow = true;
+                        break;
+                    }
                     elsePred = elseUnit;
                     elseUnit = cfg.getNormalSuccessors(elseUnit).iterator().next();
                     if (elseUnit == endingUnit) break;
@@ -633,7 +667,7 @@ public class VeritestingMain {
                 }
 
                 // Assign pathLabel a value in the elseExpr
-                if (canVeritest) {
+                if ((canVeritest) &&(!((thenCreateThrow)&&(elseCreateThrow)))) {
                     if(thenPred != null)
                         thenUseNum = Util.whichPred(cfg, thenPred, commonSucc);
                     if(elsePred != null)
@@ -839,6 +873,11 @@ public class VeritestingMain {
         private Expression expression;
         private Expression lastExpression;
         private boolean isExitNode = false;
+        private boolean hasNewOrThrow = false;
+
+        public boolean isHasNewOrThrow() {
+            return hasNewOrThrow;
+        }
 
         public Expression getIfExpression() {
             return ifExpression;
@@ -901,6 +940,10 @@ public class VeritestingMain {
                 }
                 if(myIVisitor.isExitNode()) {
                     isExitNode = true;
+                    break;
+                }
+                if(myIVisitor.isHasNewOrThrow()) {
+                    hasNewOrThrow = true;
                     break;
                 }
             }

@@ -34,6 +34,11 @@ public class MyIVisitor implements SSAInstruction.IVisitor {
     private String invokeClassName;
     private boolean isInvoke = false;
     private Expression pathLabelHole;
+    private boolean hasNewOrThrow = false;
+
+    public boolean isHasNewOrThrow() {
+        return hasNewOrThrow;
+    }
 
     public Expression getIfExpr() {
         return ifExpr;
@@ -334,15 +339,17 @@ public class MyIVisitor implements SSAInstruction.IVisitor {
         CallSiteReference site = instruction.getCallSite();
         //Only adding support for invokeVirtual statements
 
-        if(instruction.getNumberOfReturnValues() > 1 || site.getInvocationCode() == IInvokeInstruction.Dispatch.INTERFACE) {
+        if(instruction.getNumberOfReturnValues() > 1 || site.getInvocationCode() == IInvokeInstruction.Dispatch.INTERFACE
+    || site.getInvocationCode() == IInvokeInstruction.Dispatch.SPECIAL) {
             setCanVeritest(false, instruction);
             return;
         }
+        /* TODO: SOHA remove when create new object is working
         else if(site.getInvocationCode() == IInvokeInstruction.Dispatch.SPECIAL){
             SPFExpr = Operation.FALSE;
             setCanVeritest(true, instruction);
             return;
-        }
+        }*/
         assert(instruction.getNumberOfUses() == instruction.getNumberOfParameters());
         Atom declaringClass = methodReference.getDeclaringClass().getName().getClassName();
         Atom methodName = methodReference.getName();
@@ -375,8 +382,9 @@ public class MyIVisitor implements SSAInstruction.IVisitor {
         TrueReason reason = new TrueReason(TrueReason.Cause.OBJECT_CREATION);
         SPFCase c = new SPFCase(pathLabelHole, reason);
         varUtil.addSpfCase(c);
-        SPFExpr =Operation.FALSE;
+        //SPFExpr =Operation.FALSE;
         canVeritest = true;
+        hasNewOrThrow = true;
     }
 
     @Override
@@ -393,7 +401,8 @@ public class MyIVisitor implements SSAInstruction.IVisitor {
         TrueReason reason = new TrueReason(TrueReason.Cause.EXCEPTION_THROWN);
         SPFCase c = new SPFCase(pathLabelHole, reason);
         varUtil.addSpfCase(c);
-        canVeritest = true;
+        canVeritest = false;
+        hasNewOrThrow = true;
     }
 
     @Override

@@ -49,5 +49,4 @@ public class SPFCaseList {
         Expression result = new Operation(Operation.Operator.EQ, spfPredicate(), Operation.FALSE);
         return result;
     }
-
 }
