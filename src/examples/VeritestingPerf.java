@@ -20,8 +20,10 @@ public class VeritestingPerf {
         //(new VeritestingPerf()).innerCatchOutRangeloadArrayTC(22, 2);
         //(new VeritestingPerf()).outRangeloadArrayTC( 22, 2);
         // (new VeritestingPerf()).catchOutRangeloadArrayTC(22, 2);
-           //(new VeritestingPerf()).boundedOutRangeloadArrayTC(22, 2);
-            (new VeritestingPerf()).createObjectTC(true, true);
+        //(new VeritestingPerf()).boundedOutRangeloadArrayTC(22, 2);
+        //(new VeritestingPerf()).createObjectTC(true, true);
+       //(new VeritestingPerf()).createObjectComplexRegionTC2(true, true);
+        (new VeritestingPerf()).testSegment2(true, true, 2);
         //(new VeritestingPerf()).ifNull("Test");
         //(new VeritestingPerf()).foo(true);
         //(new VeritestingPerf()).segmantTest(22, 2);
@@ -173,21 +175,95 @@ public class VeritestingPerf {
     public int createObjectTC(boolean x, boolean y) {
         int a = 0;
         if (x) {
-            //if (y) {
-       //         TempClass tempClass = new TempClass();
-                a = 1;
-            //} else { tempClass = null; }
-        } else { a=2; }
+            a = 3;
+        } else {
+            TempClass tempClass2 = new TempClass();
+        }
         return a;
     }
+
+
+
+    public int createObjectTC1(boolean x, boolean y) {
+        int a = 0;
+        if (x) {
+            a = 3;
+        } else {
+            a = 2;
+            TempClass tempClass2 = new TempClass();
+        }
+        return a;
+    }
+
+
+    public int createObjectComplexRegionTC1(boolean x, boolean y) {
+        int a = 0;
+        if (y) {
+            if (x) {
+                a = 3;
+            } else {
+                a = 2;
+                TempClass tempClass2 = new TempClass();
+            }
+        }
+        return a;
+    }
+
+
+    public int createObjectComplexRegionTC2(boolean x, boolean y) {
+        int a = 0;
+        if (y) {
+            if (x) {
+                a = 3;
+                TempClass tempClass2 = new TempClass();
+            } else {
+                a = 2;
+            }
+        }
+        return a;
+    }
+
+
+    public int createObjectComplexRegionTC3(boolean x, boolean y) {
+        int a = 0;
+        if (y) {
+            if (x) {
+                TempClass tempClass1 = new TempClass();
+                a = 3;
+            } else {
+                a = 2;
+                TempClass tempClass2 = new TempClass();
+            }
+        }
+        return a;
+    }
+
+
 
     int foo(boolean x) {
         int a;
         if (x) {
             if (x) {
                 a = 3;
-            } else { a = 4; }
-        } else { a = 5; }
+            } else {
+                a = 4;
+            }
+        } else {
+            a = 5;
+        }
+        return a;
+    }
+
+    public int testSegment2(boolean x, boolean y, int z) {
+        int a = 0;
+        int[] b = {22,33,44};
+        if (y) {
+            if (x) {
+                a = b[z];
+            } else {
+                a = 2;
+            }
+        }
         return a;
     }
 
@@ -206,12 +282,11 @@ public class VeritestingPerf {
     }
 
 
-    public int ifNull(String x){
-        if(x == null){
+    public int ifNull(String x) {
+        if (x == null) {
             System.out.println("x is null");
             return 0;
-        }
-        else{
+        } else {
             System.out.println("x is not null");
             return 1;
         }
@@ -367,6 +442,7 @@ class TempClass2 {
 }
 
 
+class TestException extends Exception {}
 
 
 /*
