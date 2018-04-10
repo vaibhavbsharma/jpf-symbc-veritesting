@@ -75,6 +75,7 @@ public class VeritestingMain {
     public VeritestingMain(String appJar) {
         try {
             appJar = System.getenv("TARGET_CLASSPATH_WALA");// + appJar;
+            System.out.println("appJar = " + appJar);
             AnalysisScope scope = AnalysisScopeReader.makeJavaBinaryAnalysisScope(appJar,
                     (new FileProvider()).getFile(CallGraphTestUtil.REGRESSION_EXCLUSIONS));
             cha = ClassHierarchyFactory.make(scope);
@@ -360,10 +361,23 @@ public class VeritestingMain {
         HashSet<Integer> methodSummarizedRegionStartBB = new HashSet<>();
         while (true) {
             if (currUnit == null || currUnit == endingUnit) break;
+
+            /*
+                Get the list of normal successors (excluding JVM-generated exceptions) and find find their
+                common successor.  If there is no successors, exit, and if only one successor, immediately
+                continue exploration.  The interesting case involves 2 successors.
+                endingUnit can be null.
+
+                When we rewrite this function, I would make varUtil an argument, which I would generate fresh
+                for each iteration and copy into the parent context as needed.  Rather than having while(true),
+                I would use recursion for continuations uniformly.
+
+
+                I would have a co-recursive function that actually built the veritesting region
+             */
             List<ISSABasicBlock> succs = new ArrayList<>(cfg.getNormalSuccessors(currUnit));
             ISSABasicBlock commonSucc = cfg.getIPdom(currUnit.getNumber());
             if (succs.size() == 1) {
-                if(succs.size() == 0) break;
                 currUnit = succs.get(0);
                 continue;
             } else if (succs.size() == 0) break;
@@ -449,10 +463,12 @@ public class VeritestingMain {
                             assert(bPostDom);
                             //start swallow holes from inner region to the outer region by taking a copy of the inner holes to the outer region
                             VeritestingRegion innerRegion = VeritestingListener.veritestingRegions.get(key);
+
                             // MWW: new code.  Note: really exception should never occur, so perhaps this is *too*
                             // defensive.
                             try {
-                                SPFCaseList innerCases = innerRegion.getSpfCases().cloneEmbedPathConstraint(thenExpr);
+                                assert(conditionExpression != null);
+                                SPFCaseList innerCases = innerRegion.getSpfCases().cloneEmbedPathConstraint(conditionExpression);
                                 varUtil.getSpfCases().addAll(innerCases);
                             } catch (StaticRegionException sre) {
                                 System.out.println("Unable to instantiate spfCases: " + sre.toString());
@@ -566,7 +582,10 @@ public class VeritestingMain {
                             // MWW: new code.  Note: really exception should never occur, so perhaps this is *too*
                             // defensive.
                             try {
-                                SPFCaseList innerCases = innerRegion.getSpfCases().cloneEmbedPathConstraint(thenExpr);
+                                // need the negation of the condition expression here.
+                                Expression negIfExpr = new Operation(Operation.Operator.EQ, conditionExpression, Operation.FALSE);
+                                SPFCaseList innerCases = innerRegion.getSpfCases().cloneEmbedPathConstraint(
+                                        negIfExpr);
                                 varUtil.getSpfCases().addAll(innerCases);
                             } catch (StaticRegionException sre) {
                                 System.out.println("Unable to instantiate spfCases: " + sre.toString());
@@ -651,7 +670,7 @@ public class VeritestingMain {
                 currUnit = commonSucc;
             } else {
                 System.out.println("more than 2 successors unhandled in stmt = " + currUnit);
-                assert (false);
+                return;
             }
             System.out.println();
         } // end while(true)
