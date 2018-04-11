@@ -534,7 +534,7 @@ public class VarUtil {
         String name = "FIELD_OUTPUT." + ((HoleExpression)writeExpr).getHoleVarName();
         //varCache should not already have a hole with "name" holeVarName because every field output should have a
         // new intermediate variable as the writeExpr
-        assert(!varCache.containsKey(name));
+        //assert(!varCache.containsKey(name));
         HoleExpression holeExpression = new HoleExpression(nextInt(), this.className, methodName);
         holeExpression.setHole(true, holeType);
         holeExpression.setFieldInfo(fieldClassName, fieldName, methodName, localStackSlot, -1, writeExpr, isStaticField, useHole);

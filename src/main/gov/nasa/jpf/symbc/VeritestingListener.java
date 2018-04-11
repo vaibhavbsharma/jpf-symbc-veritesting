@@ -86,7 +86,7 @@ public class VeritestingListener extends PropertyListenerAdapter implements Publ
     public static int fieldReadAfterWrite = 0;
     public static int fieldWriteAfterWrite = 0;
     public static int fieldWriteAfterRead = 0;
-    public static final boolean allowFieldReadAfterWrite = true;
+    public static final boolean allowFieldReadAfterWrite = false;
     public static final boolean allowFieldWriteAfterRead = true;
     public static final boolean allowFieldWriteAfterWrite = true;
     private static int methodSummaryRWInterference = 0;
@@ -232,7 +232,7 @@ public class VeritestingListener extends PropertyListenerAdapter implements Publ
         pc = ((PCChoiceGenerator) ti.getVM().getSystemState().getChoiceGenerator()).getCurrentPC();
 
         // this code checks if SPF has reached a branch with both sides being infeasible
-        /*
+
         if (!boostPerf && instructionInfo != null) {
             PathCondition eqPC = pc.make_copy();
             eqPC._addDet(new GreenConstraint(instructionInfo.getCondition()));
@@ -247,7 +247,7 @@ public class VeritestingListener extends PropertyListenerAdapter implements Publ
                 assert (false);
             }
         }
-        */
+
 
         FillHolesOutput fillHolesOutput =
                 fillHoles(region, instructionInfo, sf, ti);
