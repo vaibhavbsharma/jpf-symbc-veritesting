@@ -13,12 +13,30 @@
     <orderEntry type="inheritedJdk" />
     <orderEntry type="sourceFolder" forTests="false" />
     <orderEntry type="library" name="x10.wala_2.6.1.201706301709" level="project" />
-    <orderEntry type="library" name="jpf" level="project" />
     <orderEntry type="library" name="wala-libs" level="project" />
-    <orderEntry type="library" name="green" level="project" />
     <orderEntry type="library" name="solver" level="project" />
     <orderEntry type="library" name="choco-1_2_04" level="project" />
     <orderEntry type="library" name="com.microsoft.z3" level="project" />
     <orderEntry type="library" name="bcel" level="project" />
+    <orderEntry type="module-library">
+      <library>
+        <CLASSES>
+          <root url="jar://$MODULE_DIR$/../jpf-core-veritesting/build/jpf.jar!/" />
+        </CLASSES>
+        <JAVADOC />
+        <SOURCES />
+      </library>
+    </orderEntry>
+    <orderEntry type="module-library">
+      <library>
+        <CLASSES>
+          <root url="jar://$MODULE_DIR$/lib/green.jar!/" />
+        </CLASSES>
+        <JAVADOC />
+        <SOURCES>
+          <root url="jar://$MODULE_DIR$/lib/green.jar!/" />
+        </SOURCES>
+      </library>
+    </orderEntry>
   </component>
 </module>
