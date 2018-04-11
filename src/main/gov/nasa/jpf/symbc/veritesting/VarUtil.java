@@ -575,7 +575,7 @@ public class VarUtil {
     }
 
     public void reset() {
-        defLocalVars.clear();
+        defLocalVars = new HashSet<>();
         varCache.clear();
         holeHashMap.clear();
         spfCases = new SPFCaseList();
@@ -631,5 +631,9 @@ public class VarUtil {
     }
 
     public IR getIr() {return ir; }
+
+    public HashSet<Expression> getDefLocalVars() {
+        return defLocalVars;
+    }
 }
 

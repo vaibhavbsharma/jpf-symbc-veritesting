@@ -6,8 +6,7 @@ symbolic.debug=false
 
 symbolic.method=VeritestingPerf.testSimple1(sym)
 symbolic.method=VeritestingPerf.nestedRegion(sym)
-symbolic.method=VeritestingPerf.countBitsSet(sym)
-symbolic.method=VeritestingPerf.testDynObject(sym#sym)
+symbolic.method=VeritestingPerf.countBitsSet(sym),VeritestingPerf.testDynObject(sym#sym)
 #symbolic.method=VeritestingPerf.checkOperator()
 #symbolic.method=VeritestingPerf.cfgTest(sym)
 #symbolic.method=VeritestingPerf.testMe5(sym#sym)
