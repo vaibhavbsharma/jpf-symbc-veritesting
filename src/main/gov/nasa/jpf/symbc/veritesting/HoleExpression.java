@@ -139,10 +139,11 @@ public class HoleExpression extends za.ac.sun.cs.green.expr.Expression{
     }
 
     private final long holeID;
-    HoleExpression(long _holeID, String className, String methodName) {
+    HoleExpression(long _holeID, String className, String methodName, HoleType holeType) {
         holeID = _holeID;
         setClassName(className);
         setMethodName(methodName);
+        setHoleType(holeType);
     }
 
     public void setHoleVarName(String holeVarName) {
@@ -197,25 +198,19 @@ public class HoleExpression extends za.ac.sun.cs.green.expr.Expression{
     }
     private HoleType holeType = HoleType.NONE;
 
-    public boolean isHole() {
-        return isHole;
+    private void setHoleType(HoleType h) {
+        assert(h != HoleType.NONE);
+        assert((h == HoleType.LOCAL_INPUT) ||
+                (h == HoleType.LOCAL_OUTPUT) ||
+                (h == HoleType.INTERMEDIATE) ||
+                (h == HoleType.CONDITION) ||
+                (h == HoleType.NEGCONDITION) ||
+                (h == HoleType.FIELD_INPUT) ||
+                (h == HoleType.FIELD_OUTPUT) ||
+                (h == HoleType.INVOKE) ||
+                (h == HoleType.ARRAYLOAD));
+        holeType = h;
     }
-
-    public void setHole(boolean hole, HoleType h) {
-        isHole = hole; holeType = h;
-        assert((isHole && holeType == HoleType.LOCAL_INPUT) ||
-                (isHole && holeType == HoleType.LOCAL_OUTPUT) ||
-                (isHole && holeType == HoleType.INTERMEDIATE) ||
-                (isHole && holeType == HoleType.CONDITION) ||
-                (isHole && holeType == HoleType.NEGCONDITION) ||
-                (isHole && holeType == HoleType.FIELD_INPUT) ||
-                (isHole && holeType == HoleType.FIELD_OUTPUT) ||
-                (isHole && holeType == HoleType.INVOKE) ||
-                (isHole && holeType == HoleType.ARRAYLOAD) ||
-                (!isHole && holeType == HoleType.NONE));
-    }
-
-    protected boolean isHole = false;
 
     public void setLocalStackSlot(int localStackSlot) {
         assert(holeType == HoleType.LOCAL_INPUT || holeType == HoleType.LOCAL_OUTPUT);
@@ -266,7 +261,7 @@ public class HoleExpression extends za.ac.sun.cs.green.expr.Expression{
 
     public ArrayInfoHole getArrayInfo() { return arrayInfoHole; }
     public void setArrayInfo(Expression arrayRef, Expression arrayIndex, TypeReference arrayType, String pathLabelString, int pathLabel) {
-        assert(this.isHole && this.holeType == HoleType.ARRAYLOAD);
+        assert(this.holeType == HoleType.ARRAYLOAD);
         arrayInfoHole = new ArrayInfoHole(arrayRef, arrayIndex, arrayType, pathLabelString, pathLabel);
     }
     ArrayInfoHole arrayInfoHole = null;

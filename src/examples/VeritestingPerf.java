@@ -15,6 +15,7 @@ public class VeritestingPerf {
     public static void main(String[] args) {
         //(new VeritestingPerf()).cfgTest(1);
         (new VeritestingPerf()).countBitsSet(1);
+        //(new VeritestingPerf()).testSimple1(1);
         //(new VeritestingPerf()).fieldWriteTest(1);
         //(new VeritestingPerf()).nestedRegion(1);
         //int x[] = {1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20};
@@ -33,6 +34,66 @@ public class VeritestingPerf {
 //        list.add(Debug.makeSymbolicInteger("a2"));
 //        (new VeritestingPerf()).countArrayList(list);
     }
+
+    // MWW:
+    // Here is the problem.  If I uncomment 'count', then the program works correctly.
+    // There is a problem with nested fields and regions right now.
+    public int simpleRegion(int x) {
+        //int count;
+        if (x > 0) { count = 3; }
+        else { count = 4; }
+        return count;
+    }
+
+    // this fails.
+    public void testSimple(int x) {
+        int count;
+        count = simpleRegion(x);
+        System.out.println("x: " + x + "; count: " + count);
+        assert(x > 0 ? count == 3 : true);
+        assert(x <= 0 ? count == 4 : true);
+    }
+
+    // MWW fails incorrectly: 4/8/2018
+    // If I uncomment count, it works correctly.
+    public void testSimple1(int x) {
+        //int count;
+        System.out.println("Executing success case!");
+        if (x != 0) {
+            count = 3;
+        } else {
+            count = 4;
+        }
+
+        assert(x != 0 ? count == 3 : true);
+        assert(x == 0 ? count == 4 : true);
+    }
+
+    // MWW checks correctly: 4/8/2018
+    public void testSimpleFail(int x) {
+        System.out.println("Executing fail case!");
+        int count;
+        if (x > 0) {
+            count = 3;
+        } else {
+            count = 4;
+        }
+        assert(x != 0 ? count == 3 : true);
+        assert(x == 0 ? count == 4 : true);
+    }
+
+    // MWW checks correctly: 4/8/2018
+    public void testSimple2(int x) {
+        int count;
+        if (x != 0) {
+            if (x > 0) { count = 3; } else { count = 4;  }
+        } else { count = 5; }
+
+        assert(x > 0 ? count == 3 : true);
+        assert(x < 0 ? count == 4 : true);
+        assert(x == 0 ? count == 5 : true);
+    }
+
 
     public int countBitsSetSimple(int x) {
         //int count = 0;

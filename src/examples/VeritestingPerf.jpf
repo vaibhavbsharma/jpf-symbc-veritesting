@@ -5,7 +5,7 @@ vm.storage.class=nil
 symbolic.debug=false
 
 #symbolic.method=VeritestingPerf.checkOperator()
-symbolic.method=VeritestingPerf.countBitsSet(sym)
+symbolic.method=VeritestingPerf.testSimple1(sym),VeritestingPerf.countBitsSet(sym)
 #symbolic.method=VeritestingPerf.fieldWriteTest(sym)
 #symbolic.method=VeritestingPerf.nestedRegion(sym)
 #symbolic.method=VeritestingPerf.cfgTest(sym)

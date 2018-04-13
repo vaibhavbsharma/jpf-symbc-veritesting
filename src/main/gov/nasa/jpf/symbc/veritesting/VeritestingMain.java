@@ -278,10 +278,10 @@ public class VeritestingMain {
         else elseExpr = elsePLAssignSPF;
 
         // (If && thenExpr) || (ifNot && elseExpr)
-        HoleExpression condition = new HoleExpression(varUtil.nextInt(), currentClassName, currentMethodName);
-        condition.setHole(true, HoleExpression.HoleType.CONDITION);
-        HoleExpression negCondition = new HoleExpression(varUtil.nextInt(), currentClassName, currentMethodName);
-        negCondition.setHole(true, HoleExpression.HoleType.NEGCONDITION);
+        HoleExpression condition = new HoleExpression(varUtil.nextInt(), currentClassName, currentMethodName,
+                HoleExpression.HoleType.CONDITION);
+        HoleExpression negCondition = new HoleExpression(varUtil.nextInt(), currentClassName, currentMethodName,
+                HoleExpression.HoleType.NEGCONDITION);
         varUtil.holeHashMap.put(condition, condition);
         varUtil.holeHashMap.put(negCondition, negCondition);
         Expression pathExpr1 =
@@ -430,10 +430,11 @@ public class VeritestingMain {
                                 if(((HoleExpression)entry.getKey()).getHoleType() == HoleExpression.HoleType.FIELD_OUTPUT) {
                                     HoleExpression holeExpression = (HoleExpression) entry.getKey();
                                     HoleExpression.FieldInfo f = holeExpression.getFieldInfo();
-                                    //TODO make a recursive copy of f.PLAssign instead of modifying it in place
+                                    // make a recursive copy of f.PLAssign instead of modifying it in place
                                     // because this modifies PLAssign for the hole in the inner region too
                                     f.PLAssign = new Operation(Operation.Operator.AND, f.PLAssign, thenPLAssign);
-                                    HoleExpression h = new HoleExpression(varUtil.nextInt(), currentClassName, currentMethodName);
+                                    HoleExpression h = new HoleExpression(varUtil.nextInt(), currentClassName,
+                                            currentMethodName, holeExpression.getHoleType());
                                     h.setFieldInfo(f);
                                 }
                                 varUtil.holeHashMap.put(entry.getKey(), entry.getValue());
@@ -627,7 +628,7 @@ public class VeritestingMain {
     // Replace all holes of type CONDITION with conditionExpression
     // Replace all holes of type NEGCONDITION with !(conditionExpression)
     private Expression replaceCondition(Expression holeExpression, Expression conditionExpression) {
-        if(holeExpression instanceof HoleExpression && ((HoleExpression)holeExpression).isHole()) {
+        if(holeExpression instanceof HoleExpression) {
             Expression ret = holeExpression;
             if(((HoleExpression)holeExpression).getHoleType() == HoleExpression.HoleType.CONDITION)
                 ret = conditionExpression;

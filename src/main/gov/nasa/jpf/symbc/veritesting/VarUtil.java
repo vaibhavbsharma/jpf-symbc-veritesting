@@ -52,8 +52,7 @@ public class VarUtil {
             if(useVarCache) return varCache.get(name);
             else name += VarUtil.nextIntermediateCount();
         }
-        HoleExpression holeExpression = new HoleExpression(nextInt(), className, methodName);
-        holeExpression.setHole(true, HoleExpression.HoleType.INTERMEDIATE);
+        HoleExpression holeExpression = new HoleExpression(nextInt(), className, methodName, HoleExpression.HoleType.INTERMEDIATE);
         holeExpression.setHoleVarName(name);
         varCache.put(name, holeExpression);
         return holeExpression;
@@ -70,8 +69,7 @@ public class VarUtil {
         String name = className + "." + methodName + ".v" + val;
         if(varCache.containsKey(name))
             return varCache.get(name);
-        HoleExpression holeExpression = new HoleExpression(nextInt(), className, methodName);
-        holeExpression.setHole(true, HoleExpression.HoleType.LOCAL_INPUT);
+        HoleExpression holeExpression = new HoleExpression(nextInt(), className, methodName, HoleExpression.HoleType.LOCAL_INPUT);
         holeExpression.setLocalStackSlot(varsMap.get(val));
         holeExpression.setHoleVarName(name);
         varCache.put(name, holeExpression);
@@ -83,8 +81,7 @@ public class VarUtil {
         String name = className + "." + methodName + ".v" + val;
         if(varCache.containsKey(name))
             return varCache.get(name);
-        HoleExpression holeExpression = new HoleExpression(nextInt(), className, methodName);
-        holeExpression.setHole(true, HoleExpression.HoleType.LOCAL_OUTPUT);
+        HoleExpression holeExpression = new HoleExpression(nextInt(), className, methodName, HoleExpression.HoleType.LOCAL_OUTPUT);
         holeExpression.setLocalStackSlot(varsMap.get(val));
         holeExpression.setHoleVarName(name);
         varCache.put(name, holeExpression);
@@ -98,7 +95,7 @@ public class VarUtil {
         varCache = new HashMap<String, Expression> () {
             @Override
             public Expression put(String key, Expression expression) {
-                if(expression instanceof HoleExpression && ((HoleExpression)expression).isHole()) {
+                if(expression instanceof HoleExpression) {
                     // using non-hole IntegerConstant object containing 0 as placeholder
                     // for final filled-up hole object
                     if(!holeHashMap.containsKey(expression)) {
@@ -417,9 +414,8 @@ public class VarUtil {
 
     public Expression addArrayLoadVal(Expression arrayRef, Expression arrayIndex, TypeReference arrayType, HoleExpression.HoleType holeType, SSAArrayLoadInstruction instructionName, String pathLabelString, int pathLabel) {
         assert(holeType == HoleExpression.HoleType.ARRAYLOAD);
-        HoleExpression holeExpression = new HoleExpression(nextInt(), className, methodName);
+        HoleExpression holeExpression = new HoleExpression(nextInt(), className, methodName, holeType);
         holeExpression.setHoleVarName(instructionName.toString());
-        holeExpression.setHole(true, holeType);
         holeExpression.setArrayInfo(arrayRef, arrayIndex, arrayType, pathLabelString, pathLabel);
         varCache.put(holeExpression.getHoleVarName(), holeExpression);
         holeExpression.toString();
@@ -442,8 +438,7 @@ public class VarUtil {
             assert(use != -1);
             localStackSlot = varsMap.get(use);
         }
-        HoleExpression holeExpression = new HoleExpression(nextInt(), this.className, methodName);
-        holeExpression.setHole(true, holeType);
+        HoleExpression holeExpression = new HoleExpression(nextInt(), this.className, methodName, holeType);
         holeExpression.setFieldInfo(fieldClassName, fieldName, methodName, localStackSlot, -1, null,
                 isStaticField, useHole, null);
         String name = this.className + "." + this.methodName + ".v" + def;
@@ -534,8 +529,7 @@ public class VarUtil {
         //varCache should not already have a hole with "name" holeVarName because every field output should have a
         // new intermediate variable as the writeExpr
         assert(!varCache.containsKey(name));
-        HoleExpression holeExpression = new HoleExpression(nextInt(), this.className, methodName);
-        holeExpression.setHole(true, holeType);
+        HoleExpression holeExpression = new HoleExpression(nextInt(), this.className, methodName, holeType);
         holeExpression.setFieldInfo(fieldClassName, fieldName, methodName, localStackSlot, -1, writeExpr, isStaticField, useHole, PLAssign);
         holeExpression.setHoleVarName(name);
         if(fieldHasRWOperation(holeExpression, HoleExpression.HoleType.FIELD_INPUT, holeHashMap, null, null)) {
@@ -586,9 +580,8 @@ public class VarUtil {
     }
 
     public Expression addInvokeHole(InvokeInfo invokeInfo) {
-        HoleExpression holeExpression = new HoleExpression(nextInt(), className, methodName);
+        HoleExpression holeExpression = new HoleExpression(nextInt(), className, methodName, HoleExpression.HoleType.INVOKE);
         String name = className + "." + methodName + ".v" + invokeInfo.defVal;
-        holeExpression.setHole(true, HoleExpression.HoleType.INVOKE);
         holeExpression.setInvokeInfo(invokeInfo);
         //The return value of this invokeVirtual will be this holeExpression object.
         //The only way to fill this hole is to map it to the corresponding method summary return value

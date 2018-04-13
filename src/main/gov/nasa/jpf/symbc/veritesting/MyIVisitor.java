@@ -425,7 +425,7 @@ public class MyIVisitor implements SSAInstruction.IVisitor {
         if (elseUseNum != -1) phiExprElse = varUtil.addVal(instruction.getUse(elseUseNum));
         if (thenUseNum != -1 || elseUseNum != -1) {
             phiExprLHS = varUtil.addDefVal(instruction.getDef(0));
-            assert (!(phiExprLHS instanceof HoleExpression && !((HoleExpression) phiExprLHS).isHole()));
+            assert ((phiExprLHS instanceof HoleExpression));
             assert (varUtil.ir.getSymbolTable().isConstant(instruction.getDef(0)) == false);
         }
         canVeritest = true;

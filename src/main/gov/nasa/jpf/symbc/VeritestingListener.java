@@ -57,6 +57,7 @@ public class VeritestingListener extends PropertyListenerAdapter implements Publ
     public static int solverCount = 0;
     public static int pathLabelCount = 1;
     private long staticAnalysisTime = 0;
+    //These counts are incremented during static analysis once per operation encountered across all the region summaries
     public static int fieldReadAfterWrite = 0;
     public static int fieldWriteAfterWrite = 0;
     public static int fieldWriteAfterRead = 0;
@@ -319,7 +320,7 @@ public class VeritestingListener extends PropertyListenerAdapter implements Publ
         pw.println("cleanupTime = " + cleanupTime/1000000);
         pw.println("solverCount = " + solverCount);
         pw.println("(fieldReadAfterWrite, fieldWriteAfterRead, fieldWriteAfterWrite = (" + fieldReadAfterWrite + ", " +
-                VeritestingListener.fieldWriteAfterRead + ", " + fieldWriteAfterWrite + ")");
+                VeritestingListener.fieldWriteAfterRead + ", " + fieldWriteAfterWrite + "), (these are counts from static analysis");
         pw.println("methodSummaryRWInterference = " + methodSummaryRWInterference);
         if(veritestingMode > 0) {
             pw.println("# regions = " + VeritestingListener.veritestingRegions.size());
@@ -527,7 +528,7 @@ public class VeritestingListener extends PropertyListenerAdapter implements Publ
      */
     private Expression fillASTHoles(Expression holeExpression,
                                     LinkedHashMap<Expression, Expression> holeHashMap) {
-        if (holeExpression instanceof HoleExpression && ((HoleExpression) holeExpression).isHole()) {
+        if (holeExpression instanceof HoleExpression) {
             //assert(holeHashMap.containsKey(holeExpression));
             if (!holeHashMap.containsKey(holeExpression)) {
                 System.out.println("fillASTHoles does not know how to fill hole " + holeExpression.toString());
@@ -607,7 +608,6 @@ public class VeritestingListener extends PropertyListenerAdapter implements Publ
             gov.nasa.jpf.symbc.numeric.Expression indexAttr;
             assert (key instanceof HoleExpression);
             HoleExpression keyHoleExpression = (HoleExpression) key;
-            assert (keyHoleExpression.isHole());
             switch (keyHoleExpression.getHoleType()) {
                 case ARRAYLOAD:
                     HoleExpression.ArrayInfoHole arrayInfoHole = keyHoleExpression.getArrayInfo();
@@ -977,7 +977,6 @@ public class VeritestingListener extends PropertyListenerAdapter implements Publ
                 Expression methodKeyExpr = entry1.getKey();
                 assert(methodKeyExpr instanceof HoleExpression);
                 HoleExpression methodKeyHole = (HoleExpression) methodKeyExpr;
-                assert(methodKeyHole.isHole());
                 switch(methodKeyHole.getHoleType()) {
                     case CONDITION:
                         if(isMethodSummary) {
@@ -1078,7 +1077,6 @@ public class VeritestingListener extends PropertyListenerAdapter implements Publ
                 Expression methodKeyExpr = entry1.getKey();
                 assert(methodKeyExpr instanceof HoleExpression);
                 HoleExpression methodKeyHole = (HoleExpression) methodKeyExpr;
-                assert(methodKeyHole.isHole());
                 switch(methodKeyHole.getHoleType()) {
                     //LOCAL_INPUTs can be mapped to parameters at the call site, non-parameter local inputs
                     // need to be mapped to intermediate variables since we cannot create a stack for the summarized method
@@ -1333,7 +1331,6 @@ public class VeritestingListener extends PropertyListenerAdapter implements Publ
                 Expression key = entry.getKey();
                 assert (key instanceof HoleExpression);
                 HoleExpression keyHoleExpression = (HoleExpression) key;
-                assert (keyHoleExpression.isHole());
                 switch (keyHoleExpression.getHoleType()) {
                     case INVOKE:
                         InvokeInfo callSiteInfo = keyHoleExpression.getInvokeInfo();
