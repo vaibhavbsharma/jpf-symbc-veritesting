@@ -363,10 +363,15 @@ public class HoleExpression extends za.ac.sun.cs.green.expr.Expression{
             else return true;
         }
 
+        /*
+        This method assumes that other attributes in HoleExpression.FieldInfo such as fieldClassName, fieldName,
+        staticField would have already been checked before the pathlabel assignment is checked for equality.
+        That is why we return true if one of the two pathlabel assignments is null.
+         */
         public boolean isSamePLAssign(Expression plAssign1) {
             if(this.PLAssign == null && plAssign1 == null) return true;
-            if(this.PLAssign == null && plAssign1 != null) return false;
-            if(this.PLAssign != null && plAssign1 == null) return false;
+            if(this.PLAssign == null && plAssign1 != null) return true;
+            if(this.PLAssign != null && plAssign1 == null) return true;
             return (this.PLAssign.equals(plAssign1));
         }
     }

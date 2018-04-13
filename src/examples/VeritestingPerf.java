@@ -50,6 +50,7 @@ public class VeritestingPerf {
     public int countBitsSet(int x) {
         TempClass tempClass = new TempClassDerived();
         count = 1;
+        int a = 1;
         //TempClass tempClass = new TempClass();
         while (x != 0) {
             if ((x & 1) != 0) {
@@ -59,8 +60,14 @@ public class VeritestingPerf {
                 //TempClass2 tempClass2 = tempClass.tempClass2;
                 //tempClass2.tempInt2 += count;
                 //tempClass.tempInt = 1; //creates r/w interference with tempClass.getOne's method summary
-                count += tempClass.getOne(0); //method summary test + higher order region test
-                //count += tempClass.myInt; //use this to test dynamic field access
+                // Test case 3: method summary test + higher order region test
+                count += tempClass.getOne(0);
+                // Test case 4: use this to test dynamic field access
+                //count += tempClass.myInt;
+                // Test case 5: testing read-after-write in a simple region
+//                count += 1;
+//                a += count;
+//                count += 2;
             }
             x = x >>> 1; // logical right shift
         }

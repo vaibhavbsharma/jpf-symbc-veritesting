@@ -515,7 +515,7 @@ public class VeritestingMain {
                             if(!canVeritest) break;
                             ISSABasicBlock commonSuccelseUnit = cfg.getIPdom(elseUnit.getNumber());
 
-                            if(!VeritestingListener.boostPerf) {
+                            if(VeritestingListener.boostPerf == false) {
                                 NumberedGraph<ISSABasicBlock> invertedCFG = GraphInverter.invert(cfg);
                                 NumberedDominators<ISSABasicBlock> postDom = (NumberedDominators<ISSABasicBlock>)
                                         Dominators.make(invertedCFG, cfg.exit());

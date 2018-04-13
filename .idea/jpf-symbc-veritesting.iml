@@ -12,30 +12,31 @@
     </content>
     <orderEntry type="inheritedJdk" />
     <orderEntry type="sourceFolder" forTests="false" />
-    <orderEntry type="library" name="x10.wala_2.6.1.201706301709" level="project" />
-    <orderEntry type="library" name="wala-libs" level="project" />
-    <orderEntry type="library" name="solver" level="project" />
-    <orderEntry type="library" name="choco-1_2_04" level="project" />
-    <orderEntry type="library" name="com.microsoft.z3" level="project" />
-    <orderEntry type="library" name="bcel" level="project" />
     <orderEntry type="module-library">
-      <library>
+      <library name="lib">
         <CLASSES>
-          <root url="jar://$MODULE_DIR$/../jpf-core-veritesting/build/jpf.jar!/" />
+          <root url="file://$MODULE_DIR$/lib" />
         </CLASSES>
         <JAVADOC />
-        <SOURCES />
+        <NATIVE>
+          <root url="file://$MODULE_DIR$/lib" />
+        </NATIVE>
+        <SOURCES>
+          <root url="file://$MODULE_DIR$/lib" />
+        </SOURCES>
+        <jarDirectory url="file://$MODULE_DIR$/lib" recursive="false" />
+        <jarDirectory url="file://$MODULE_DIR$/lib" recursive="false" type="SOURCES" />
       </library>
     </orderEntry>
     <orderEntry type="module-library">
-      <library>
+      <library name="jpf-core">
         <CLASSES>
-          <root url="jar://$MODULE_DIR$/lib/green.jar!/" />
+          <root url="file://$MODULE_DIR$/../jpf-core-veritesting/build" />
+          <root url="file://$MODULE_DIR$/../jpf-core-veritesting/build" />
         </CLASSES>
         <JAVADOC />
-        <SOURCES>
-          <root url="jar://$MODULE_DIR$/lib/green.jar!/" />
-        </SOURCES>
+        <SOURCES />
+        <jarDirectory url="file://$MODULE_DIR$/../jpf-core-veritesting/build" recursive="false" />
       </library>
     </orderEntry>
   </component>

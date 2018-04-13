@@ -47,7 +47,7 @@ public class VeritestingListener extends PropertyListenerAdapter implements Publ
 
 
     //TODO: make these into configuration options
-    public static boolean boostPerf = true;
+    public static boolean boostPerf = false;
     public static int veritestingMode = 0;
 
     public static long totalSolverTime = 0, z3Time = 0;
@@ -235,15 +235,15 @@ public class VeritestingListener extends PropertyListenerAdapter implements Publ
         //We've intercepted execution before any symbolic state was reached, so return
         if (!(ti.getVM().getSystemState().getChoiceGenerator() instanceof PCChoiceGenerator)) return null;
         pc = ((PCChoiceGenerator) ti.getVM().getSystemState().getChoiceGenerator()).getCurrentPC();
-        if (!boostPerf && instructionInfo != null) {
+        if (boostPerf == false && instructionInfo != null) {
             PathCondition eqPC = pc.make_copy();
             eqPC._addDet(new GreenConstraint(instructionInfo.getCondition()));
             boolean eqSat = eqPC.simplify();
-            if (!eqSat) return null;
+            //if (!eqSat) return null;
             PathCondition nePC = pc.make_copy();
             nePC._addDet(new GreenConstraint(instructionInfo.getNegCondition()));
             boolean neSat = nePC.simplify();
-            if (!neSat) return null;
+            //if (!neSat) return null;
             if (!eqSat && !neSat) {
                 System.out.println("both sides of branch at offset " + ti.getTopFrame().getPC().getPosition() + " are unsat");
                 assert (false);
@@ -265,7 +265,7 @@ public class VeritestingListener extends PropertyListenerAdapter implements Publ
         }
 
         // pc._addDet(new GreenConstraint(finalSummaryExpression));
-        if (!boostPerf) {
+        if (boostPerf == false) {
             String finalSummaryExpressionString = ASTToString(finalSummaryExpression);
             if (!pc.simplify()) {
                 System.out.println("veritesting region added unsat summary");
@@ -273,7 +273,8 @@ public class VeritestingListener extends PropertyListenerAdapter implements Publ
             }
         }
         Expression fieldOutputExpression = populateOutputs(ti,sf, region.getOutputVars(), fillHolesOutput.holeHashMap);
-        finalSummaryExpression = new Operation(Operation.Operator.AND, finalSummaryExpression, fieldOutputExpression);
+        if(fieldOutputExpression != null)
+            finalSummaryExpression = new Operation(Operation.Operator.AND, finalSummaryExpression, fieldOutputExpression);
         finalSummaryExpression = fillASTHoles(finalSummaryExpression, fillHolesOutput.holeHashMap); //not constant-folding for now
         return finalSummaryExpression;
     }
@@ -451,6 +452,17 @@ public class VeritestingListener extends PropertyListenerAdapter implements Publ
         return fieldOutputExpression;
     }
 
+    /*
+    Returns an expression which lets the field output be one of the output variables in outputVars or be the value of
+    the field before the region. The assignments are predicated on the pathlabel assignment being satisfied, where the
+    pathlabel assignment comes from each output variable. This method will return a phi expression over all fields that
+    are the same field from the same aliased object. This method needs to be called only once per field output.
+    holeExpression = one of the output variables in outputVars
+    outputVars = output variables of the region
+    finalValue = intermediate symbolic variable that will be written into the field
+    prevValue = value of the field before the region
+    finalHashMap = hashmap that maps holes to instantiated green expressions
+     */
     private Expression findCommonFieldOutputs(ThreadInfo ti, StackFrame sf,
                                               HoleExpression holeExpression, HashSet<Expression> outputVars,
                                               Expression finalValue, Expression prevValue,
@@ -461,7 +473,8 @@ public class VeritestingListener extends PropertyListenerAdapter implements Publ
             HoleExpression outputVar = (HoleExpression) iterator.next();
             if(outputVar.getHoleType() != HoleExpression.HoleType.FIELD_OUTPUT) continue;
             if(isSameField(ti, sf, holeExpression, outputVar, finalHashMap)) {
-                Expression thisOutputVar = new Operation(Operation.Operator.IMPLIES, outputVar.getFieldInfo().PLAssign,
+                Expression thisOutputVar = new Operation(Operation.Operator.IMPLIES,
+                        outputVar.getFieldInfo().PLAssign,
                         new Operation(Operation.Operator.EQ, finalValue, outputVar.getFieldInfo().writeValue));
                 if(ret == null)
                     ret = thisOutputVar;
@@ -472,7 +485,7 @@ public class VeritestingListener extends PropertyListenerAdapter implements Publ
                 new Operation(Operation.Operator.NOT, holeExpression.getFieldInfo().PLAssign),
                 new Operation(Operation.Operator.EQ, finalValue, prevValue));
         if(ret == null) return prevAssign;
-        else return new Operation(Operation.Operator.AND, ret, prevAssign);
+        else return new Operation(Operation.Operator.OR, ret, prevAssign);
     }
 
     /*
@@ -523,18 +536,36 @@ public class VeritestingListener extends PropertyListenerAdapter implements Publ
             Expression ret = holeHashMap.get(holeExpression);
             if (ret instanceof Operation) {
                 Operation oldOperation = (Operation) ret;
-                Operation newOperation = new Operation(oldOperation.getOperator(),
-                        fillASTHoles(oldOperation.getOperand(0), holeHashMap),
-                        fillASTHoles(oldOperation.getOperand(1), holeHashMap));
+                Operation newOperation = null;
+                if(oldOperation.getOperator().getArity() == 2) {
+                    newOperation = new Operation(oldOperation.getOperator(),
+                            fillASTHoles(oldOperation.getOperand(0), holeHashMap),
+                            fillASTHoles(oldOperation.getOperand(1), holeHashMap));
+                } else if (oldOperation.getOperator().getArity() == 1) {
+                    newOperation = new Operation(oldOperation.getOperator(),
+                            fillASTHoles(oldOperation.getOperand(0), holeHashMap));
+                } else {
+                    System.out.println("fillASTHoles cannot fill hole with arity that is not 1 or 2");
+                    assert(false);
+                }
                 return newOperation;
             }
             return ret;
         }
         if (holeExpression instanceof Operation) {
             Operation oldOperation = (Operation) holeExpression;
-            Operation newOperation = new Operation(oldOperation.getOperator(),
-                    fillASTHoles(oldOperation.getOperand(0), holeHashMap),
-                    fillASTHoles(oldOperation.getOperand(1), holeHashMap));
+            Operation newOperation = null;
+            if(oldOperation.getOperator().getArity() == 2) {
+                newOperation = new Operation(oldOperation.getOperator(),
+                        fillASTHoles(oldOperation.getOperand(0), holeHashMap),
+                        fillASTHoles(oldOperation.getOperand(1), holeHashMap));
+            } else if (oldOperation.getOperator().getArity() == 1) {
+                newOperation = new Operation(oldOperation.getOperator(),
+                        fillASTHoles(oldOperation.getOperand(0), holeHashMap));
+            } else {
+                System.out.println("fillASTHoles cannot fill hole with arity that is not 1 or 2");
+                assert(false);
+            }
             return newOperation;
         }
         return holeExpression;

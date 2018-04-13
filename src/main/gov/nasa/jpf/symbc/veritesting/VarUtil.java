@@ -488,15 +488,21 @@ public class VarUtil {
             //we now need to determine if these two fields belong to the same object
             //Assume that holeExpression comes from a method summary if callSiteInfo is not null
             if(callSiteInfo == null) return true;
-            if(f.localStackSlot == 0) {
-                int objRefMS = stackFrame.getLocalVariable(((HoleExpression) callSiteInfo.paramList.get(0)).getLocalStackSlot());
-                int objRefOR = stackFrame.getLocalVariable(f1.localStackSlot);
-                if(objRefMS == objRefOR) return true;
-                else return false;
-            } else {
-                //We cannot load the object reference for an object that is created locally within the method summary
-                return false;
+            int objRefMS = -1, objRefOR;
+            if(callSiteInfo != null) {
+                if(f.localStackSlot == 0)
+                    objRefMS = stackFrame.getLocalVariable(((HoleExpression) callSiteInfo.paramList.get(0)).getLocalStackSlot());
+                else {
+                    //We cannot load the object reference for an object that is created locally within the method summary
+                    System.out.println("failed to load local stack object inside a method summary");
+                    assert(false);
+                }
             }
+            else
+                objRefMS = stackFrame.getLocalVariable(f.localStackSlot);
+            objRefOR = stackFrame.getLocalVariable(f1.localStackSlot);
+            if(objRefMS == objRefOR) return true;
+            else return false;
         }
         return false;
     }
