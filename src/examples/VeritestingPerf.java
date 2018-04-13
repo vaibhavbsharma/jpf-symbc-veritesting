@@ -14,9 +14,15 @@ public class VeritestingPerf {
 
     public static void main(String[] args) {
         //(new VeritestingPerf()).cfgTest(1);
-        (new VeritestingPerf()).countBitsSet(1);
+        //(new VeritestingPerf()).countBitsSet(1);
+        (new VeritestingPerf()).testSimple(1);
         //(new VeritestingPerf()).testSimple1(1);
-        //(new VeritestingPerf()).fieldWriteTest(1);
+        //(new VeritestingPerf()).simpleRegion(1);
+        //(new VeritestingPerf()).fieldWriteTestBranch2(1);
+        //(new VeritestingPerf()).fieldWriteTestBranch1(1);
+        //(new VeritestingPerf()).testSimple2(1);
+        //(new VeritestingPerf()).testSimpleFail(1);
+
         //(new VeritestingPerf()).nestedRegion(1);
         //int x[] = {1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20};
 //        (new VeritestingPerf()).inRangeloadArrayTC( 22, 10);
@@ -142,9 +148,14 @@ public class VeritestingPerf {
         return count;
     }
 
-    public int fieldWriteTest(int x) {
+    public int fieldWriteTestBranch2(int x) {
         if(x != 0) count = 1;
         else count = 2;
+        return count;
+    }
+
+    public int fieldWriteTestBranch1(int x) {
+        if(x != 0) count = 1;
         return count;
     }
 

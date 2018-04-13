@@ -137,15 +137,16 @@ public class VeritestingListener extends PropertyListenerAdapter implements Publ
         return cg;
     }
 
-
-    private void setExceptionTransition(ThreadInfo ti, Expression regionSummary, ChoiceGenerator<?> cg, VeritestingRegion region) {
+    private void setExceptionTransition(ThreadInfo ti, Expression regionSummary, ChoiceGenerator<?> cg,
+                                        VeritestingRegion region) {
         Set<VeritestingTransition> regionTransitions = getTransitionsInRegion(region);
         PathCondition pc = ((PCChoiceGenerator) ti.getVM().getSystemState().getChoiceGenerator()).getCurrentPC();
         if (regionTransitions != null) {
             Iterator<VeritestingTransition> veritestingTransitionIterator = regionTransitions.iterator();
             int gcChoice = 1; //starting from the first choice for non-nominal choices
             while(veritestingTransitionIterator.hasNext()) {
-                Expression exceptionConstraint = new Operation(Operation.Operator.AND, regionSummary, new Operation(Operation.Operator.NOT,veritestingTransitionIterator.next().transitionConstraint));
+                Expression exceptionConstraint = new Operation(Operation.Operator.AND, regionSummary,
+                        new Operation(Operation.Operator.NOT,veritestingTransitionIterator.next().transitionConstraint));
                 PathCondition excepTransitionPc = pc.make_copy(); // at this point pc will have the region summary as well
                 excepTransitionPc._addDet(new GreenConstraint(exceptionConstraint));
                 ((VeriPCChoiceGenerator) cg).setPC(excepTransitionPc, gcChoice);
@@ -154,13 +155,15 @@ public class VeritestingListener extends PropertyListenerAdapter implements Publ
         }
     }
 
-    private void setNominalTransition(ThreadInfo ti, Expression regionSummary, ChoiceGenerator<?> cg, VeritestingRegion region) {
+    private void setNominalTransition(ThreadInfo ti, Expression regionSummary, ChoiceGenerator<?> cg,
+                                      VeritestingRegion region) {
         Set<VeritestingTransition> regionTransitions = getTransitionsInRegion(region);
         Expression nominalConstraint = regionSummary;
         if (regionTransitions != null) {
             Iterator<VeritestingTransition> veritestingTransitionIterator = regionTransitions.iterator();
             while(veritestingTransitionIterator.hasNext()) {
-                nominalConstraint = new Operation(Operation.Operator.AND, nominalConstraint, veritestingTransitionIterator.next().transitionConstraint);
+                nominalConstraint = new Operation(Operation.Operator.AND, nominalConstraint,
+                        veritestingTransitionIterator.next().transitionConstraint);
             }
         }
         PathCondition pc = ((PCChoiceGenerator) ti.getVM().getSystemState().getChoiceGenerator()).getCurrentPC();
@@ -320,7 +323,7 @@ public class VeritestingListener extends PropertyListenerAdapter implements Publ
         pw.println("cleanupTime = " + cleanupTime/1000000);
         pw.println("solverCount = " + solverCount);
         pw.println("(fieldReadAfterWrite, fieldWriteAfterRead, fieldWriteAfterWrite = (" + fieldReadAfterWrite + ", " +
-                VeritestingListener.fieldWriteAfterRead + ", " + fieldWriteAfterWrite + "), (these are counts from static analysis");
+                VeritestingListener.fieldWriteAfterRead + ", " + fieldWriteAfterWrite + "), (these are static counts aka once per summarized region)");
         pw.println("methodSummaryRWInterference = " + methodSummaryRWInterference);
         if(veritestingMode > 0) {
             pw.println("# regions = " + VeritestingListener.veritestingRegions.size());
@@ -470,23 +473,32 @@ public class VeritestingListener extends PropertyListenerAdapter implements Publ
                                               LinkedHashMap<Expression, Expression> finalHashMap) {
         Expression ret = null;
         Iterator iterator = outputVars.iterator();
+        Expression conjAllPLAssign = null;
         while(iterator.hasNext()) {
             HoleExpression outputVar = (HoleExpression) iterator.next();
             if(outputVar.getHoleType() != HoleExpression.HoleType.FIELD_OUTPUT) continue;
             if(isSameField(ti, sf, holeExpression, outputVar, finalHashMap)) {
-                Expression thisOutputVar = new Operation(Operation.Operator.IMPLIES,
+                Expression thisOutputVar = new Operation(Operation.Operator.AND,
                         outputVar.getFieldInfo().PLAssign,
                         new Operation(Operation.Operator.EQ, finalValue, outputVar.getFieldInfo().writeValue));
-                if(ret == null)
+                if(ret == null) {
                     ret = thisOutputVar;
-                else ret = new Operation(Operation.Operator.AND, ret, thisOutputVar);
+                    assert(conjAllPLAssign == null);
+                    conjAllPLAssign = outputVar.getFieldInfo().PLAssign;
+                }
+                else {
+                    assert(conjAllPLAssign != null);
+                    ret = new Operation(Operation.Operator.OR, ret, thisOutputVar);
+                    conjAllPLAssign = new Operation(Operation.Operator.OR, conjAllPLAssign,
+                            outputVar.getFieldInfo().PLAssign);
+                }
             }
         }
-        Expression prevAssign = new Operation(Operation.Operator.IMPLIES,
-                new Operation(Operation.Operator.NOT, holeExpression.getFieldInfo().PLAssign),
+        Expression prevAssign = new Operation(Operation.Operator.AND,
+                new Operation(Operation.Operator.NOT, conjAllPLAssign),
                 new Operation(Operation.Operator.EQ, finalValue, prevValue));
-        if(ret == null) return prevAssign;
-        else return new Operation(Operation.Operator.OR, ret, prevAssign);
+        assert(ret != null);
+        return new Operation(Operation.Operator.OR, ret, prevAssign);
     }
 
     /*
@@ -596,6 +608,10 @@ public class VeritestingListener extends PropertyListenerAdapter implements Publ
         if (fillInvokeHole.is()) return null;
         retHoleHashMap = fillInvokeHole.getRetHoleHashMap();
         additionalAST = fillInvokeHole.getAdditionalAST();
+        /* TODO: working on populating the return value of methodSummary regions that have a non-null return value
+        if(region.isMethodSummary() && region.retVal != null) {
+            ti.getModifiableTopFrame().push(retHoleHashMap.get(region.retVal));
+        }*/
 
 
         return new FillHolesOutput(retHoleHashMap, additionalAST);

@@ -34,7 +34,7 @@ public class VarUtil {
     private static long holeID = 0;
 
     // contains the return values hole expression found in the region
-    public Expression retValVar;
+    public Expression retValVar = null;
 
     public static final int getPathCounter() { pathCounter++; return pathCounter; }
 

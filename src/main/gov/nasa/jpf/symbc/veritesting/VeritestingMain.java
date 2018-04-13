@@ -109,6 +109,7 @@ public class VeritestingMain {
                 String signature = getSignature(m);
                 startAnalysis(_className,signature);
             }
+            if(VeritestingListener.veritestingMode <= 2) return;
             methodSummarySubClassNames = new HashSet<String>();
             for(Iterator it = methodSummaryClassNames.iterator(); it.hasNext();) {
                 String methodSummaryClassName = (String) it.next();
@@ -511,29 +512,37 @@ public class VeritestingMain {
                             canVeritest = blockSummary.isCanVeritest();
                             elseExpr = blockSummary.getExpression();
                             Expression conditionExpression = blockSummary.getIfExpression();
-                            //cannot handle returns inside a if-then-else
+                            //cannot handle returns inside a if-else-else
                             if(blockSummary.getIsExitNode()) canVeritest = false;
                             if(!canVeritest) break;
                             ISSABasicBlock commonSuccelseUnit = cfg.getIPdom(elseUnit.getNumber());
 
-                            if(VeritestingListener.boostPerf == false) {
-                                NumberedGraph<ISSABasicBlock> invertedCFG = GraphInverter.invert(cfg);
-                                NumberedDominators<ISSABasicBlock> postDom = (NumberedDominators<ISSABasicBlock>)
-                                        Dominators.make(invertedCFG, cfg.exit());
-                                boolean bPostDom = (postDom.isDominatedBy(commonSuccelseUnit, commonSucc));
-                                assert (bPostDom);
-                            }
-
+                            NumberedGraph<ISSABasicBlock> invertedCFG = GraphInverter.invert(cfg);
+                            NumberedDominators<ISSABasicBlock> postDom = (NumberedDominators<ISSABasicBlock>)
+                                    Dominators.make(invertedCFG, cfg.exit());
+                            boolean bPostDom = (postDom.isDominatedBy(commonSuccelseUnit, commonSucc));
+                            assert(bPostDom);
 
                             VeritestingRegion innerRegion = VeritestingListener.veritestingRegions.get(key);
                             for(Expression e: innerRegion.getOutputVars()) {
                                 varUtil.defLocalVars.add(e);
                             }
                             for(Map.Entry<Expression, Expression> entry: innerRegion.getHoleHashMap().entrySet()) {
-                                varUtil.holeHashMap.put(entry.getKey(), entry.getValue());
+
                                 if(((HoleExpression)entry.getKey()).getHoleType() == HoleExpression.HoleType.CONDITION ||
                                         ((HoleExpression)entry.getKey()).getHoleType() == HoleExpression.HoleType.NEGCONDITION)
-                                    varUtil.holeHashMap.remove(entry.getKey());
+                                    continue;
+                                if(((HoleExpression)entry.getKey()).getHoleType() == HoleExpression.HoleType.FIELD_OUTPUT) {
+                                    HoleExpression holeExpression = (HoleExpression) entry.getKey();
+                                    HoleExpression.FieldInfo f = holeExpression.getFieldInfo();
+                                    // make a recursive copy of f.PLAssign instead of modifying it in place
+                                    // because this modifies PLAssign for the hole in the inner region too
+                                    f.PLAssign = new Operation(Operation.Operator.AND, f.PLAssign, elsePLAssign);
+                                    HoleExpression h = new HoleExpression(varUtil.nextInt(), currentClassName,
+                                            currentMethodName, holeExpression.getHoleType());
+                                    h.setFieldInfo(f);
+                                }
+                                varUtil.holeHashMap.put(entry.getKey(), entry.getValue());
                             }
                             Expression elseExpr1 = innerRegion.getSummaryExpression();
                             elseExpr1 = replaceCondition(elseExpr1, conditionExpression);
@@ -551,12 +560,13 @@ public class VeritestingMain {
                         } else canVeritest = false;
                     }
                     if (!canVeritest || elseUnit == commonSucc) break;
-                    BlockSummary blockSummary = new BlockSummary(elseUnit, elseExpr, canVeritest, isPhielseUnit, pathLabelString, elsePathLabel, elsePLAssign).invoke();
+                    BlockSummary blockSummary = new BlockSummary(elseUnit, elseExpr, canVeritest, isPhielseUnit,
+                            pathLabelString, elsePathLabel, elsePLAssign).invoke();
                     canVeritest = blockSummary.isCanVeritest();
                     elseExpr = blockSummary.getExpression();
                     //we should not encounter a BB with more than one successor at this point
                     assert(blockSummary.getIfExpression() == null);
-                    //cannot handle returns inside a if-then-else
+                    //cannot handle returns inside a if-else-else
                     if(blockSummary.getIsExitNode()) canVeritest = false;
                     if (!canVeritest) break;
                     elsePred = elseUnit;
