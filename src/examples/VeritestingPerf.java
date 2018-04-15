@@ -15,7 +15,10 @@ public class VeritestingPerf {
     public static void main(String[] args) {
         //(new VeritestingPerf()).cfgTest(1);
         //(new VeritestingPerf()).countBitsSet(1);
-        (new VeritestingPerf()).testSimple(1);
+
+        (new VeritestingPerf()).readAfterWriteTest(1);
+        //(new VeritestingPerf()).testSimple(1);
+
         //(new VeritestingPerf()).testSimple1(1);
         //(new VeritestingPerf()).simpleRegion(1);
         //(new VeritestingPerf()).fieldWriteTestBranch2(1);
@@ -138,6 +141,23 @@ public class VeritestingPerf {
             }
             x = x >>> 1; // logical right shift
         }
+        return count;
+    }
+
+    public int readAfterWriteTest(int x) {
+        TempClass tempClass1 = new TempClassDerived();
+        TempClass tempClass2 = new TempClassDerived();
+        count = 1;
+        int a = 1;
+        //TempClass tempClass = new TempClass();
+        while (x != 0) {
+            if ((x & 1) != 0) {
+                tempClass1.tempInt += 1;
+                a = tempClass2.tempInt; // should not cause a read after write
+            }
+            x = x >>> 1; // logical right shift
+        }
+        System.out.println("a = " + a);
         return count;
     }
 

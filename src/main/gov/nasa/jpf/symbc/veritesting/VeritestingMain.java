@@ -280,9 +280,9 @@ public class VeritestingMain {
 
         // (If && thenExpr) || (ifNot && elseExpr)
         HoleExpression condition = new HoleExpression(varUtil.nextInt(), currentClassName, currentMethodName,
-                HoleExpression.HoleType.CONDITION);
+                HoleExpression.HoleType.CONDITION, thenPLAssignSPF);
         HoleExpression negCondition = new HoleExpression(varUtil.nextInt(), currentClassName, currentMethodName,
-                HoleExpression.HoleType.NEGCONDITION);
+                HoleExpression.HoleType.NEGCONDITION, elsePLAssignSPF);
         varUtil.holeHashMap.put(condition, condition);
         varUtil.holeHashMap.put(negCondition, negCondition);
         Expression pathExpr1 =
@@ -368,7 +368,7 @@ public class VeritestingMain {
                 final int elsePathLabel = varUtil.getPathCounter();
                 ISSABasicBlock thenPred = thenUnit, elsePred = elseUnit;
                 int thenUseNum = -1, elseUseNum = -1;
-                Expression pathLabel = varUtil.makeIntermediateVar(pathLabelString, true);
+                Expression pathLabel = varUtil.makeIntermediateVar(pathLabelString, true, null);
                 final Expression thenPLAssign =
                         new Operation(Operation.Operator.EQ, pathLabel,
                                 new IntConstant(thenPathLabel));
@@ -424,21 +424,18 @@ public class VeritestingMain {
                                 varUtil.defLocalVars.add(e);
                             }
                             for(Map.Entry<Expression, Expression> entry: innerRegion.getHoleHashMap().entrySet()) {
-
                                 if(((HoleExpression)entry.getKey()).getHoleType() == HoleExpression.HoleType.CONDITION ||
                                         ((HoleExpression)entry.getKey()).getHoleType() == HoleExpression.HoleType.NEGCONDITION)
                                     continue;
-                                if(((HoleExpression)entry.getKey()).getHoleType() == HoleExpression.HoleType.FIELD_OUTPUT) {
-                                    HoleExpression holeExpression = (HoleExpression) entry.getKey();
-                                    HoleExpression.FieldInfo f = holeExpression.getFieldInfo();
-                                    // make a recursive copy of f.PLAssign instead of modifying it in place
-                                    // because this modifies PLAssign for the hole in the inner region too
-                                    f.PLAssign = new Operation(Operation.Operator.AND, f.PLAssign, thenPLAssign);
-                                    HoleExpression h = new HoleExpression(varUtil.nextInt(), currentClassName,
-                                            currentMethodName, holeExpression.getHoleType());
-                                    h.setFieldInfo(f);
-                                }
-                                varUtil.holeHashMap.put(entry.getKey(), entry.getValue());
+                                HoleExpression holeExpression = (HoleExpression) entry.getKey();
+                                HoleExpression.FieldInfo f = holeExpression.getFieldInfo();
+                                Expression plAssign = thenPLAssign;
+                                if(holeExpression.PLAssign != null)
+                                    plAssign = new Operation(Operation.Operator.AND, thenPLAssign, holeExpression.PLAssign);
+                                HoleExpression h = new HoleExpression(varUtil.nextInt(), currentClassName,
+                                        currentMethodName, holeExpression.getHoleType(), plAssign);
+                                h.setFieldInfo(f);
+                                varUtil.holeHashMap.put(h, h);
                             }
                             Expression thenExpr1 = innerRegion.getSummaryExpression();
                             thenExpr1 = replaceCondition(thenExpr1, conditionExpression);
@@ -527,23 +524,23 @@ public class VeritestingMain {
                             for(Expression e: innerRegion.getOutputVars()) {
                                 varUtil.defLocalVars.add(e);
                             }
-                            for(Map.Entry<Expression, Expression> entry: innerRegion.getHoleHashMap().entrySet()) {
 
+                            for(Map.Entry<Expression, Expression> entry: innerRegion.getHoleHashMap().entrySet()) {
                                 if(((HoleExpression)entry.getKey()).getHoleType() == HoleExpression.HoleType.CONDITION ||
                                         ((HoleExpression)entry.getKey()).getHoleType() == HoleExpression.HoleType.NEGCONDITION)
                                     continue;
-                                if(((HoleExpression)entry.getKey()).getHoleType() == HoleExpression.HoleType.FIELD_OUTPUT) {
-                                    HoleExpression holeExpression = (HoleExpression) entry.getKey();
-                                    HoleExpression.FieldInfo f = holeExpression.getFieldInfo();
-                                    // make a recursive copy of f.PLAssign instead of modifying it in place
-                                    // because this modifies PLAssign for the hole in the inner region too
-                                    f.PLAssign = new Operation(Operation.Operator.AND, f.PLAssign, elsePLAssign);
-                                    HoleExpression h = new HoleExpression(varUtil.nextInt(), currentClassName,
-                                            currentMethodName, holeExpression.getHoleType());
-                                    h.setFieldInfo(f);
-                                }
-                                varUtil.holeHashMap.put(entry.getKey(), entry.getValue());
+                                HoleExpression holeExpression = (HoleExpression) entry.getKey();
+                                HoleExpression.FieldInfo f = holeExpression.getFieldInfo();
+                                Expression plAssign = elsePLAssign;
+                                if(holeExpression.PLAssign != null)
+                                    plAssign = new Operation(Operation.Operator.AND,
+                                            holeExpression.PLAssign, elsePLAssign);
+                                HoleExpression h = new HoleExpression(varUtil.nextInt(), currentClassName,
+                                        currentMethodName, holeExpression.getHoleType(), plAssign);
+                                h.setFieldInfo(f);
+                                varUtil.holeHashMap.put(h, h);
                             }
+
                             Expression elseExpr1 = innerRegion.getSummaryExpression();
                             elseExpr1 = replaceCondition(elseExpr1, conditionExpression);
                             if (elseExpr1 != null) {

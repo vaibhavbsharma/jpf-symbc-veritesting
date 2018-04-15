@@ -9,7 +9,6 @@ import za.ac.sun.cs.green.expr.VisitorException;
 import java.util.List;
 
 public class HoleExpression extends za.ac.sun.cs.green.expr.Expression{
-    public boolean isLatestWrite = true;
     private int globalStackSlot = -1;
 
     public String getClassName() {
@@ -139,11 +138,12 @@ public class HoleExpression extends za.ac.sun.cs.green.expr.Expression{
     }
 
     private final long holeID;
-    HoleExpression(long _holeID, String className, String methodName, HoleType holeType) {
+    HoleExpression(long _holeID, String className, String methodName, HoleType holeType, Expression PLAssign) {
         holeID = _holeID;
         setClassName(className);
         setMethodName(methodName);
         setHoleType(holeType);
+        this.PLAssign = PLAssign;
     }
 
     public void setHoleVarName(String holeVarName) {
@@ -174,6 +174,12 @@ public class HoleExpression extends za.ac.sun.cs.green.expr.Expression{
         HoleExpression h = (HoleExpression) expression;
         return (h.holeType == HoleType.LOCAL_OUTPUT || h.holeType == HoleType.LOCAL_INPUT);
     }
+
+    public void setIsLatestWrite(boolean isLatestWrite) {
+        this.isLatestWrite = isLatestWrite;
+    }
+    public boolean isLatestWrite() { return this.isLatestWrite; }
+    private boolean isLatestWrite = true;
 
     public enum HoleType {
         LOCAL_INPUT("local_input"),
@@ -237,11 +243,11 @@ public class HoleExpression extends za.ac.sun.cs.green.expr.Expression{
         }
         if(holeType == HoleType.FIELD_INPUT) assert(f.writeValue == null);
         fieldInfo = new FieldInfo(f.fieldClassName, f.fieldName, methodName, localStackSlot, f.callSiteStackSlot, f.writeValue,
-                f.isStaticField, f.useHole, f.PLAssign);
+                f.isStaticField, f.useHole);
     }
 
     public void setFieldInfo(String fieldClassName, String fieldName, String methodName, int localStackSlot, int callSiteStackSlot,
-                             Expression writeExpr, boolean isStaticField, HoleExpression useHole, Expression PLAssign) {
+                             Expression writeExpr, boolean isStaticField, HoleExpression useHole) {
         assert(holeType == HoleType.FIELD_INPUT || holeType == HoleType.FIELD_OUTPUT);
         //the object reference should either be local, come from another hole, or this field should be static
         assert((localStackSlot != -1 || callSiteStackSlot != -1) || (useHole != null) || isStaticField);
@@ -252,7 +258,7 @@ public class HoleExpression extends za.ac.sun.cs.green.expr.Expression{
         }
         if(holeType == HoleType.FIELD_INPUT) assert(writeExpr == null);
         fieldInfo = new FieldInfo(fieldClassName, fieldName, methodName, localStackSlot, callSiteStackSlot, writeExpr,
-                isStaticField, useHole, PLAssign);
+                isStaticField, useHole);
     }
 
     public FieldInfo getFieldInfo() {
@@ -304,17 +310,29 @@ public class HoleExpression extends za.ac.sun.cs.green.expr.Expression{
         }
     }
 
+    /*
+        This method assumes that other attributes in HoleExpression.FieldInfo such as fieldClassName, fieldName,
+        staticField would have already been checked before the pathlabel assignment is checked for equality.
+        That is why we return true if one of the two pathlabel assignments is null.
+         */
+    public boolean isSamePLAssign(Expression plAssign1) {
+        if(this.PLAssign == null && plAssign1 == null) return true;
+        if(this.PLAssign == null && plAssign1 != null) return false;
+        if(this.PLAssign != null && plAssign1 == null) return false;
+        return (this.PLAssign.equals(plAssign1));
+    }
+    public Expression PLAssign;
+
     public class FieldInfo {
         public final String methodName;
-        public Expression PLAssign;
+
         public String fieldClassName, fieldName;
         public int localStackSlot = -1, callSiteStackSlot = -1;
         public Expression writeValue = null;
         public boolean isStaticField = false;
         public HoleExpression useHole = null;
-
         public FieldInfo(String fieldClassName, String fieldName, String methodName, int localStackSlot, int callSiteStackSlot,
-                         Expression writeValue, boolean isStaticField, HoleExpression useHole, Expression PLAssign) {
+                         Expression writeValue, boolean isStaticField, HoleExpression useHole) {
             this.localStackSlot = localStackSlot;
             this.callSiteStackSlot = callSiteStackSlot;
             this.fieldClassName = fieldClassName;
@@ -323,8 +341,6 @@ public class HoleExpression extends za.ac.sun.cs.green.expr.Expression{
             this.writeValue = writeValue;
             this.isStaticField = isStaticField;
             this.useHole = useHole;
-            assert(PLAssign == null || PLAssign instanceof Operation);
-            this.PLAssign = PLAssign;
         }
 
         public String toString() {
@@ -340,7 +356,6 @@ public class HoleExpression extends za.ac.sun.cs.green.expr.Expression{
         public boolean equals(Object o) {
             if(!(o instanceof FieldInfo) || o == null) return false;
             FieldInfo fieldInfo1 = (FieldInfo) o;
-            if(!isSamePLAssign(fieldInfo1.PLAssign)) return false;
             if(!equalsNoPlAssign(fieldInfo1))
                 return false;
             else return true;
@@ -358,17 +373,6 @@ public class HoleExpression extends za.ac.sun.cs.green.expr.Expression{
             else return true;
         }
 
-        /*
-        This method assumes that other attributes in HoleExpression.FieldInfo such as fieldClassName, fieldName,
-        staticField would have already been checked before the pathlabel assignment is checked for equality.
-        That is why we return true if one of the two pathlabel assignments is null.
-         */
-        public boolean isSamePLAssign(Expression plAssign1) {
-            if(this.PLAssign == null && plAssign1 == null) return true;
-            if(this.PLAssign == null && plAssign1 != null) return true;
-            if(this.PLAssign != null && plAssign1 == null) return true;
-            return (this.PLAssign.equals(plAssign1));
-        }
     }
 
     FieldInfo fieldInfo = null;
@@ -381,5 +385,4 @@ public class HoleExpression extends za.ac.sun.cs.green.expr.Expression{
     }
     InvokeInfo invokeInfo = null;
 
-    public Expression dependsOn = null;
 }
