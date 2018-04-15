@@ -2,7 +2,6 @@ package gov.nasa.jpf.symbc.veritesting;
 
 import com.ibm.wala.types.TypeReference;
 import za.ac.sun.cs.green.expr.Expression;
-import za.ac.sun.cs.green.expr.Operation;
 import za.ac.sun.cs.green.expr.Visitor;
 import za.ac.sun.cs.green.expr.VisitorException;
 
@@ -80,7 +79,7 @@ public class HoleExpression extends za.ac.sun.cs.green.expr.Expression{
     public String toString() {
         String ret = new String();
         ret += "(type = " + holeType + ", name = " + holeVarName;
-        ret += ", fieldClassName = " + className + ", methodName = " + methodName;
+        ret += ", className = " + className + ", methodName = " + methodName;
         switch (holeType) {
             case LOCAL_INPUT:
             case LOCAL_OUTPUT:
@@ -242,11 +241,11 @@ public class HoleExpression extends za.ac.sun.cs.green.expr.Expression{
             assert (((HoleExpression)f.writeValue).getHoleType() == HoleType.INTERMEDIATE);
         }
         if(holeType == HoleType.FIELD_INPUT) assert(f.writeValue == null);
-        fieldInfo = new FieldInfo(f.fieldClassName, f.fieldName, methodName, localStackSlot, f.callSiteStackSlot, f.writeValue,
+        fieldInfo = new FieldInfo(f.fieldName, methodName, localStackSlot, f.callSiteStackSlot, f.writeValue,
                 f.isStaticField, f.useHole);
     }
 
-    public void setFieldInfo(String fieldClassName, String fieldName, String methodName, int localStackSlot, int callSiteStackSlot,
+    public void setFieldInfo(String fieldName, String methodName, int localStackSlot, int callSiteStackSlot,
                              Expression writeExpr, boolean isStaticField, HoleExpression useHole) {
         assert(holeType == HoleType.FIELD_INPUT || holeType == HoleType.FIELD_OUTPUT);
         //the object reference should either be local, come from another hole, or this field should be static
@@ -257,7 +256,7 @@ public class HoleExpression extends za.ac.sun.cs.green.expr.Expression{
             assert (((HoleExpression)writeExpr).getHoleType() == HoleType.INTERMEDIATE);
         }
         if(holeType == HoleType.FIELD_INPUT) assert(writeExpr == null);
-        fieldInfo = new FieldInfo(fieldClassName, fieldName, methodName, localStackSlot, callSiteStackSlot, writeExpr,
+        fieldInfo = new FieldInfo(fieldName, methodName, localStackSlot, callSiteStackSlot, writeExpr,
                 isStaticField, useHole);
     }
 
@@ -326,16 +325,24 @@ public class HoleExpression extends za.ac.sun.cs.green.expr.Expression{
     public class FieldInfo {
         public final String methodName;
 
-        public String fieldClassName, fieldName;
+        public String getFieldDynClassName() {
+            return fieldDynClassName;
+        }
+
+        public void setFieldDynClassName(String fieldDynClassName) {
+            this.fieldDynClassName = fieldDynClassName;
+        }
+        // this fieldDynClassName is the dynamic class type of the object from which this field is accessed
+        private String fieldDynClassName;
+        public final String fieldName;
         public int localStackSlot = -1, callSiteStackSlot = -1;
         public Expression writeValue = null;
         public boolean isStaticField = false;
         public HoleExpression useHole = null;
-        public FieldInfo(String fieldClassName, String fieldName, String methodName, int localStackSlot, int callSiteStackSlot,
+        public FieldInfo(String fieldName, String methodName, int localStackSlot, int callSiteStackSlot,
                          Expression writeValue, boolean isStaticField, HoleExpression useHole) {
             this.localStackSlot = localStackSlot;
             this.callSiteStackSlot = callSiteStackSlot;
-            this.fieldClassName = fieldClassName;
             this.fieldName = fieldName;
             this.methodName = methodName;
             this.writeValue = writeValue;
@@ -344,7 +351,7 @@ public class HoleExpression extends za.ac.sun.cs.green.expr.Expression{
         }
 
         public String toString() {
-            String ret = "currentClassName = " + fieldClassName + ", fieldName = " + fieldName +
+            String ret = "fieldDynClassName = " + fieldDynClassName + ", fieldName = " + fieldName +
                     ", stackSlots (local = " + localStackSlot + ", callSite = " + callSiteStackSlot;
             if(writeValue != null) ret += ", writeValue (" + writeValue.toString() + ")";
             ret += ", isStaticField = " + isStaticField;
@@ -356,21 +363,28 @@ public class HoleExpression extends za.ac.sun.cs.green.expr.Expression{
         public boolean equals(Object o) {
             if(!(o instanceof FieldInfo) || o == null) return false;
             FieldInfo fieldInfo1 = (FieldInfo) o;
-            if(!equalsNoPlAssign(fieldInfo1))
-                return false;
-            else return true;
+            return equalsDetailed(fieldInfo1);
         }
 
-        public boolean equalsNoPlAssign(FieldInfo fieldInfo1) {
-            if(!fieldInfo1.fieldClassName.equals(this.fieldClassName) ||
-                    !fieldInfo1.fieldName.equals(this.fieldName) ||
+        public boolean equalsDetailed(FieldInfo fieldInfo1) {
+            if(!fieldInfo1.fieldName.equals(this.fieldName) ||
                     !fieldInfo1.methodName.equals(this.methodName) ||
                     fieldInfo1.localStackSlot != this.localStackSlot ||
                     fieldInfo1.callSiteStackSlot != this.callSiteStackSlot ||
                     (fieldInfo1.writeValue != null && this.writeValue != null && !fieldInfo1.writeValue.equals(this.writeValue)) ||
                     (fieldInfo1.isStaticField != this.isStaticField) ||
                     (fieldInfo1.useHole!= null && !fieldInfo1.useHole.equals(this.useHole))) return false;
-            else return true;
+            String fDCN1 = fieldDynClassName;
+            String fDCN2 = fieldInfo1.getFieldDynClassName();
+            if(fDCN1 == null && fDCN2 == null)
+                return true;
+            if(fDCN1 != null && fDCN2 != null)
+                return fDCN1.equals(fDCN2);
+            if((fDCN1 != null && fDCN2 == null) || (fDCN1 == null && fDCN2 != null))
+                return false;
+            return true;
+
+
         }
 
     }

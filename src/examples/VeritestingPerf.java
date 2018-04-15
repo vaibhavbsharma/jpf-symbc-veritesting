@@ -323,7 +323,7 @@ public class VeritestingPerf {
 
 class TempClassDerived extends TempClass {
 
-    public static int tempInt = 1; //change this to 2 to test read after write on a class field inside a Veritesting region
+    public int tempInt = 1; //change this to 2 to test read after write on a class field inside a Veritesting region
 
     public static int myInt = 1;
 
@@ -356,7 +356,7 @@ class TempClassDerived extends TempClass {
         //VeritestingPerf.count += 1;
         //return tempInt;
         //return nestedRegion(myInt);
-        return getTempInt(TempClassDerived.tempInt);
+        return getTempInt(tempInt);
     }
 
     public int nestedRegion(int x) {
@@ -369,7 +369,7 @@ class TempClassDerived extends TempClass {
 
 class TempClass {
 
-    public static int tempInt = 1;
+    public int tempInt = 1;
 
     public static int myInt = 1;
 

@@ -40,6 +40,8 @@ import za.ac.sun.cs.green.expr.Operation;
 import java.io.PrintWriter;
 import java.util.*;
 
+import gov.nasa.jpf.symbc.veritesting.ExpressionUtil;
+
 public class VeritestingListener extends PropertyListenerAdapter implements PublisherExtension {
 
     public static HashMap<String, VeritestingRegion> veritestingRegions;
@@ -119,6 +121,13 @@ public class VeritestingListener extends PropertyListenerAdapter implements Publ
                 //currCG.getNextChoice();
                 PathCondition pc = ((PCChoiceGenerator) ti.getVM().getSystemState().getChoiceGenerator()).getCurrentPC();
                 pc._addDet(new GreenConstraint(regionSummary));
+                if (boostPerf == false) {
+                    String regionSummaryString = ASTToString(regionSummary);
+                    if (!pc.simplify()) {
+                        System.out.println("veritesting region added unsat summary = " + regionSummaryString);
+                        assert (false);
+                    }
+                }
                 ((PCChoiceGenerator) ti.getVM().getSystemState().getChoiceGenerator()).setCurrentPC(pc);
                 setupSPF(ti, instructionToExecute, region);
                 return;
@@ -272,15 +281,6 @@ public class VeritestingListener extends PropertyListenerAdapter implements Publ
             //System.out.println("used empty region");
             //assert(false);
         }
-
-        // pc._addDet(new GreenConstraint(finalSummaryExpression));
-        if (boostPerf == false) {
-            String finalSummaryExpressionString = ASTToString(finalSummaryExpression);
-            if (!pc.simplify()) {
-                System.out.println("veritesting region added unsat summary");
-                assert (false);
-            }
-        }
         Expression fieldOutputExpression = populateOutputs(ti,sf, region.getOutputVars(), fillHolesOutput.holeHashMap);
         if(fieldOutputExpression != null)
             finalSummaryExpression = new Operation(Operation.Operator.AND, finalSummaryExpression, fieldOutputExpression);
@@ -432,7 +432,7 @@ public class VeritestingListener extends PropertyListenerAdapter implements Publ
             switch (holeExpression.getHoleType()) {
                 case LOCAL_OUTPUT:
                     value = holeHashMap.get(holeExpression);
-                    stackFrame.setSlotAttr(holeExpression.getLocalStackSlot(), GreenToSPFExpression(value));
+                    stackFrame.setSlotAttr(holeExpression.getLocalStackSlot(), ExpressionUtil.GreenToSPFExpression(value));
                     break;
                 case FIELD_OUTPUT:
                     if(holeExpression.isLatestWrite()) {
@@ -443,7 +443,7 @@ public class VeritestingListener extends PropertyListenerAdapter implements Publ
                         Expression prevValue =
                                 SPFToGreenExpr(fillFieldHole(ti, stackFrame, holeExpression, holeHashMap,true,null));
                         Expression finalValue =
-                                SPFToGreenExpr(makeSymbolicInteger(holeExpression.getHoleVarName()+".final_value"));
+                                SPFToGreenExpr(makeSymbolicInteger(holeExpression.getHoleVarName()+".final_value" + pathLabelCount));
                         holeHashMap.put(holeExpression, finalValue);
                         //returns an predicate that is a conjunction of (predicate IMPLIES (finalValue EQ outputVar)) expressions
                         Expression fieldOutputPredicate =
@@ -452,7 +452,7 @@ public class VeritestingListener extends PropertyListenerAdapter implements Publ
                         else fieldOutputExpression =
                                 new Operation(Operation.Operator.AND, fieldOutputExpression, fieldOutputPredicate);
                         fillFieldHole(ti, stackFrame, holeExpression, holeHashMap, false,
-                                GreenToSPFExpression(finalValue));
+                                ExpressionUtil.GreenToSPFExpression(finalValue));
                         completedFieldOutputs.add(holeExpression);
                     }
                     break;
@@ -478,29 +478,29 @@ public class VeritestingListener extends PropertyListenerAdapter implements Publ
                                               LinkedHashMap<Expression, Expression> finalHashMap) {
         Expression ret = null;
         Iterator iterator = outputVars.iterator();
-        Expression conjAllPLAssign = null;
+        Expression disjAllPLAssign = null;
         while(iterator.hasNext()) {
             HoleExpression outputVar = (HoleExpression) iterator.next();
             if(outputVar.getHoleType() != HoleExpression.HoleType.FIELD_OUTPUT) continue;
-            if(isSameField(ti, sf, holeExpression, outputVar, finalHashMap)) {
+            if(FieldUtil.isSameField(ti, sf, holeExpression, outputVar, finalHashMap)) {
                 Expression thisOutputVar = new Operation(Operation.Operator.AND,
                         outputVar.PLAssign,
                         new Operation(Operation.Operator.EQ, finalValue, outputVar.getFieldInfo().writeValue));
                 if(ret == null) {
                     ret = thisOutputVar;
-                    assert(conjAllPLAssign == null);
-                    conjAllPLAssign = outputVar.PLAssign;
+                    assert(disjAllPLAssign == null);
+                    disjAllPLAssign = outputVar.PLAssign;
                 }
                 else {
-                    assert(conjAllPLAssign != null);
+                    assert(disjAllPLAssign != null);
                     ret = new Operation(Operation.Operator.OR, ret, thisOutputVar);
-                    conjAllPLAssign = new Operation(Operation.Operator.OR, conjAllPLAssign,
+                    disjAllPLAssign = new Operation(Operation.Operator.OR, disjAllPLAssign,
                             outputVar.PLAssign);
                 }
             }
         }
         Expression prevAssign = new Operation(Operation.Operator.AND,
-                new Operation(Operation.Operator.NOT, conjAllPLAssign),
+                new Operation(Operation.Operator.NOT, disjAllPLAssign),
                 new Operation(Operation.Operator.EQ, finalValue, prevValue));
         assert(ret != null);
         return new Operation(Operation.Operator.OR, ret, prevAssign);
@@ -516,27 +516,9 @@ public class VeritestingListener extends PropertyListenerAdapter implements Publ
         assert(holeExpression.getHoleType() == HoleExpression.HoleType.FIELD_OUTPUT);
         HoleExpression.FieldInfo f = holeExpression.getFieldInfo();
         for(int i=0; i < completedFieldOutputs.size(); i++) {
-            if(isSameField(ti, sf, holeExpression, completedFieldOutputs.get(i), finalHashMap)) return true;
+            if(FieldUtil.isSameField(ti, sf, holeExpression, completedFieldOutputs.get(i), finalHashMap)) return true;
         }
         return false;
-    }
-
-    private boolean isSameField(ThreadInfo ti, StackFrame sf, HoleExpression holeExpression,
-                                HoleExpression holeExpression1, LinkedHashMap<Expression, Expression> finalHashMap) {
-        HoleExpression.FieldInfo f1 = holeExpression1.getFieldInfo();
-        HoleExpression.FieldInfo f = holeExpression.getFieldInfo();
-        if(!f1.fieldClassName.equals(f.fieldClassName) ||
-                !f1.fieldName.equals(f.fieldName) ||
-                (f1.isStaticField != f.isStaticField)) return false;
-        int objRef1 = getObjRef(ti, sf, holeExpression, finalHashMap);
-        int objRef2 = getObjRef(ti, sf, holeExpression1, finalHashMap);
-        if(objRef1 != objRef2) return false;
-        else return true;
-    }
-
-    private gov.nasa.jpf.symbc.numeric.Expression GreenToSPFExpression(Expression greenExpression) {
-        GreenToSPFTranslator toSPFTranslator = new GreenToSPFTranslator();
-        return toSPFTranslator.translate(greenExpression);
     }
 
     /*
@@ -616,7 +598,7 @@ public class VeritestingListener extends PropertyListenerAdapter implements Publ
         /* populate the return value of methodSummary regions that have a non-null return value */
         if(region.isMethodSummary() && region.retVal != null) {
             ti.getModifiableTopFrame().push(0);
-            ti.getModifiableTopFrame().setOperandAttr(GreenToSPFExpression(retHoleHashMap.get(region.retVal)));
+            ti.getModifiableTopFrame().setOperandAttr(ExpressionUtil.GreenToSPFExpression(retHoleHashMap.get(region.retVal)));
         }
 
 
@@ -720,9 +702,9 @@ public class VeritestingListener extends PropertyListenerAdapter implements Publ
                                                         gov.nasa.jpf.symbc.numeric.Expression finalValue) {
         HoleExpression.FieldInfo fieldInputInfo = holeExpression.getFieldInfo();
         final boolean isStatic = fieldInputInfo.isStaticField;
-        int objRef = getObjRef(ti, stackFrame, holeExpression, retHoleHashMap);
+        int objRef = FieldUtil.getObjRef(ti, stackFrame, holeExpression, retHoleHashMap);
         //load the class name dynamically based on the object reference
-        if(objRef != -1) fieldInputInfo.fieldClassName = ti.getClassInfo(objRef).getName();
+        if(objRef != -1) fieldInputInfo.setFieldDynClassName(ti.getClassInfo(objRef).getName());
         if (objRef == 0) {
             System.out.println("java.lang.NullPointerException" + "referencing field '" +
                     fieldInputInfo.fieldName + "' on null object");
@@ -730,7 +712,7 @@ public class VeritestingListener extends PropertyListenerAdapter implements Publ
         } else {
             ClassInfo ci;
             try {
-                ci = ClassLoaderInfo.getCurrentResolvedClassInfo(fieldInputInfo.fieldClassName);
+                ci = ClassLoaderInfo.getCurrentResolvedClassInfo(fieldInputInfo.getFieldDynClassName());
             } catch (ClassInfoException e) {
                 return null;
             }
@@ -777,37 +759,6 @@ public class VeritestingListener extends PropertyListenerAdapter implements Publ
             }
         }
         return null;
-    }
-
-    public int getObjRef(ThreadInfo ti, StackFrame stackFrame, HoleExpression holeExpression,
-                          LinkedHashMap<Expression, Expression> retHoleHashMap) {
-        int objRef = -1;
-        //get the object reference from fieldInputInfo.use's local stack slot if not from the call site stack slot
-        int stackSlot = -1;
-        HoleExpression.FieldInfo fieldInputInfo = holeExpression.getFieldInfo();
-        boolean isStatic = fieldInputInfo.isStaticField;
-        if(ti.getTopFrame().getClassInfo().getName().equals(holeExpression.getClassName()) &&
-                ti.getTopFrame().getMethodInfo().getName().equals(holeExpression.getMethodName()))
-            stackSlot = fieldInputInfo.localStackSlot;
-        else {
-            stackSlot = fieldInputInfo.callSiteStackSlot;
-            if(stackSlot == -1 && !fieldInputInfo.isStaticField)
-                assert(false);
-        }
-        //this field is being loaded from an object reference that is itself a hole
-        // this object reference hole should be filled already because holes are stored in a LinkedHashMap
-        // that keeps holes in the order they were created while traversing the WALA IR
-        if(stackSlot == -1 && !fieldInputInfo.isStaticField) {
-            gov.nasa.jpf.symbc.numeric.Expression objRefExpression =
-                    GreenToSPFExpression(retHoleHashMap.get(fieldInputInfo.useHole));
-            assert(objRefExpression instanceof IntegerConstant);
-            objRef = ((IntegerConstant) objRefExpression).value();
-        }
-        if (!isStatic && (stackSlot != -1)) {
-            objRef = stackFrame.getLocalVariable(stackSlot);
-            assert(objRef != 0);
-        }
-        return objRef;
     }
 
     private class InstructionInfo {
@@ -1014,8 +965,7 @@ public class VeritestingListener extends PropertyListenerAdapter implements Publ
                                     assert (callSiteInfo.paramList.size() > 0);
                                     methodKeyHoleFieldInfo.callSiteStackSlot = ((HoleExpression)
                                             callSiteInfo.paramList.get(0)).getLocalStackSlot();
-                                    methodKeyHole.setFieldInfo(methodKeyHoleFieldInfo.fieldClassName,
-                                            methodKeyHoleFieldInfo.fieldName,
+                                    methodKeyHole.setFieldInfo(methodKeyHoleFieldInfo.fieldName,
                                             methodKeyHoleFieldInfo.methodName,
                                             methodKeyHoleFieldInfo.localStackSlot,
                                             methodKeyHoleFieldInfo.callSiteStackSlot,

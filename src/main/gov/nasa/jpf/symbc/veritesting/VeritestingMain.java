@@ -428,13 +428,11 @@ public class VeritestingMain {
                                         ((HoleExpression)entry.getKey()).getHoleType() == HoleExpression.HoleType.NEGCONDITION)
                                     continue;
                                 HoleExpression holeExpression = (HoleExpression) entry.getKey();
-                                HoleExpression.FieldInfo f = holeExpression.getFieldInfo();
                                 Expression plAssign = thenPLAssign;
                                 if(holeExpression.PLAssign != null)
                                     plAssign = new Operation(Operation.Operator.AND, thenPLAssign, holeExpression.PLAssign);
                                 HoleExpression h = new HoleExpression(varUtil.nextInt(), currentClassName,
                                         currentMethodName, holeExpression.getHoleType(), plAssign);
-                                h.setFieldInfo(f);
                                 varUtil.holeHashMap.put(h, h);
                             }
                             Expression thenExpr1 = innerRegion.getSummaryExpression();
@@ -530,14 +528,12 @@ public class VeritestingMain {
                                         ((HoleExpression)entry.getKey()).getHoleType() == HoleExpression.HoleType.NEGCONDITION)
                                     continue;
                                 HoleExpression holeExpression = (HoleExpression) entry.getKey();
-                                HoleExpression.FieldInfo f = holeExpression.getFieldInfo();
                                 Expression plAssign = elsePLAssign;
                                 if(holeExpression.PLAssign != null)
                                     plAssign = new Operation(Operation.Operator.AND,
                                             holeExpression.PLAssign, elsePLAssign);
                                 HoleExpression h = new HoleExpression(varUtil.nextInt(), currentClassName,
                                         currentMethodName, holeExpression.getHoleType(), plAssign);
-                                h.setFieldInfo(f);
                                 varUtil.holeHashMap.put(h, h);
                             }
 

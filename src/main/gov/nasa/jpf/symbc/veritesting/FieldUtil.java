@@ -1,6 +1,9 @@
 package gov.nasa.jpf.symbc.veritesting;
 
+import gov.nasa.jpf.symbc.VeritestingListener;
+import gov.nasa.jpf.symbc.numeric.IntegerConstant;
 import gov.nasa.jpf.vm.StackFrame;
+import gov.nasa.jpf.vm.ThreadInfo;
 import za.ac.sun.cs.green.expr.Expression;
 
 import java.util.HashMap;
@@ -97,7 +100,6 @@ public class FieldUtil {
         if(f1.isStaticField && !f.isStaticField) return false;
         if(!f1.isStaticField && f.isStaticField) return false;
         if(!f.fieldName.equals(f1.fieldName)) return false;
-        if(!f.fieldClassName.equals(f1.fieldClassName)) return false;
         //Both field accesses are static and access the same field
         if(f1.isStaticField && f.isStaticField)
             if(f.equals(f1))
@@ -137,6 +139,7 @@ public class FieldUtil {
             HoleExpression holeExpression1 = (HoleExpression) entry.getKey();
             if(isTwoFieldsRW(holeExpression, holeExpression1, FIELD_OUTPUT, callSiteInfo, stackFrame)) {
                 prevWrite = holeExpression1;
+                //dont break here, we want to return the latest write we find before the holeExpression
             }
             if(holeExpression == holeExpression1 || holeExpression1.equals(holeExpression))
                 break;
@@ -157,5 +160,48 @@ public class FieldUtil {
         }
         if(methodKeyHole.getHoleType() == FIELD_OUTPUT)
             methodKeyHole.setIsLatestWrite(true);
+    }
+
+    public static boolean isSameField(ThreadInfo ti, StackFrame sf, HoleExpression holeExpression,
+                                HoleExpression holeExpression1, LinkedHashMap<Expression, Expression> finalHashMap) {
+        HoleExpression.FieldInfo f1 = holeExpression1.getFieldInfo();
+        HoleExpression.FieldInfo f = holeExpression.getFieldInfo();
+        if(!f1.fieldName.equals(f.fieldName) ||
+                (f1.isStaticField != f.isStaticField)) return false;
+        int objRef1 = getObjRef(ti, sf, holeExpression, finalHashMap);
+        int objRef2 = getObjRef(ti, sf, holeExpression1, finalHashMap);
+        if(objRef1 != objRef2) return false;
+        else return true;
+    }
+
+    public static int getObjRef(ThreadInfo ti, StackFrame stackFrame, HoleExpression holeExpression,
+                         LinkedHashMap<Expression, Expression> retHoleHashMap) {
+        int objRef = -1;
+        //get the object reference from fieldInputInfo.use's local stack slot if not from the call site stack slot
+        int stackSlot = -1;
+        HoleExpression.FieldInfo fieldInputInfo = holeExpression.getFieldInfo();
+        boolean isStatic = fieldInputInfo.isStaticField;
+        if(ti.getTopFrame().getClassInfo().getName().equals(holeExpression.getClassName()) &&
+                ti.getTopFrame().getMethodInfo().getName().equals(holeExpression.getMethodName()))
+            stackSlot = fieldInputInfo.localStackSlot;
+        else {
+            stackSlot = fieldInputInfo.callSiteStackSlot;
+            if(stackSlot == -1 && !fieldInputInfo.isStaticField)
+                assert(false);
+        }
+        //this field is being loaded from an object reference that is itself a hole
+        // this object reference hole should be filled already because holes are stored in a LinkedHashMap
+        // that keeps holes in the order they were created while traversing the WALA IR
+        if(stackSlot == -1 && !fieldInputInfo.isStaticField) {
+            gov.nasa.jpf.symbc.numeric.Expression objRefExpression =
+                    ExpressionUtil.GreenToSPFExpression(retHoleHashMap.get(fieldInputInfo.useHole));
+            assert(objRefExpression instanceof IntegerConstant);
+            objRef = ((IntegerConstant) objRefExpression).value();
+        }
+        if (!isStatic && (stackSlot != -1)) {
+            objRef = stackFrame.getLocalVariable(stackSlot);
+            assert(objRef != 0);
+        }
+        return objRef;
     }
 }

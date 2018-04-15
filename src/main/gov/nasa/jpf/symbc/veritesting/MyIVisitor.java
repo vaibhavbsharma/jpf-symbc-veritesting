@@ -286,7 +286,7 @@ public class MyIVisitor implements SSAInstruction.IVisitor {
         Atom fieldName = fieldReference.getName();
         System.out.println("declaringClass = " + declaringClass + ", currentMethodName = " + fieldName);
         int def = instruction.getDef(0);
-        if(varUtil.addFieldInputVal(def, objRef, declaringClass.toString(), fieldName.toString(),
+        if(varUtil.addFieldInputVal(def, objRef, fieldName.toString(),
                 instruction.isStatic(), this.PLAssign) == null) {
             canVeritest = false;
         } else {
@@ -318,7 +318,7 @@ public class MyIVisitor implements SSAInstruction.IVisitor {
         Expression intermediate = varUtil.makeIntermediateVar(intermediateVarName, false, PLAssign);
         Expression writeVal = varUtil.addVal(instruction.getVal(), PLAssign);
         SPFExpr = new Operation(Operator.EQ, intermediate, writeVal);
-        if(varUtil.addFieldOutputVal(intermediate, objRef, className, fieldName.toString(),
+        if(varUtil.addFieldOutputVal(intermediate, objRef, fieldName.toString(),
                 instruction.isStatic(), PLAssign) == null) {
             canVeritest = false;
         } else {
