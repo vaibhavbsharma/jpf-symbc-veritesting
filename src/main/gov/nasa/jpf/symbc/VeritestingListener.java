@@ -712,7 +712,7 @@ public class VeritestingListener extends PropertyListenerAdapter implements Publ
         } else {
             ClassInfo ci;
             try {
-                ci = ClassLoaderInfo.getCurrentResolvedClassInfo(fieldInputInfo.getFieldDynClassName());
+                ci = ClassLoaderInfo.getCurrentResolvedClassInfo(fieldInputInfo.getDynOrStClassName());
             } catch (ClassInfoException e) {
                 return null;
             }
@@ -965,7 +965,8 @@ public class VeritestingListener extends PropertyListenerAdapter implements Publ
                                     assert (callSiteInfo.paramList.size() > 0);
                                     methodKeyHoleFieldInfo.callSiteStackSlot = ((HoleExpression)
                                             callSiteInfo.paramList.get(0)).getLocalStackSlot();
-                                    methodKeyHole.setFieldInfo(methodKeyHoleFieldInfo.fieldName,
+                                    methodKeyHole.setFieldInfo(methodKeyHoleFieldInfo.getFieldStaticClassName(),
+                                            methodKeyHoleFieldInfo.fieldName,
                                             methodKeyHoleFieldInfo.methodName,
                                             methodKeyHoleFieldInfo.localStackSlot,
                                             methodKeyHoleFieldInfo.callSiteStackSlot,

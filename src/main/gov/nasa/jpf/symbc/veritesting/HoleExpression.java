@@ -241,11 +241,12 @@ public class HoleExpression extends za.ac.sun.cs.green.expr.Expression{
             assert (((HoleExpression)f.writeValue).getHoleType() == HoleType.INTERMEDIATE);
         }
         if(holeType == HoleType.FIELD_INPUT) assert(f.writeValue == null);
-        fieldInfo = new FieldInfo(f.fieldName, methodName, localStackSlot, f.callSiteStackSlot, f.writeValue,
+        fieldInfo = new FieldInfo(f.fieldStaticClassName, f.fieldName, methodName, localStackSlot, f.callSiteStackSlot, f.writeValue,
                 f.isStaticField, f.useHole);
     }
 
-    public void setFieldInfo(String fieldName, String methodName, int localStackSlot, int callSiteStackSlot,
+    public void setFieldInfo(String staticFieldClassName, String fieldName, String methodName, int localStackSlot,
+                             int callSiteStackSlot,
                              Expression writeExpr, boolean isStaticField, HoleExpression useHole) {
         assert(holeType == HoleType.FIELD_INPUT || holeType == HoleType.FIELD_OUTPUT);
         //the object reference should either be local, come from another hole, or this field should be static
@@ -256,7 +257,7 @@ public class HoleExpression extends za.ac.sun.cs.green.expr.Expression{
             assert (((HoleExpression)writeExpr).getHoleType() == HoleType.INTERMEDIATE);
         }
         if(holeType == HoleType.FIELD_INPUT) assert(writeExpr == null);
-        fieldInfo = new FieldInfo(fieldName, methodName, localStackSlot, callSiteStackSlot, writeExpr,
+        fieldInfo = new FieldInfo(staticFieldClassName, fieldName, methodName, localStackSlot, callSiteStackSlot, writeExpr,
                 isStaticField, useHole);
     }
 
@@ -325,12 +326,23 @@ public class HoleExpression extends za.ac.sun.cs.green.expr.Expression{
     public class FieldInfo {
         public final String methodName;
 
+        public String getFieldStaticClassName() {
+            return fieldStaticClassName;
+        }
+
+        private final String fieldStaticClassName;
+
         public String getFieldDynClassName() {
             return fieldDynClassName;
         }
 
         public void setFieldDynClassName(String fieldDynClassName) {
             this.fieldDynClassName = fieldDynClassName;
+        }
+
+        public String getDynOrStClassName() {
+            if(fieldDynClassName != null) return fieldDynClassName;
+            else return fieldStaticClassName;
         }
         // this fieldDynClassName is the dynamic class type of the object from which this field is accessed
         private String fieldDynClassName;
@@ -339,11 +351,13 @@ public class HoleExpression extends za.ac.sun.cs.green.expr.Expression{
         public Expression writeValue = null;
         public boolean isStaticField = false;
         public HoleExpression useHole = null;
-        public FieldInfo(String fieldName, String methodName, int localStackSlot, int callSiteStackSlot,
+        public FieldInfo(String fieldStaticClassName, String fieldName, String methodName, int localStackSlot,
+                         int callSiteStackSlot,
                          Expression writeValue, boolean isStaticField, HoleExpression useHole) {
             this.localStackSlot = localStackSlot;
             this.callSiteStackSlot = callSiteStackSlot;
             this.fieldName = fieldName;
+            this.fieldStaticClassName = fieldStaticClassName;
             this.methodName = methodName;
             this.writeValue = writeValue;
             this.isStaticField = isStaticField;
@@ -367,7 +381,8 @@ public class HoleExpression extends za.ac.sun.cs.green.expr.Expression{
         }
 
         public boolean equalsDetailed(FieldInfo fieldInfo1) {
-            if(!fieldInfo1.fieldName.equals(this.fieldName) ||
+            if(!fieldInfo1.getFieldStaticClassName().equals(this.fieldStaticClassName) ||
+                    !fieldInfo1.fieldName.equals(this.fieldName) ||
                     !fieldInfo1.methodName.equals(this.methodName) ||
                     fieldInfo1.localStackSlot != this.localStackSlot ||
                     fieldInfo1.callSiteStackSlot != this.callSiteStackSlot ||

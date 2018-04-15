@@ -401,7 +401,7 @@ public class VarUtil {
     }
 
     // def will be value being defined in case of FIELD_INPUT hole
-    public Expression addFieldInputVal(int def, int use, String fieldName,
+    public Expression addFieldInputVal(int def, int use, String fieldStaticClassName, String fieldName,
                                        boolean isStaticField, Expression PLAssign) {
         HoleExpression useHole = null;
         //If the field does not belong to a local object, then it has to be an already created object or a static field
@@ -417,7 +417,7 @@ public class VarUtil {
         }
         HoleExpression holeExpression = new HoleExpression(nextInt(), this.className, methodName,
                 HoleExpression.HoleType.FIELD_INPUT, PLAssign);
-        holeExpression.setFieldInfo(fieldName, methodName, localStackSlot, -1, null,
+        holeExpression.setFieldInfo(fieldStaticClassName, fieldName, methodName, localStackSlot, -1, null,
                 isStaticField, useHole);
         String name = this.className + "." + this.methodName + ".v" + def;
         holeExpression.setHoleVarName(name);
@@ -427,6 +427,7 @@ public class VarUtil {
 
     // def will be value being defined in case of FIELD_INPUT hole
     public Expression addFieldOutputVal(Expression writeExpr, int use,
+                                       String fieldStaticClassName,
                                        String fieldName,
                                         boolean isStaticField,
                                         Expression PLAssign) {
@@ -451,7 +452,7 @@ public class VarUtil {
         assert(!varCache.containsKey(name));
         HoleExpression holeExpression = new HoleExpression(nextInt(), this.className, methodName,
                 HoleExpression.HoleType.FIELD_OUTPUT, PLAssign);
-        holeExpression.setFieldInfo(fieldName, methodName, localStackSlot, -1, writeExpr,
+        holeExpression.setFieldInfo(fieldStaticClassName, fieldName, methodName, localStackSlot, -1, writeExpr,
                 isStaticField, useHole);
         holeExpression.setHoleVarName(name);
         varCache.put(name, holeExpression);
