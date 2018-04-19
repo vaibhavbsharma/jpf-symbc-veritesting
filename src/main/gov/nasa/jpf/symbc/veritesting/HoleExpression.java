@@ -39,6 +39,7 @@ public class HoleExpression extends za.ac.sun.cs.green.expr.Expression{
 
     @Override
     public boolean equals(Object object) {
+        //this doesn't check PLAssign for equality on purpose. Use the isSamePLAssign() method to do that explicitly
         if(object == null) return false;
         if(object instanceof HoleExpression) {
             HoleExpression holeExpression = (HoleExpression) object;
@@ -95,6 +96,7 @@ public class HoleExpression extends za.ac.sun.cs.green.expr.Expression{
                 break;
             case FIELD_INPUT:
             case FIELD_OUTPUT:
+            case FIELD_PHI:
                 ret += ", fieldInfo = " + fieldInfo.toString();
                 break;
             case INVOKE:
@@ -137,7 +139,7 @@ public class HoleExpression extends za.ac.sun.cs.green.expr.Expression{
     }
 
     private final long holeID;
-    HoleExpression(long _holeID, String className, String methodName, HoleType holeType, Expression PLAssign) {
+    public HoleExpression(long _holeID, String className, String methodName, HoleType holeType, Expression PLAssign) {
         holeID = _holeID;
         setClassName(className);
         setMethodName(methodName);
@@ -190,7 +192,8 @@ public class HoleExpression extends za.ac.sun.cs.green.expr.Expression{
         FIELD_INPUT("field_input"),
         FIELD_OUTPUT("field_output"),
         INVOKE("invoke"),
-        ARRAYLOAD("array_load");
+        ARRAYLOAD("array_load"),
+        FIELD_PHI("field_phi");
         private final String string;
 
         HoleType(String string) {
@@ -213,7 +216,8 @@ public class HoleExpression extends za.ac.sun.cs.green.expr.Expression{
                 (h == HoleType.FIELD_INPUT) ||
                 (h == HoleType.FIELD_OUTPUT) ||
                 (h == HoleType.INVOKE) ||
-                (h == HoleType.ARRAYLOAD));
+                (h == HoleType.ARRAYLOAD) ||
+                (h == HoleType.FIELD_PHI));
         holeType = h;
     }
 
@@ -232,7 +236,7 @@ public class HoleExpression extends za.ac.sun.cs.green.expr.Expression{
     protected int localStackSlot = -1;
 
     public void setFieldInfo(FieldInfo f) {
-        assert(holeType == HoleType.FIELD_INPUT || holeType == HoleType.FIELD_OUTPUT);
+        assert(holeType == HoleType.FIELD_INPUT || holeType == HoleType.FIELD_OUTPUT || holeType == HoleType.FIELD_PHI);
         //the object reference should either be local, come from another hole, or this field should be static
         assert((f.localStackSlot != -1 || f.callSiteStackSlot != -1) || (f.useHole != null) || f.isStaticField);
         if(holeType == HoleType.FIELD_OUTPUT) {
@@ -241,7 +245,7 @@ public class HoleExpression extends za.ac.sun.cs.green.expr.Expression{
             assert (((HoleExpression)f.writeValue).getHoleType() == HoleType.INTERMEDIATE);
         }
         if(holeType == HoleType.FIELD_INPUT) assert(f.writeValue == null);
-        fieldInfo = new FieldInfo(f.fieldStaticClassName, f.fieldName, methodName, localStackSlot, f.callSiteStackSlot, f.writeValue,
+        fieldInfo = new FieldInfo(f.fieldStaticClassName, f.fieldName, f.methodName, f.localStackSlot, f.callSiteStackSlot, f.writeValue,
                 f.isStaticField, f.useHole);
     }
 
@@ -365,7 +369,8 @@ public class HoleExpression extends za.ac.sun.cs.green.expr.Expression{
         }
 
         public String toString() {
-            String ret = "fieldDynClassName = " + fieldDynClassName + ", fieldName = " + fieldName +
+            String ret = "fieldClassName (dyn,st) = (" + fieldDynClassName + ", " + fieldStaticClassName +
+                    "), fieldName = " + fieldName +
                     ", stackSlots (local = " + localStackSlot + ", callSite = " + callSiteStackSlot;
             if(writeValue != null) ret += ", writeValue (" + writeValue.toString() + ")";
             ret += ", isStaticField = " + isStaticField;

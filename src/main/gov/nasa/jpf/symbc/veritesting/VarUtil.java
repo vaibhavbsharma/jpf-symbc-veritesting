@@ -102,7 +102,8 @@ public class VarUtil {
                         holeHashMap.put(expression, expression);
                     }
                     if(((HoleExpression)expression).getHoleType() == HoleExpression.HoleType.FIELD_OUTPUT ||
-                            ((HoleExpression)expression).getHoleType() == HoleExpression.HoleType.LOCAL_OUTPUT)
+                            ((HoleExpression)expression).getHoleType() == HoleExpression.HoleType.LOCAL_OUTPUT ||
+                            ((HoleExpression)expression).getHoleType() == HoleExpression.HoleType.FIELD_PHI)
                         defLocalVars.add(expression);
                 }
                 return super.put(key, expression);
@@ -487,7 +488,7 @@ public class VarUtil {
         retValVar = null;
     }
 
-    public long nextInt() {
+    public static long nextInt() {
         holeID++;
         return holeID;
     }

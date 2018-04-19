@@ -23,12 +23,12 @@ public class LocalUtil {
     public static HoleExpression findPreviousWrite(HoleExpression h,
                                                    LinkedHashMap<Expression, Expression> holeHashMap) {
         if(!hasWriteBefore(h, holeHashMap)) {
-            System.out.println("Warning: LocalUtil.findPreviousWrite called where no previous write was found");
+            System.out.println("Warning: LocalUtil.findPreviousRW called where no previous write was found");
             return null;
         }
         if(h.getHoleType() != HoleExpression.HoleType.LOCAL_INPUT &&
                 h.getHoleType() != HoleExpression.HoleType.LOCAL_OUTPUT) {
-            System.out.println("Warning: LocalUtil.findPreviousWrite called on non-local hole");
+            System.out.println("Warning: LocalUtil.findPreviousRW called on non-local hole");
             return null;
         }
         HoleExpression prevWrite = null;

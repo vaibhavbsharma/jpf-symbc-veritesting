@@ -41,9 +41,11 @@ import com.ibm.wala.util.graph.impl.GraphInverter;
 import com.ibm.wala.util.io.FileProvider;
 import com.ibm.wala.util.strings.StringStuff;
 import gov.nasa.jpf.symbc.VeritestingListener;
+import ia_parser.Exp;
 import x10.wala.util.NatLoop;
 import x10.wala.util.NatLoopSolver;
 
+import static gov.nasa.jpf.symbc.veritesting.HoleExpression.HoleType.FIELD_OUTPUT;
 import static gov.nasa.jpf.symbc.veritesting.ReflectUtil.getSignature;
 
 import za.ac.sun.cs.green.expr.Expression;
@@ -279,19 +281,45 @@ public class VeritestingMain {
         else elseExpr = elsePLAssignSPF;
 
         // (If && thenExpr) || (ifNot && elseExpr)
-        HoleExpression condition = new HoleExpression(varUtil.nextInt(), currentClassName, currentMethodName,
+        HoleExpression condition = new HoleExpression(VarUtil.nextInt(), currentClassName, currentMethodName,
                 HoleExpression.HoleType.CONDITION, thenPLAssignSPF);
-        HoleExpression negCondition = new HoleExpression(varUtil.nextInt(), currentClassName, currentMethodName,
+        HoleExpression negCondition = new HoleExpression(VarUtil.nextInt(), currentClassName, currentMethodName,
                 HoleExpression.HoleType.NEGCONDITION, elsePLAssignSPF);
         varUtil.holeHashMap.put(condition, condition);
         varUtil.holeHashMap.put(negCondition, negCondition);
+        // make a FIELD_PHI hole for every FIELD_OUTPUT hole so that common fields will get phi'd in
+        // VeritestingListener.FillNonInputHoles. Don't add the FIELD_PHI hole into region.outputVars aka
+        // varUtil.defLocalVars because every FIELD_OUTPUT hole is already in region.outputVars.
+        Iterator itr = varUtil.defLocalVars.iterator();
+        HashSet<HoleExpression> extraOutputs = new HashSet<>();
+        while(itr.hasNext()) {
+            HoleExpression h = (HoleExpression) itr.next();
+            if(h.getHoleType() == FIELD_OUTPUT) {
+                HoleExpression h1 = new HoleExpression(VarUtil.nextInt(), h.getClassName(), h.getMethodName(),
+                        HoleExpression.HoleType.FIELD_PHI, null);
+                h1.setFieldInfo(h.getFieldInfo());
+                h1.getFieldInfo().writeValue = null;
+                h1.setHoleVarName(h.getHoleVarName().replaceAll("FIELD_OUTPUT","FIELD_PHI"));
+                extraOutputs.add(h1);
+                HoleExpression fieldInput = new HoleExpression(VarUtil.nextInt(), h.getClassName(), h.getMethodName(),
+                        HoleExpression.HoleType.FIELD_INPUT, null);
+                HoleExpression.FieldInfo f = h.getFieldInfo();
+                fieldInput.setFieldInfo(f.getFieldStaticClassName(), f.fieldName, f.methodName, f.localStackSlot,
+                        f.callSiteStackSlot, null, f.isStaticField, f.useHole);
+                fieldInput.getFieldInfo().writeValue = null;
+                fieldInput.setHoleVarName(h.getHoleVarName().replaceAll("FIELD_OUTPUT","FIELD_INPUT"));
+                MapUtil.add(varUtil.holeHashMap, 0, fieldInput, fieldInput);
+            }
+        }
+        for(HoleExpression e: extraOutputs) {
+            varUtil.varCache.put(e.getHoleVarName(), e);
+        }
         Expression pathExpr1 =
                 new Operation(Operation.Operator.OR,
                         new Operation(Operation.Operator.AND, condition, thenExpr),
                         new Operation(Operation.Operator.AND, negCondition, elseExpr));
 
         MyIVisitor myIVisitor = new MyIVisitor(varUtil, thenUseNum, elseUseNum, true, null);
-        //TODO there could be multiple outputs of this region, keep going until you don't find any more Phi's
         Expression phiExprSPF, finalPathExpr = pathExpr1;
         Iterator<SSAInstruction> iterator = commonSucc.iterator();
         while(iterator.hasNext()) {
@@ -310,20 +338,16 @@ public class VeritestingMain {
         veritestingRegion.setSummaryExpression(finalPathExpr);
         veritestingRegion.setStartInsnPosition(startingBC);
         veritestingRegion.setEndInsnPosition(endingBC);
-        HashSet<Expression> hashSet = new HashSet<>();
-        for(Expression e: varUtil.defLocalVars) {
-            hashSet.add(e);
-        }
-        veritestingRegion.setOutputVars(hashSet);
         veritestingRegion.setClassName(currentClassName);
         veritestingRegion.setMethodName(currentMethodName);
         veritestingRegion.setMethodSignature(methodSig);
         veritestingRegion.setStartBBNum(currUnit.getNumber());
         veritestingRegion.setEndBBNum(commonSucc.getNumber());
+        HashSet<Expression> hashSet = new HashSet<>();
+        hashSet.addAll(varUtil.defLocalVars);
+        veritestingRegion.setOutputVars(hashSet);
         LinkedHashMap<Expression, Expression> hashMap = new LinkedHashMap<>();
-        for(Map.Entry<Expression, Expression> entry: varUtil.holeHashMap.entrySet()) {
-            hashMap.put(entry.getKey(), entry.getValue());
-        }
+        hashMap.putAll(varUtil.holeHashMap);
         veritestingRegion.setHoleHashMap(hashMap);
         veritestingRegion.setSummarizedRegionStartBB(summarizedRegionStartBB);
 
