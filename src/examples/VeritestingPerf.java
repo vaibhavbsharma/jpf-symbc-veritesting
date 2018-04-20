@@ -14,7 +14,7 @@ public class VeritestingPerf {
 
     public static void main(String[] args) {
         //(new VeritestingPerf()).cfgTest(1);
-        //(new VeritestingPerf()).countBitsSet(1);
+        (new VeritestingPerf()).countBitsSet(1);
 
         //(new VeritestingPerf()).readAfterWriteTest(1);
         //(new VeritestingPerf()).testSimple(1);
@@ -26,7 +26,7 @@ public class VeritestingPerf {
         //(new VeritestingPerf()).testSimple2(1);
         //(new VeritestingPerf()).testSimpleFail(1);
 
-        (new VeritestingPerf()).nestedRegion(1);
+        //(new VeritestingPerf()).nestedRegion(1);
         //int x[] = {1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20};
 //        (new VeritestingPerf()).inRangeloadArrayTC( 22, 10);
 
@@ -119,7 +119,7 @@ public class VeritestingPerf {
     }
 
     public int countBitsSet(int x) {
-        TempClass tempClass = new TempClass();
+        TempClass tempClass = new TempClassDerived();
         count = 1;
         int a = 1;
         //TempClass tempClass = new TempClass();
@@ -127,12 +127,12 @@ public class VeritestingPerf {
             if ((x & 1) != 0) {
                 // nested field access test case 1
                 //count += tempClass.tempClass2.tempInt2;
-                //nested field access test case 2
-                TempClass2 tempClass2 = tempClass.tempClass2;
-                tempClass2.tempInt2 += count;
+                // nested field access test case 2
+                //TempClass2 tempClass2 = tempClass.tempClass2;
+                //tempClass2.tempInt2 += count;
                 //tempClass.tempInt = 1; //creates r/w interference with tempClass.getOne's method summary
                 // Test case 3: method summary test + higher order region test
-                //count += tempClass.getOne(0);
+                count += tempClass.getOne(0);
                 // Test case 4: use this to test dynamic field access
                 //count += tempClass.myInt;
                 // Test case 5: testing read-after-write in a simple region

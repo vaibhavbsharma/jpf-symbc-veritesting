@@ -76,6 +76,21 @@ public class HoleExpression extends za.ac.sun.cs.green.expr.Expression{
         else return false;
     }
 
+    public HoleExpression clone(VarUtil varUtil, String currentClassName, String currentMethodName,
+                                Expression plAssign) {
+        HoleExpression copy = new HoleExpression(varUtil.nextInt(), currentClassName,
+                currentMethodName, this.getHoleType(), plAssign);
+        if(isLocal(this)) {
+            copy.localStackSlot = this.getLocalStackSlot();
+            copy.globalStackSlot = this.globalStackSlot;
+        }
+        copy.invokeInfo = this.getInvokeInfo();
+        copy.setHoleVarName(this.getHoleVarName());
+        if (FieldUtil.isFieldHole(copy.getHoleType()))
+            copy.setFieldInfo(this.getFieldInfo());
+        return copy;
+    }
+
     @Override
     public String toString() {
         String ret = new String();
@@ -241,8 +256,6 @@ public class HoleExpression extends za.ac.sun.cs.green.expr.Expression{
         assert((f.localStackSlot != -1 || f.callSiteStackSlot != -1) || (f.useHole != null) || f.isStaticField);
         if(holeType == HoleType.FIELD_OUTPUT) {
             assert (f.writeValue != null);
-            assert (f.writeValue instanceof HoleExpression);
-            assert (((HoleExpression)f.writeValue).getHoleType() == HoleType.INTERMEDIATE);
         }
         if(holeType == HoleType.FIELD_INPUT) assert(f.writeValue == null);
         fieldInfo = new FieldInfo(f.fieldStaticClassName, f.fieldName, f.methodName, f.localStackSlot, f.callSiteStackSlot, f.writeValue,
@@ -257,8 +270,6 @@ public class HoleExpression extends za.ac.sun.cs.green.expr.Expression{
         assert((localStackSlot != -1 || callSiteStackSlot != -1) || (useHole != null) || isStaticField);
         if(holeType == HoleType.FIELD_OUTPUT) {
             assert (writeExpr != null);
-            assert (writeExpr instanceof HoleExpression);
-            assert (((HoleExpression)writeExpr).getHoleType() == HoleType.INTERMEDIATE);
         }
         if(holeType == HoleType.FIELD_INPUT) assert(writeExpr == null);
         fieldInfo = new FieldInfo(staticFieldClassName, fieldName, methodName, localStackSlot, callSiteStackSlot, writeExpr,
@@ -266,6 +277,7 @@ public class HoleExpression extends za.ac.sun.cs.green.expr.Expression{
     }
 
     public FieldInfo getFieldInfo() {
+        assert(fieldInfo != null);
         return fieldInfo;
     }
 

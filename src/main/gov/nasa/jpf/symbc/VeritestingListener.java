@@ -1032,9 +1032,6 @@ public class VeritestingListener extends PropertyListenerAdapter implements Publ
                             continue;
                         }
                         assert (fieldInfo != null);
-                        // make a new temporary value hole and field output hole, the field output hole has the
-                        // temporary value hole as its FieldInfo.writeExpr. This is required because future reads from
-                        // the same field should find this field output hole to be the latest write
                         HoleExpression prevValueHole = FieldUtil.findPreviousRW(holeExpression,
                                 FIELD_INPUT, ti, stackFrame, methodHoles, retHoleHashMap, isMethodSummary, callSiteInfo);
                         if(!retHoleHashMap.containsKey(prevValueHole)) {
@@ -1251,9 +1248,8 @@ public class VeritestingListener extends PropertyListenerAdapter implements Publ
                 myResult = true;
                 return this;
             }
-            if(additionalAST != null)
-                additionalAST = new Operation(Operation.Operator.AND, additionalAST, fillNonInputHolesOutput.getFieldOutputExpression());
-            else additionalAST = fillNonInputHolesOutput.getFieldOutputExpression();
+
+            additionalAST = ExpressionUtil.nonNullOp(Operation.Operator.AND, additionalAST, fillNonInputHolesOutput.getFieldOutputExpression());
             retHoleHashMap = fillNonInputHoles.retHoleHashMap;
 
             FillInputHoles fillInputHolesMS =

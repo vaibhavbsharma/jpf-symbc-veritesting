@@ -41,10 +41,10 @@ import com.ibm.wala.util.graph.impl.GraphInverter;
 import com.ibm.wala.util.io.FileProvider;
 import com.ibm.wala.util.strings.StringStuff;
 import gov.nasa.jpf.symbc.VeritestingListener;
-import ia_parser.Exp;
 import x10.wala.util.NatLoop;
 import x10.wala.util.NatLoopSolver;
 
+import static gov.nasa.jpf.symbc.veritesting.ExpressionUtil.*;
 import static gov.nasa.jpf.symbc.veritesting.HoleExpression.HoleType.FIELD_OUTPUT;
 import static gov.nasa.jpf.symbc.veritesting.ReflectUtil.getSignature;
 
@@ -100,6 +100,7 @@ public class VeritestingMain {
         endingInsnsHash = new HashSet();
         methodAnalysis = false;
         findClasses(classPath, _className);
+        startingPointsHistory = new HashSet();
 
         try {
             File f = new File(classPath);
@@ -222,7 +223,7 @@ public class VeritestingMain {
 
     public void startAnalysis(String className, String methodSig) {
         try {
-            startingPointsHistory = new HashSet();
+
             MethodReference mr = StringStuff.makeMethodReference(className + "." + methodSig);
             IMethod m = cha.resolveMethod(mr);
             if (m == null) {
@@ -417,6 +418,8 @@ public class VeritestingMain {
                         HashMap<Expression, Expression> savedHoleHashMap = saveHoleHashMap();
                         HashMap<String, Expression> savedVarCache = saveVarCache();
                         doAnalysis(thenUnit, commonSucc);
+                        varUtil.holeHashMap.clear();
+                        varUtil.defLocalVars.clear();
                         for(Map.Entry<Expression, Expression> entry: savedHoleHashMap.entrySet()) {
                             varUtil.holeHashMap.put(entry.getKey(), entry.getValue());
                         }
@@ -428,7 +431,8 @@ public class VeritestingMain {
                         if(VeritestingListener.veritestingRegions.containsKey(key)) {
                             System.out.println("Veritested inner region with key = " + key);
                             //visit all instructions up to and including the condition
-                            BlockSummary blockSummary = new BlockSummary(thenUnit, thenExpr, canVeritest, isPhithenUnit, thenPLAssign).invoke();
+                            BlockSummary blockSummary = new BlockSummary(thenUnit, thenExpr, canVeritest, isPhithenUnit,
+                                    thenPLAssign).invoke();
                             canVeritest = blockSummary.isCanVeritest();
                             thenExpr = blockSummary.getExpression();
                             Expression conditionExpression = blockSummary.getIfExpression();
@@ -444,22 +448,17 @@ public class VeritestingMain {
                             assert(bPostDom);
 
                             VeritestingRegion innerRegion = VeritestingListener.veritestingRegions.get(key);
-                            for(Expression e: innerRegion.getOutputVars()) {
-                                varUtil.defLocalVars.add(e);
-                            }
-                            for(Map.Entry<Expression, Expression> entry: innerRegion.getHoleHashMap().entrySet()) {
-                                if(((HoleExpression)entry.getKey()).getHoleType() == HoleExpression.HoleType.CONDITION ||
-                                        ((HoleExpression)entry.getKey()).getHoleType() == HoleExpression.HoleType.NEGCONDITION)
-                                    continue;
-                                HoleExpression holeExpression = (HoleExpression) entry.getKey();
-                                Expression plAssign = thenPLAssign;
-                                if(holeExpression.PLAssign != null)
-                                    plAssign = new Operation(Operation.Operator.AND, thenPLAssign, holeExpression.PLAssign);
-                                HoleExpression h = new HoleExpression(varUtil.nextInt(), currentClassName,
-                                        currentMethodName, holeExpression.getHoleType(), plAssign);
-                                varUtil.holeHashMap.put(h, h);
-                            }
                             Expression thenExpr1 = innerRegion.getSummaryExpression();
+                            // maps each inner region hole to its copy to be used here but
+                            // CONDITION, NEGCONDITION holes are skipped and
+                            // every hole's PLAssign is conjuncted with thenPLAssign
+                            LinkedHashMap<HoleExpression, HoleExpression> innerHolesCopyMap =
+                                    copyHoleHashMap(innerRegion.getHoleHashMap(), varUtil, thenPLAssign,
+                                            currentClassName, currentMethodName);
+                            replaceHolesInPLAssign(innerHolesCopyMap);
+                            thenExpr1 = replaceHolesInExpression(thenExpr1, innerHolesCopyMap);
+                            insertIntoVarUtil(innerHolesCopyMap, varUtil);
+
                             thenExpr1 = replaceCondition(thenExpr1, conditionExpression);
                             if (thenExpr1 != null) {
                                 if (thenExpr != null)
@@ -475,7 +474,8 @@ public class VeritestingMain {
                         } else canVeritest = false;
                     }
                     if (!canVeritest || thenUnit == commonSucc) break;
-                    BlockSummary blockSummary = new BlockSummary(thenUnit, thenExpr, canVeritest, isPhithenUnit, pathLabelString, thenPathLabel, thenPLAssign).invoke();
+                    BlockSummary blockSummary = new BlockSummary(thenUnit, thenExpr, canVeritest, isPhithenUnit,
+                            pathLabelString, thenPathLabel, thenPLAssign).invoke();
                     canVeritest = blockSummary.isCanVeritest();
                     thenExpr = blockSummary.getExpression();
                     //we should not encounter a BB with more than one successor at this point
@@ -516,6 +516,8 @@ public class VeritestingMain {
                         HashMap<Expression, Expression> savedHoleHashMap = saveHoleHashMap();
                         HashMap<String, Expression> savedVarCache = saveVarCache();
                         doAnalysis(elseUnit, commonSucc);
+                        varUtil.holeHashMap.clear();
+                        varUtil.defLocalVars.clear();
                         for(Map.Entry<Expression, Expression> entry: savedHoleHashMap.entrySet()) {
                             varUtil.holeHashMap.put(entry.getKey(), entry.getValue());
                         }
@@ -527,7 +529,8 @@ public class VeritestingMain {
                         if(VeritestingListener.veritestingRegions.containsKey(key)) {
                             System.out.println("Veritested inner region with key = " + key);
                             //visit all instructions up to and including the condition
-                            BlockSummary blockSummary = new BlockSummary(elseUnit, elseExpr, canVeritest, isPhielseUnit, elsePLAssign).invoke();
+                            BlockSummary blockSummary = new BlockSummary(elseUnit, elseExpr, canVeritest, isPhielseUnit,
+                                    elsePLAssign).invoke();
                             canVeritest = blockSummary.isCanVeritest();
                             elseExpr = blockSummary.getExpression();
                             Expression conditionExpression = blockSummary.getIfExpression();
@@ -543,25 +546,17 @@ public class VeritestingMain {
                             assert(bPostDom);
 
                             VeritestingRegion innerRegion = VeritestingListener.veritestingRegions.get(key);
-                            for(Expression e: innerRegion.getOutputVars()) {
-                                varUtil.defLocalVars.add(e);
-                            }
-
-                            for(Map.Entry<Expression, Expression> entry: innerRegion.getHoleHashMap().entrySet()) {
-                                if(((HoleExpression)entry.getKey()).getHoleType() == HoleExpression.HoleType.CONDITION ||
-                                        ((HoleExpression)entry.getKey()).getHoleType() == HoleExpression.HoleType.NEGCONDITION)
-                                    continue;
-                                HoleExpression holeExpression = (HoleExpression) entry.getKey();
-                                Expression plAssign = elsePLAssign;
-                                if(holeExpression.PLAssign != null)
-                                    plAssign = new Operation(Operation.Operator.AND,
-                                            holeExpression.PLAssign, elsePLAssign);
-                                HoleExpression h = new HoleExpression(varUtil.nextInt(), currentClassName,
-                                        currentMethodName, holeExpression.getHoleType(), plAssign);
-                                varUtil.holeHashMap.put(h, h);
-                            }
-
                             Expression elseExpr1 = innerRegion.getSummaryExpression();
+                            // maps each inner region hole to its copy to be used here but
+                            // CONDITION, NEGCONDITION holes are skipped and
+                            // every hole's PLAssign is conjuncted with elsePLAssign
+                            LinkedHashMap<HoleExpression, HoleExpression> innerHolesCopyMap =
+                                    copyHoleHashMap(innerRegion.getHoleHashMap(), varUtil, elsePLAssign,
+                                            currentClassName, currentMethodName);
+                            replaceHolesInPLAssign(innerHolesCopyMap);
+                            elseExpr1 = replaceHolesInExpression(elseExpr1, innerHolesCopyMap);
+                            insertIntoVarUtil(innerHolesCopyMap, varUtil);
+
                             elseExpr1 = replaceCondition(elseExpr1, conditionExpression);
                             if (elseExpr1 != null) {
                                 if (elseExpr != null)
@@ -650,45 +645,6 @@ public class VeritestingMain {
             ret.put(entry.getKey(), entry.getValue());
         }
         return ret;
-    }
-
-    // Replace all holes of type CONDITION with conditionExpression
-    // Replace all holes of type NEGCONDITION with !(conditionExpression)
-    private Expression replaceCondition(Expression holeExpression, Expression conditionExpression) {
-        if(holeExpression instanceof HoleExpression) {
-            Expression ret = holeExpression;
-            if(((HoleExpression)holeExpression).getHoleType() == HoleExpression.HoleType.CONDITION)
-                ret = conditionExpression;
-            if(((HoleExpression)holeExpression).getHoleType() == HoleExpression.HoleType.NEGCONDITION)
-                ret = new Operation(
-                        negateOperator(((Operation)conditionExpression).getOperator()),
-                        ((Operation) conditionExpression).getOperand(0),
-                        ((Operation) conditionExpression).getOperand(1));
-            return ret;
-        }
-        if(holeExpression instanceof Operation) {
-            Operation oldOperation = (Operation) holeExpression;
-            Operation newOperation = new Operation(oldOperation.getOperator(),
-                    replaceCondition(oldOperation.getOperand(0), conditionExpression),
-                    replaceCondition(oldOperation.getOperand(1), conditionExpression));
-            return newOperation;
-        }
-        return holeExpression;
-
-    }
-
-    private Operation.Operator negateOperator(Operation.Operator operator) {
-        switch(operator) {
-            case NE: return Operation.Operator.EQ;
-            case EQ: return Operation.Operator.NE;
-            case GT: return Operation.Operator.LE;
-            case GE: return Operation.Operator.LT;
-            case LT: return Operation.Operator.GE;
-            case LE: return Operation.Operator.GT;
-            default:
-                System.out.println("Don't know how to negate Green operator (" + operator + ")");
-                return null;
-        }
     }
 
     public void doMethodAnalysis(ISSABasicBlock startingUnit, ISSABasicBlock endingUnit) throws InvalidClassFileException {

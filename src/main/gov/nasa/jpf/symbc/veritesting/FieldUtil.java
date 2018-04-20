@@ -256,4 +256,8 @@ public class FieldUtil {
         }
         return objRef;
     }
+
+    public static boolean isFieldHole(HoleExpression.HoleType holeType) {
+        return (holeType == FIELD_INPUT) || (holeType == FIELD_OUTPUT) || (holeType == FIELD_PHI);
+    }
 }

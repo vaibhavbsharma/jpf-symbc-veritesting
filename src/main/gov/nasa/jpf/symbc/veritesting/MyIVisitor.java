@@ -1,5 +1,6 @@
 package gov.nasa.jpf.symbc.veritesting;
 
+import choco.Var;
 import com.ibm.wala.classLoader.CallSiteReference;
 import com.ibm.wala.shrikeBT.IBinaryOpInstruction;
 import com.ibm.wala.shrikeBT.IConditionalBranchInstruction;
@@ -299,27 +300,25 @@ public class MyIVisitor implements SSAInstruction.IVisitor {
         lastInstruction = instruction;
         if(isMeetVisitor) return;
         System.out.println("SSAPutInstruction = " + instruction);
-        String intermediateVarName = "";
+        String holeName = "";
         if(instruction.isStatic()) {
             assert(instruction.getNumberOfUses()==1);
             assert(instruction.getNumberOfDefs()==0);
-            intermediateVarName = "putStatic.";
+            holeName = "putStatic.";
         } else {
             assert (instruction.getNumberOfUses() == 2);
             assert (instruction.getNumberOfDefs() == 0);
-            intermediateVarName = "putField.";
+            holeName = "putField.";
         }
         FieldReference fieldReference = instruction.getDeclaredField();
         int objRef = instruction.getRef();
         String className = fieldReference.getDeclaringClass().getName().getClassName().toString();
         String fieldName = fieldReference.getName().toString();
-        intermediateVarName += objRef + ".";
-        intermediateVarName += className + "." + fieldName;
-        Expression intermediate = varUtil.makeIntermediateVar(intermediateVarName, false, PLAssign);
+        holeName += objRef + ".";
+        holeName += className + "." + fieldName + VarUtil.nextInt();
         Expression writeVal = varUtil.addVal(instruction.getVal(), PLAssign);
-        SPFExpr = new Operation(Operator.EQ, intermediate, writeVal);
-        if(varUtil.addFieldOutputVal(intermediate, objRef, className, fieldName.toString(),
-                instruction.isStatic(), PLAssign) == null) {
+        if(varUtil.addFieldOutputVal(writeVal, objRef, className, fieldName.toString(),
+                instruction.isStatic(), PLAssign, holeName) == null) {
             canVeritest = false;
         } else {
             canVeritest = true;

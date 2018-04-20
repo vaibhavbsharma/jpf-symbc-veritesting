@@ -431,9 +431,7 @@ public class VarUtil {
                                        String fieldStaticClassName,
                                        String fieldName,
                                         boolean isStaticField,
-                                        Expression PLAssign) {
-        assert(writeExpr instanceof HoleExpression);
-        assert(((HoleExpression)writeExpr).getHoleType() == HoleExpression.HoleType.INTERMEDIATE);
+                                        Expression PLAssign, String holeName) {
         HoleExpression useHole = null;
         //If the field does not belong to a local object, then it has to be an already created object or a static field
         // meaning use equals -1
@@ -447,16 +445,15 @@ public class VarUtil {
             assert(use != -1);
             localStackSlot = varsMap.get(use);
         }
-        String name = "FIELD_OUTPUT." + ((HoleExpression)writeExpr).getHoleVarName();
-        //varCache should not already have a hole with "name" holeVarName because every field output should have a
-        // new intermediate variable as the writeExpr
-        assert(!varCache.containsKey(name));
+        // varCache should not already have a hole with "holeName" holeName because every field output variable name
+        // contains a monotonically increasing counter as a suffix
+        assert(!varCache.containsKey(holeName));
         HoleExpression holeExpression = new HoleExpression(nextInt(), this.className, methodName,
                 HoleExpression.HoleType.FIELD_OUTPUT, PLAssign);
         holeExpression.setFieldInfo(fieldStaticClassName, fieldName, methodName, localStackSlot, -1, writeExpr,
                 isStaticField, useHole);
-        holeExpression.setHoleVarName(name);
-        varCache.put(name, holeExpression);
+        holeExpression.setHoleVarName(holeName);
+        varCache.put(holeName, holeExpression);
         return holeExpression;
     }
 
