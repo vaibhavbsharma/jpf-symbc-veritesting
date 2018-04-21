@@ -1,7 +1,5 @@
 package gov.nasa.jpf.symbc.veritesting;
 
-import com.ibm.wala.dalvik.dex.instructions.Invoke;
-import gov.nasa.jpf.symbc.veritesting.FillFieldInputHole;
 import gov.nasa.jpf.symbc.numeric.IntegerConstant;
 import gov.nasa.jpf.vm.StackFrame;
 import gov.nasa.jpf.vm.ThreadInfo;
@@ -12,6 +10,7 @@ import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
+import static gov.nasa.jpf.symbc.veritesting.LocalUtil.updateStackSlot;
 import static gov.nasa.jpf.symbc.veritesting.HoleExpression.HoleType.FIELD_INPUT;
 import static gov.nasa.jpf.symbc.veritesting.HoleExpression.HoleType.FIELD_OUTPUT;
 import static gov.nasa.jpf.symbc.veritesting.HoleExpression.HoleType.FIELD_PHI;
@@ -207,23 +206,22 @@ public class FieldUtil {
         else return true;
     }
 
-    public static int getObjRef(ThreadInfo ti, StackFrame stackFrame, HoleExpression holeExpression,
+    public static int getObjRef(ThreadInfo ti, StackFrame stackFrame, HoleExpression hole,
                                 LinkedHashMap<Expression, Expression> methodHoles,
                                 LinkedHashMap<Expression, Expression> retHoleHashMap,
                                 boolean isMethodSummary,
                                 InvokeInfo callSiteInfo) {
         int objRef = -1;
         //get the object reference from fieldInputInfo.use's local stack slot if not from the call site stack slot
-        int stackSlot = -1;
-        HoleExpression.FieldInfo fieldInputInfo = holeExpression.getFieldInfo();
+        HoleExpression.FieldInfo fieldInputInfo = hole.getFieldInfo();
         boolean isStatic = fieldInputInfo.isStaticField;
-        if(ti.getTopFrame().getClassInfo().getName().equals(holeExpression.getClassName()) &&
-                ti.getTopFrame().getMethodInfo().getName().equals(holeExpression.getMethodName()))
-            stackSlot = fieldInputInfo.localStackSlot;
-        else {
-            stackSlot = fieldInputInfo.callSiteStackSlot;
-            if(stackSlot == -1 && !fieldInputInfo.isStaticField)
-                assert(false);
+        String className = ti.getTopFrame().getClassInfo().getName();
+        String methodName = ti.getTopFrame().getMethodInfo().getName();
+        int stackSlot = -1;
+        if(hole.getLocalStackSlot() != -1) {
+            if(updateStackSlot(ti, callSiteInfo, hole, isMethodSummary))
+                assert(false); //throw a StaticRegionException because we failed to update the stack slot for this hole
+            stackSlot = hole.getGlobalOrLocalStackSlot(className, methodName);
         }
         //this field is being loaded from an object reference that is itself a hole
         // this object reference hole should be filled already because holes are stored in a LinkedHashMap
@@ -260,4 +258,9 @@ public class FieldUtil {
     public static boolean isFieldHole(HoleExpression.HoleType holeType) {
         return (holeType == FIELD_INPUT) || (holeType == FIELD_OUTPUT) || (holeType == FIELD_PHI);
     }
+
+    public static boolean isField(HoleExpression hole) {
+        return hole.getHoleType() == FIELD_INPUT || hole.getHoleType() == FIELD_OUTPUT || hole.getHoleType() == FIELD_PHI;
+    }
+
 }

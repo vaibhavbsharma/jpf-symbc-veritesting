@@ -1,6 +1,7 @@
 package gov.nasa.jpf.symbc.veritesting;
 
 import gov.nasa.jpf.vm.StackFrame;
+import gov.nasa.jpf.vm.ThreadInfo;
 import za.ac.sun.cs.green.expr.Expression;
 
 import java.util.LinkedHashMap;
@@ -41,5 +42,30 @@ public class LocalUtil {
         }
         assert(prevWrite != null);
         return prevWrite;
+    }
+
+    public static boolean updateStackSlot(ThreadInfo ti, InvokeInfo callSiteInfo,
+                                          HoleExpression hole, boolean isMethodSummary) {
+        HoleExpression.FieldInfo fieldInfo = hole.getFieldInfo();
+        assert (fieldInfo != null);
+        if(isMethodSummary) {
+            if (!fieldInfo.isStaticField) {
+                if(hole.getLocalStackSlot() == -1) return false;
+                if (hole.localStackSlot < callSiteInfo.paramList.size()) {
+                    assert (callSiteInfo.paramList.size() > 0);
+                    assert(HoleExpression.isLocal(callSiteInfo.paramList.get(hole.getLocalStackSlot())));
+                    hole.setGlobalStackSlot(((HoleExpression)
+                            callSiteInfo.paramList.get(hole.getLocalStackSlot())).getGlobalOrLocalStackSlot(
+                            ti.getTopFrame().getClassInfo().getName(),
+                            ti.getTopFrame().getMethodInfo().getName()));
+                } else {
+                    // method summary uses a field from an object that is a local inside the method
+                    // this cannot be handled during veritesting because we cannot create an object
+                    // when using a method summary
+                    return true;
+                }
+            }
+        }
+        return false;
     }
 }

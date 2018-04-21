@@ -283,9 +283,9 @@ public class VeritestingMain {
 
         // (If && thenExpr) || (ifNot && elseExpr)
         HoleExpression condition = new HoleExpression(VarUtil.nextInt(), currentClassName, currentMethodName,
-                HoleExpression.HoleType.CONDITION, thenPLAssignSPF);
+                HoleExpression.HoleType.CONDITION, thenPLAssignSPF, -1, -1);
         HoleExpression negCondition = new HoleExpression(VarUtil.nextInt(), currentClassName, currentMethodName,
-                HoleExpression.HoleType.NEGCONDITION, elsePLAssignSPF);
+                HoleExpression.HoleType.NEGCONDITION, elsePLAssignSPF, -1, -1);
         varUtil.holeHashMap.put(condition, condition);
         varUtil.holeHashMap.put(negCondition, negCondition);
         // make a FIELD_PHI hole for every FIELD_OUTPUT hole so that common fields will get phi'd in
@@ -297,16 +297,16 @@ public class VeritestingMain {
             HoleExpression h = (HoleExpression) itr.next();
             if(h.getHoleType() == FIELD_OUTPUT) {
                 HoleExpression h1 = new HoleExpression(VarUtil.nextInt(), h.getClassName(), h.getMethodName(),
-                        HoleExpression.HoleType.FIELD_PHI, null);
+                        HoleExpression.HoleType.FIELD_PHI, null, h.getLocalStackSlot(), h.getGlobalStackSlot());
                 h1.setFieldInfo(h.getFieldInfo());
                 h1.getFieldInfo().writeValue = null;
                 h1.setHoleVarName(h.getHoleVarName().replaceAll("FIELD_OUTPUT","FIELD_PHI"));
                 extraOutputs.add(h1);
                 HoleExpression fieldInput = new HoleExpression(VarUtil.nextInt(), h.getClassName(), h.getMethodName(),
-                        HoleExpression.HoleType.FIELD_INPUT, null);
+                        HoleExpression.HoleType.FIELD_INPUT, null, h.getLocalStackSlot(), h.getGlobalStackSlot());
                 HoleExpression.FieldInfo f = h.getFieldInfo();
-                fieldInput.setFieldInfo(f.getFieldStaticClassName(), f.fieldName, f.methodName, f.localStackSlot,
-                        f.callSiteStackSlot, null, f.isStaticField, f.useHole);
+                fieldInput.setFieldInfo(f.getFieldStaticClassName(), f.fieldName, f.methodName, null, f.isStaticField,
+                        f.useHole);
                 fieldInput.getFieldInfo().writeValue = null;
                 fieldInput.setHoleVarName(h.getHoleVarName().replaceAll("FIELD_OUTPUT","FIELD_INPUT"));
                 MapUtil.add(varUtil.holeHashMap, 0, fieldInput, fieldInput);

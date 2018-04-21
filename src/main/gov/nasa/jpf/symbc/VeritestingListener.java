@@ -29,10 +29,8 @@ import gov.nasa.jpf.report.ConsolePublisher;
 import gov.nasa.jpf.report.Publisher;
 import gov.nasa.jpf.report.PublisherExtension;
 import gov.nasa.jpf.symbc.numeric.*;
-import gov.nasa.jpf.symbc.numeric.solvers.SolverTranslator;
 import gov.nasa.jpf.symbc.veritesting.*;
 import gov.nasa.jpf.vm.*;
-import org.apache.bcel.classfile.Field;
 import za.ac.sun.cs.green.expr.Expression;
 import za.ac.sun.cs.green.expr.IntConstant;
 import za.ac.sun.cs.green.expr.IntVariable;
@@ -44,6 +42,7 @@ import java.util.*;
 import gov.nasa.jpf.symbc.veritesting.ExpressionUtil;
 
 import static gov.nasa.jpf.symbc.veritesting.ExpressionUtil.SPFToGreenExpr;
+import static gov.nasa.jpf.symbc.veritesting.LocalUtil.updateStackSlot;
 import static gov.nasa.jpf.symbc.veritesting.HoleExpression.HoleType.*;
 
 public class VeritestingListener extends PropertyListenerAdapter implements PublisherExtension {
@@ -106,6 +105,7 @@ public class VeritestingListener extends PropertyListenerAdapter implements Publ
 
         if (veritestingRegions != null && veritestingRegions.containsKey(key)) {
             VeritestingRegion region = veritestingRegions.get(key);
+            if(region.getSummaryExpression() == null) return;
             VeriPCChoiceGenerator cg;
             if (!ti.isFirstStepInsn()) { // first time around
                 Expression regionSummary = instantiateRegion(ti, region); // fill holes in region
@@ -608,7 +608,9 @@ public class VeritestingListener extends PropertyListenerAdapter implements Publ
         /* populate the return value of methodSummary regions that have a non-null return value */
         if(region.isMethodSummary() && region.retVal != null) {
             ti.getModifiableTopFrame().push(0);
-            ti.getModifiableTopFrame().setOperandAttr(ExpressionUtil.GreenToSPFExpression(retHoleHashMap.get(region.retVal)));
+            if(region.retVal instanceof HoleExpression)
+                ti.getModifiableTopFrame().setOperandAttr(ExpressionUtil.GreenToSPFExpression(retHoleHashMap.get(region.retVal)));
+            else ti.getModifiableTopFrame().setOperandAttr(ExpressionUtil.GreenToSPFExpression(region.retVal));
         }
 
 
@@ -971,26 +973,7 @@ public class VeritestingListener extends PropertyListenerAdapter implements Publ
                         retHoleHashMap.put(methodKeyHole, greenExpr);
                         break;
                     case FIELD_OUTPUT:
-                        if(isMethodSummary) {
-                            HoleExpression.FieldInfo methodKeyHoleFieldInfo = methodKeyHole.getFieldInfo();
-                            if (!methodKeyHoleFieldInfo.isStaticField) {
-                                if (methodKeyHoleFieldInfo.localStackSlot == 0) {
-                                    assert (callSiteInfo.paramList.size() > 0);
-                                    methodKeyHoleFieldInfo.callSiteStackSlot = ((HoleExpression)
-                                            callSiteInfo.paramList.get(0)).getLocalStackSlot();
-                                    methodKeyHole.setFieldInfo(methodKeyHoleFieldInfo.getFieldStaticClassName(),
-                                            methodKeyHoleFieldInfo.fieldName,
-                                            methodKeyHoleFieldInfo.methodName,
-                                            methodKeyHoleFieldInfo.localStackSlot,
-                                            methodKeyHoleFieldInfo.callSiteStackSlot,
-                                            methodKeyHoleFieldInfo.writeValue,
-                                            methodKeyHoleFieldInfo.isStaticField,
-                                            methodKeyHoleFieldInfo.useHole);
-                                } else
-                                    return new FillNonInputHolesOutput(true, null);
-                            }
-                            //populateOutputs does not use the value mapped to methodKeyHole for FIELD_OUTPUT holes
-                        }
+                        updateStackSlot(ti, callSiteInfo, methodKeyHole, isMethodSummary);
                         FieldUtil.setLatestWrite(methodKeyHole, ti, stackFrame, methodHoles, retHoleHashMap, isMethodSummary, callSiteInfo);
                         if(FieldUtil.hasWriteBefore(methodKeyHole, ti, stackFrame, methodHoles, retHoleHashMap,
                                 isMethodSummary, callSiteInfo)) {
@@ -1351,7 +1334,7 @@ public class VeritestingListener extends PropertyListenerAdapter implements Publ
                         long hash = fnv.getHash();
                         if(!veritestingRegions.containsKey(key1)) {
                             System.out.println("Could not find method summary for " +
-                                    callSiteInfo.className+"."+callSiteInfo.methodName+"#0");
+                                    callSiteInfo.className+"."+callSiteInfo.methodName+callSiteInfo.methodSignature+"#0");
                             myResult = true;
                             return this;
                         }

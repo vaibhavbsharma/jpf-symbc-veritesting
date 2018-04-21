@@ -50,7 +50,7 @@ public class VarUtil {
             else name += VarUtil.nextIntermediateCount();
         }
         HoleExpression holeExpression = new HoleExpression(nextInt(), className, methodName,
-                HoleExpression.HoleType.INTERMEDIATE, PLAssign);
+                HoleExpression.HoleType.INTERMEDIATE, PLAssign, -1, -1);
         holeExpression.setHoleVarName(name);
         varCache.put(name, holeExpression);
         return holeExpression;
@@ -68,8 +68,7 @@ public class VarUtil {
         if(varCache.containsKey(name))
             return varCache.get(name);
         HoleExpression holeExpression = new HoleExpression(nextInt(), className, methodName,
-                HoleExpression.HoleType.LOCAL_INPUT, PLAssign);
-        holeExpression.setLocalStackSlot(varsMap.get(val));
+                HoleExpression.HoleType.LOCAL_INPUT, PLAssign, varsMap.get(val), -1);
         holeExpression.setHoleVarName(name);
         varCache.put(name, holeExpression);
         return holeExpression;
@@ -81,8 +80,7 @@ public class VarUtil {
         if(varCache.containsKey(name))
             return varCache.get(name);
         HoleExpression holeExpression = new HoleExpression(nextInt(), className, methodName,
-                HoleExpression.HoleType.LOCAL_OUTPUT, PLAssign);
-        holeExpression.setLocalStackSlot(varsMap.get(val));
+                HoleExpression.HoleType.LOCAL_OUTPUT, PLAssign, varsMap.get(val), -1);
         holeExpression.setHoleVarName(name);
         varCache.put(name, holeExpression);
         return holeExpression;
@@ -393,7 +391,7 @@ public class VarUtil {
                                       HoleExpression.HoleType holeType, SSAArrayLoadInstruction instructionName,
                                       String pathLabelString, int pathLabel, Expression PLAssign) {
         assert(holeType == HoleExpression.HoleType.ARRAYLOAD);
-        HoleExpression holeExpression = new HoleExpression(nextInt(), className, methodName, holeType, PLAssign);
+        HoleExpression holeExpression = new HoleExpression(nextInt(), className, methodName, holeType, PLAssign, -1, -1);
         holeExpression.setHoleVarName(instructionName.toString());
         holeExpression.setArrayInfo(arrayRef, arrayIndex, arrayType, pathLabelString, pathLabel);
         varCache.put(holeExpression.getHoleVarName(), holeExpression);
@@ -417,8 +415,8 @@ public class VarUtil {
             localStackSlot = varsMap.get(use);
         }
         HoleExpression holeExpression = new HoleExpression(nextInt(), this.className, methodName,
-                HoleExpression.HoleType.FIELD_INPUT, PLAssign);
-        holeExpression.setFieldInfo(fieldStaticClassName, fieldName, methodName, localStackSlot, -1, null,
+                HoleExpression.HoleType.FIELD_INPUT, PLAssign, localStackSlot, -1);
+        holeExpression.setFieldInfo(fieldStaticClassName, fieldName, methodName, null,
                 isStaticField, useHole);
         String name = this.className + "." + this.methodName + ".v" + def;
         holeExpression.setHoleVarName(name);
@@ -449,8 +447,8 @@ public class VarUtil {
         // contains a monotonically increasing counter as a suffix
         assert(!varCache.containsKey(holeName));
         HoleExpression holeExpression = new HoleExpression(nextInt(), this.className, methodName,
-                HoleExpression.HoleType.FIELD_OUTPUT, PLAssign);
-        holeExpression.setFieldInfo(fieldStaticClassName, fieldName, methodName, localStackSlot, -1, writeExpr,
+                HoleExpression.HoleType.FIELD_OUTPUT, PLAssign, localStackSlot, -1);
+        holeExpression.setFieldInfo(fieldStaticClassName, fieldName, methodName, writeExpr,
                 isStaticField, useHole);
         holeExpression.setHoleVarName(holeName);
         varCache.put(holeName, holeExpression);
@@ -492,7 +490,7 @@ public class VarUtil {
 
     public Expression addInvokeHole(InvokeInfo invokeInfo, Expression PLAssign) {
         HoleExpression holeExpression = new HoleExpression(nextInt(), className, methodName,
-                HoleExpression.HoleType.INVOKE, PLAssign);
+                HoleExpression.HoleType.INVOKE, PLAssign, -1, -1);
         String name = className + "." + methodName + ".v" + invokeInfo.defVal;
         holeExpression.setInvokeInfo(invokeInfo);
         //The return value of this invokeVirtual will be this holeExpression object.

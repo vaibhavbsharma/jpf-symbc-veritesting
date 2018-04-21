@@ -139,6 +139,8 @@ public class VeritestingPerf {
                 //count += 1;
 //                a += count;
 //                count += 2;
+                // Test case 6
+                //count += tempClass.nestedRegion(a);
             }
             x = x >>> 1; // logical right shift
         }
@@ -166,8 +168,11 @@ public class VeritestingPerf {
 
     public int nestedRegion(int x) {
         if (x != 0) {
-            if (x != 0) { count = 3; } else { count = 4;  }
+            if (x > 0) { count = 3; } else { count = 4;  }
         } else { count = 5; }
+        assert(x != 0 && x > 0 ? count == 3 : true);
+        assert(x != 0 && x <= 0 ? count == 4 : true);
+        assert(x ==0 ? count == 5 : true);
         return count;
     }
 
@@ -385,6 +390,8 @@ class TempClass {
     public int getOne(int a) { tempInt = a; return tempInt; }
 
     TempClass2 tempClass2;
+
+    public int nestedRegion(int a) { return 0; }
 }
 
 class TempClass2 {
