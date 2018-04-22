@@ -51,13 +51,15 @@ public class LocalUtil {
         if(isMethodSummary) {
             if (!fieldInfo.isStaticField) {
                 if(hole.getLocalStackSlot() == -1) return false;
+                String className = ti.getTopFrame().getClassInfo().getName();
+                String methodName = ti.getTopFrame().getMethodInfo().getName();
+                if(hole.getClassName().equals(className) && hole.getMethodName().equals(methodName)) return false;
                 if (hole.localStackSlot < callSiteInfo.paramList.size()) {
                     assert (callSiteInfo.paramList.size() > 0);
                     assert(HoleExpression.isLocal(callSiteInfo.paramList.get(hole.getLocalStackSlot())));
                     hole.setGlobalStackSlot(((HoleExpression)
                             callSiteInfo.paramList.get(hole.getLocalStackSlot())).getGlobalOrLocalStackSlot(
-                            ti.getTopFrame().getClassInfo().getName(),
-                            ti.getTopFrame().getMethodInfo().getName()));
+                            className, methodName));
                 } else {
                     // method summary uses a field from an object that is a local inside the method
                     // this cannot be handled during veritesting because we cannot create an object

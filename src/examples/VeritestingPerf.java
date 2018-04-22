@@ -3,10 +3,13 @@
 */
 
 
+import com.ibm.wala.util.intset.Bits;
 import gov.nasa.jpf.symbc.Debug;
 import sun.reflect.annotation.ExceptionProxy;
 
 import java.util.ArrayList;
+
+import static com.ibm.wala.util.math.Logs.isPowerOf2;
 
 public class VeritestingPerf {
 
@@ -14,10 +17,10 @@ public class VeritestingPerf {
 
     public static void main(String[] args) {
         //(new VeritestingPerf()).cfgTest(1);
-        (new VeritestingPerf()).countBitsSet(1);
+        //(new VeritestingPerf()).countBitsSet(1);
 
         //(new VeritestingPerf()).readAfterWriteTest(1);
-        //(new VeritestingPerf()).testSimple(1);
+        (new VeritestingPerf()).testSimple(1);
 
         //(new VeritestingPerf()).testSimple1(1);
         //(new VeritestingPerf()).simpleRegion(1);
@@ -27,7 +30,7 @@ public class VeritestingPerf {
         //(new VeritestingPerf()).testSimpleFail(1);
 
         //(new VeritestingPerf()).nestedRegion(1);
-        //int x[] = {1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20};
+        int x[] = {1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20};
 //        (new VeritestingPerf()).inRangeloadArrayTC( 22, 10);
 
 
@@ -48,7 +51,7 @@ public class VeritestingPerf {
     // Here is the problem.  If I uncomment 'count', then the program works correctly.
     // There is a problem with nested fields and regions right now.
     public int simpleRegion(int x) {
-        //int count;
+        int count;
         //count = 4;
         if (x > 0) { count = 3; }
         else { count = 4; }
@@ -120,8 +123,9 @@ public class VeritestingPerf {
 
     public int countBitsSet(int x) {
         TempClass tempClass = new TempClassDerived();
-        count = 1;
+        count = 0;
         int a = 1;
+        int xOrig = x;
         //TempClass tempClass = new TempClass();
         while (x != 0) {
             if ((x & 1) != 0) {
@@ -130,9 +134,10 @@ public class VeritestingPerf {
                 // nested field access test case 2
                 //TempClass2 tempClass2 = tempClass.tempClass2;
                 //tempClass2.tempInt2 += count;
-                //tempClass.tempInt = 1; //creates r/w interference with tempClass.getOne's method summary
                 // Test case 3: method summary test + higher order region test
+
                 count += tempClass.getOne(0);
+                //TempClassDerived.myInt = 1; //creates r/w interference with tempClass.getOne's method summary
                 // Test case 4: use this to test dynamic field access
                 //count += tempClass.myInt;
                 // Test case 5: testing read-after-write in a simple region
@@ -144,14 +149,17 @@ public class VeritestingPerf {
             }
             x = x >>> 1; // logical right shift
         }
+        //int bitCount = Bits.populationCount(xOrig);
+        //assert(bitCount == count);
         return count;
     }
 
     public int readAfterWriteTest(int x) {
         TempClass tempClass1 = new TempClassDerived();
         TempClass tempClass2 = new TempClassDerived();
-        count = 1;
+        count = 0;
         int a = 1;
+        int xOrig = x;
         //TempClass tempClass = new TempClass();
         while (x != 0) {
             if ((x & 1) != 0) {
@@ -162,6 +170,8 @@ public class VeritestingPerf {
             }
             x = x >>> 1; // logical right shift
         }
+        assert(xOrig == 0 ? count == 0 : true);
+        assert(isPowerOf2(xOrig) ? count == 1 : true);
         System.out.println("a = " + a);
         return count;
     }
@@ -331,14 +341,14 @@ public class VeritestingPerf {
 
 class TempClassDerived extends TempClass {
 
-    public int tempInt = 1; //change this to 2 to test read after write on a class field inside a Veritesting region
+    public static int tempInt = 1; //change this to 2 to test read after write on a class field inside a Veritesting region
 
     public static int myInt = 1;
 
     public int getAnotherAnotherTempInt(int a) {
         //TempClass2 t = new TempClass2();
         //t.tempMethod();
-        return tempInt;
+        return 1;
     }
 
     public int getAnotherTempInt(int a) {
@@ -352,7 +362,7 @@ class TempClassDerived extends TempClass {
         //TempClass2 t = new TempClass2();
         //t.tempMethod();
         //return tempInt;
-        return getAnotherTempInt(myInt);
+        return getAnotherTempInt(TempClassDerived.myInt);
     }
 
     public int getOne(int a) {

@@ -36,13 +36,22 @@ public class FieldUtil {
                         FieldUtil.isFieldHasRWWithMap(holeExpression, FIELD_INPUT, ti, stackFrame, holeHashMap, retHoleHashMap,
                                 isMethodSummary, callSiteInfo))
                     return true;
+                if(FieldUtil.isFieldHasRWWithMap(holeExpression, FIELD_OUTPUT, ti, stackFrame, retHoleHashMap, retHoleHashMap,
+                        isMethodSummary, callSiteInfo) ||
+                        FieldUtil.isFieldHasRWWithMap(holeExpression, FIELD_INPUT, ti, stackFrame, retHoleHashMap, retHoleHashMap,
+                                isMethodSummary, callSiteInfo))
+                    return true;
             }
             if(holeExpression.getHoleType() == HoleExpression.HoleType.FIELD_INPUT) {
                 if(FieldUtil.isFieldHasRWWithMap(holeExpression, FIELD_OUTPUT, ti, stackFrame, holeHashMap, retHoleHashMap,
                         isMethodSummary, callSiteInfo))
                     return true;
+                if(FieldUtil.isFieldHasRWWithMap(holeExpression, FIELD_OUTPUT, ti, stackFrame, retHoleHashMap, retHoleHashMap,
+                        isMethodSummary, callSiteInfo))
+                    return true;
             }
         }
+
         return false;
     }
 
@@ -192,7 +201,7 @@ public class FieldUtil {
         if(!f1.fieldName.equals(f.fieldName) ||
                 (f1.isStaticField != f.isStaticField)) return false;
         if(f1.isStaticField && f.isStaticField)
-            if(!f.equals(f1))
+            if(!isSameStaticField(f,f1))
                 return false;
         if(checkPLAssign)
             // were both fields created on the same side of a branch (if there was a branch) ?
@@ -204,6 +213,13 @@ public class FieldUtil {
         int objRef2 = getObjRef(ti, sf, holeExpression1, methodHoles, retHoleHashMap, isMethodSummary, callSiteInfo);
         if(objRef1 != objRef2) return false;
         else return true;
+    }
+
+    public static boolean isSameStaticField(HoleExpression.FieldInfo f, HoleExpression.FieldInfo f1) {
+        if(!f1.getFieldStaticClassName().equals(f.getFieldStaticClassName()) ||
+                !f1.fieldName.equals(f.fieldName) ||
+                (f1.isStaticField != f.isStaticField))return false;
+        return true;
     }
 
     public static int getObjRef(ThreadInfo ti, StackFrame stackFrame, HoleExpression hole,
