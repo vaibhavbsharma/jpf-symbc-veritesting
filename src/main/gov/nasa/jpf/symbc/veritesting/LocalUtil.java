@@ -45,7 +45,7 @@ public class LocalUtil {
     }
 
     public static boolean updateStackSlot(ThreadInfo ti, InvokeInfo callSiteInfo,
-                                          HoleExpression hole, boolean isMethodSummary) {
+                                          HoleExpression hole, boolean isMethodSummary) throws StaticRegionException {
         HoleExpression.FieldInfo fieldInfo = hole.getFieldInfo();
         assert (fieldInfo != null);
         if(isMethodSummary) {
@@ -64,7 +64,7 @@ public class LocalUtil {
                     // method summary uses a field from an object that is a local inside the method
                     // this cannot be handled during veritesting because we cannot create an object
                     // when using a method summary
-                    return true;
+                    throw new StaticRegionException("method summary uses a field from an object that is a non-parameter local, hole: " + hole.toString());
                 }
             }
         }

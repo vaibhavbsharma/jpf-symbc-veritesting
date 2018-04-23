@@ -482,7 +482,7 @@ public class VeritestingListener extends PropertyListenerAdapter implements Publ
                                                  LinkedHashMap<Expression, Expression> retHoleHashMap,
                                                  boolean isMethodSummary, InvokeInfo callSiteInfo,
                                                  ArrayList<HoleExpression> completedFieldOutputs,
-                                                 HoleExpression holeExpression) {
+                                                 HoleExpression holeExpression) throws StaticRegionException {
         assert(holeExpression.getHoleType() == FIELD_PHI);
         for(int i=0; i < completedFieldOutputs.size(); i++) {
             if(FieldUtil.isSameField(ti, sf, holeExpression, completedFieldOutputs.get(i), methodHoles, retHoleHashMap,
@@ -952,9 +952,7 @@ public class VeritestingListener extends PropertyListenerAdapter implements Publ
                         if(!retHoleHashMap.containsKey(prevValueHole)) {
                             FillFieldInputHole fillFieldInputHole = new FillFieldInputHole(prevValueHole, methodHoles,
                                     isMethodSummary, callSiteInfo, ti, stackFrame, retHoleHashMap);
-                            if (fillFieldInputHole.invoke()) {
-                                assert(false); // throw a StaticRegionException later
-                            }
+                            fillFieldInputHole.invoke();
                             retHoleHashMap = fillFieldInputHole.getRetHoleHashMap();
 
                         }
@@ -1053,10 +1051,7 @@ public class VeritestingListener extends PropertyListenerAdapter implements Publ
                     case FIELD_INPUT:
                         FillFieldInputHole fillFieldInputHole = new FillFieldInputHole(methodKeyHole, methodHoles,
                                 isMethodSummary, callSiteInfo, ti, stackFrame, retHoleHashMap);
-                        if (fillFieldInputHole.invoke()) {
-                            failure = true;
-                            return this;
-                        }
+                        fillFieldInputHole.invoke();
                         retHoleHashMap = fillFieldInputHole.getRetHoleHashMap();
                         break;
                     case INVOKE:

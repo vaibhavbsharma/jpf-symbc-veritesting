@@ -43,14 +43,15 @@ public class FillFieldInputHole {
         return myResult;
     }
 
-    public boolean invoke() throws StaticRegionException {
+    public void invoke() throws StaticRegionException {
         gov.nasa.jpf.symbc.numeric.Expression spfExpr;
         Expression greenExpr;
-        if (LocalUtil.updateStackSlot(ti, callSiteInfo, hole, isMethodSummary)) return true;
+        if (LocalUtil.updateStackSlot(ti, callSiteInfo, hole, isMethodSummary))
+            throw new StaticRegionException("updateStackSlot failed for hole: " + hole.toString());
         if(FieldUtil.hasWriteBefore(hole, ti, stackFrame, methodHoles, retHoleHashMap, isMethodSummary, callSiteInfo)) {
             VeritestingListener.fieldReadAfterWrite += 1;
             if((!VeritestingListener.allowFieldReadAfterWrite)) {
-                return true;
+                throw new StaticRegionException("found a disallowed read-after-write caused by hole: " + hole.toString());
             }
             //get the latest value written into this field, not the value in the field at the beginning of
             //this region. Look in retHoleHashmap because non-input holes get populated before input holes
@@ -69,12 +70,11 @@ public class FillFieldInputHole {
         } else {
             spfExpr = fillFieldHole(ti, stackFrame, hole, methodHoles, retHoleHashMap, isMethodSummary, callSiteInfo, true, null);
             if (spfExpr == null) {
-                return true;
+                throw new StaticRegionException("failed in fillFieldHole when reading hole: " + hole.toString());
             }
             greenExpr = ExpressionUtil.SPFToGreenExpr(spfExpr);
             retHoleHashMap.put(hole, greenExpr);
         }
-        return false;
     }
 
 }

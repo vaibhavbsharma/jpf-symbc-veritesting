@@ -24,7 +24,7 @@ public class FieldUtil {
                                             LinkedHashMap<Expression, Expression> methodHoles,
                                             LinkedHashMap<Expression, Expression> retHoleHashMap,
                                             ThreadInfo ti, StackFrame stackFrame, boolean isMethodSummary,
-                                            InvokeInfo callSiteInfo) {
+                                            InvokeInfo callSiteInfo) throws StaticRegionException {
         for(Map.Entry<Expression, Expression> entry: methodHoles.entrySet()) {
             HoleExpression holeExpression = (HoleExpression) entry.getKey();
             if(!(holeExpression.getHoleType() == HoleExpression.HoleType.FIELD_INPUT ||
@@ -60,7 +60,7 @@ public class FieldUtil {
     public static boolean hasWriteBefore(HoleExpression holeExpression, ThreadInfo ti, StackFrame sf,
                                          LinkedHashMap<Expression, Expression> methodHoles,
                                          LinkedHashMap<Expression, Expression> retHoleHashMap,
-                                         boolean isMethodSummary, InvokeInfo callSiteInfo) {
+                                         boolean isMethodSummary, InvokeInfo callSiteInfo) throws StaticRegionException {
         if(holeExpression.getHoleType() != FIELD_INPUT && holeExpression.getHoleType() != FIELD_OUTPUT) {
             System.out.println("Warning: Did you really mean to check FieldUtil.hasWriteBefore on holeType = " +
                     holeExpression.getHoleType() + " ?");
@@ -86,7 +86,7 @@ public class FieldUtil {
                                               ThreadInfo ti, StackFrame stackFrame,
                                               LinkedHashMap<Expression, Expression> methodHoles,
                                               LinkedHashMap<Expression, Expression> retHoleHashMap,
-                                              boolean isMethodSummary, InvokeInfo callSiteInfo) {
+                                              boolean isMethodSummary, InvokeInfo callSiteInfo) throws StaticRegionException {
         assert(holeExpression.getHoleType() == HoleExpression.HoleType.FIELD_INPUT ||
                 holeExpression.getHoleType() == FIELD_OUTPUT || holeExpression.getHoleType() == FIELD_PHI);
         for(HashMap.Entry<Expression, Expression> entry: methodHoles.entrySet()) {
@@ -104,7 +104,7 @@ public class FieldUtil {
                                          ThreadInfo ti, StackFrame stackFrame,
                                          LinkedHashMap<Expression, Expression> methodHoles,
                                          LinkedHashMap<Expression, Expression> retHoleHashMap,
-                                         boolean isMethodSummary, InvokeInfo callSiteInfo) {
+                                         boolean isMethodSummary, InvokeInfo callSiteInfo) throws StaticRegionException {
         // if we aren't checking field interference between holes, return false
         if(!(h.getHoleType() == FIELD_PHI || h.getHoleType() == FIELD_INPUT || h.getHoleType() == FIELD_OUTPUT) ||
                 !(h1.getHoleType() == FIELD_INPUT || h1.getHoleType() == FIELD_OUTPUT || h1.getHoleType() == FIELD_PHI))
@@ -153,7 +153,7 @@ public class FieldUtil {
                                                 StackFrame stackFrame,
                                                 LinkedHashMap<Expression, Expression> methodHoles,
                                                 LinkedHashMap<Expression, Expression> retHoleHashMap,
-                                                boolean isMethodSummary, InvokeInfo callSiteInfo) {
+                                                boolean isMethodSummary, InvokeInfo callSiteInfo) throws StaticRegionException {
         assert(FieldUtil.isFieldHasRWWithMap(holeExpression, rwOperation, ti, stackFrame, methodHoles, retHoleHashMap,
                 isMethodSummary, callSiteInfo) == true);
         assert(holeExpression.getHoleType() == HoleExpression.HoleType.FIELD_INPUT ||
@@ -180,7 +180,7 @@ public class FieldUtil {
     public static void setLatestWrite(HoleExpression methodKeyHole, ThreadInfo ti, StackFrame stackFrame,
                                       LinkedHashMap<Expression, Expression> methodHoles,
                                       LinkedHashMap<Expression, Expression> retHoleHashMap,
-                                      boolean isMethodSummary, InvokeInfo callSiteInfo) {
+                                      boolean isMethodSummary, InvokeInfo callSiteInfo) throws StaticRegionException {
         if(hasWriteBefore(methodKeyHole, ti, stackFrame, methodHoles, retHoleHashMap, isMethodSummary, callSiteInfo) &&
                 methodKeyHole.getHoleType() == FIELD_OUTPUT) {
             HoleExpression prevWrite = findPreviousRW(methodKeyHole, FIELD_OUTPUT, ti, stackFrame, methodHoles, retHoleHashMap, isMethodSummary, callSiteInfo);
@@ -194,7 +194,7 @@ public class FieldUtil {
                                       HoleExpression holeExpression1,
                                       LinkedHashMap<Expression, Expression> methodHoles,
                                       LinkedHashMap<Expression, Expression> retHoleHashMap,
-                                      boolean isMethodSummary, InvokeInfo callSiteInfo, boolean checkPLAssign) {
+                                      boolean isMethodSummary, InvokeInfo callSiteInfo, boolean checkPLAssign) throws StaticRegionException {
         HoleExpression.FieldInfo f1 = holeExpression1.getFieldInfo();
         HoleExpression.FieldInfo f = holeExpression.getFieldInfo();
         if(!f1.fieldName.equals(f.fieldName) ||
@@ -225,7 +225,7 @@ public class FieldUtil {
                                 LinkedHashMap<Expression, Expression> methodHoles,
                                 LinkedHashMap<Expression, Expression> retHoleHashMap,
                                 boolean isMethodSummary,
-                                InvokeInfo callSiteInfo) {
+                                InvokeInfo callSiteInfo) throws StaticRegionException {
         int objRef = -1;
         //get the object reference from fieldInputInfo.use's local stack slot if not from the call site stack slot
         HoleExpression.FieldInfo fieldInputInfo = hole.getFieldInfo();
@@ -235,7 +235,7 @@ public class FieldUtil {
         int stackSlot = -1;
         if(hole.getLocalStackSlot() != -1) {
             if(updateStackSlot(ti, callSiteInfo, hole, isMethodSummary))
-                assert(false); //throw a StaticRegionException because we failed to update the stack slot for this hole
+                throw new StaticRegionException("failed to update stack slot for hole: " + hole.toString());
             stackSlot = hole.getGlobalOrLocalStackSlot(className, methodName);
         }
         //this field is being loaded from an object reference that is itself a hole
@@ -250,14 +250,12 @@ public class FieldUtil {
                 if(h.getHoleType() == FIELD_INPUT) {
                     FillFieldInputHole fillFieldInputHole = new FillFieldInputHole(h, methodHoles,
                             isMethodSummary, callSiteInfo, ti, stackFrame, retHoleHashMap);
-                    if (fillFieldInputHole.invoke()) {
-                        assert(false); // throw a StaticRegionException later
-                    }
+                    fillFieldInputHole.invoke();
                     retHoleHashMap = fillFieldInputHole.getRetHoleHashMap();
                     assert(retHoleHashMap.containsKey(h));
                     e = retHoleHashMap.get(h);
-                } else assert(false); // throw a StaticRegionException in the future because we don't know how to fill
-                // up a non-field-input hole at this point
+                } else
+                    throw new StaticRegionException("cannot fill a non-field-input hole in getObjRef, hole: " + h.toString());
             }
             objRefExpression = ExpressionUtil.GreenToSPFExpression(e);
             assert(objRefExpression instanceof IntegerConstant);
@@ -294,7 +292,7 @@ public class FieldUtil {
                                               Expression finalValue, Expression prevValue,
                                               LinkedHashMap<Expression, Expression> methodHoles,
                                               LinkedHashMap<Expression, Expression> retHoleHashMap,
-                                              boolean isMethodSummary, InvokeInfo callSiteInfo) {
+                                              boolean isMethodSummary, InvokeInfo callSiteInfo) throws StaticRegionException {
         Expression ret = null;
         Iterator iterator = outputVars.iterator();
         Expression disjAllPLAssign = null;

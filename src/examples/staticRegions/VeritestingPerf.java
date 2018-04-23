@@ -3,9 +3,7 @@ package staticRegions;/*
 */
 
 
-import com.ibm.wala.util.intset.Bits;
 import gov.nasa.jpf.symbc.Debug;
-import sun.reflect.annotation.ExceptionProxy;
 
 import java.util.ArrayList;
 
