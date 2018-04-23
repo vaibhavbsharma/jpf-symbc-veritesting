@@ -86,7 +86,7 @@ public class VeritestingListener extends PropertyListenerAdapter implements Publ
     public static int fieldReadAfterWrite = 0;
     public static int fieldWriteAfterWrite = 0;
     public static int fieldWriteAfterRead = 0;
-    public static final boolean allowFieldReadAfterWrite = true;
+    public static final boolean allowFieldReadAfterWrite = false;
     public static final boolean allowFieldWriteAfterRead = true;
     public static final boolean allowFieldWriteAfterWrite = true;
     private static int methodSummaryRWInterference = 0;
@@ -144,7 +144,7 @@ public class VeritestingListener extends PropertyListenerAdapter implements Publ
                         regionSummary = instantiateRegion(ti, region); // fill holes in region
                         if (regionSummary == null)
                             return;
-                        System.out.println(ASTToString(regionSummary));
+                        //System.out.println(ASTToString(regionSummary));
                         newCG.makeVeritestingCG(regionSummary, ti);
                     } catch (StaticRegionException sre) {
                         System.out.println(sre.toString());
@@ -231,8 +231,8 @@ public class VeritestingListener extends PropertyListenerAdapter implements Publ
 
         pc = ((PCChoiceGenerator) ti.getVM().getSystemState().getChoiceGenerator()).getCurrentPC();
 
-        // MWW: this code is, as best I can tell, useless.
-        /*
+        // this code checks if SPF has reached a branch with both sides being infeasible
+
         if (!boostPerf && instructionInfo != null) {
             PathCondition eqPC = pc.make_copy();
             eqPC._addDet(new GreenConstraint(instructionInfo.getCondition()));
@@ -247,7 +247,7 @@ public class VeritestingListener extends PropertyListenerAdapter implements Publ
                 assert (false);
             }
         }
-        */
+
 
         FillHolesOutput fillHolesOutput =
                 fillHoles(region, instructionInfo, sf, ti);
@@ -658,7 +658,8 @@ public class VeritestingListener extends PropertyListenerAdapter implements Publ
         if(stackSlot == -1 && !fieldInputInfo.isStaticField) {
             gov.nasa.jpf.symbc.numeric.Expression objRefExpression =
                     GreenToSPFExpression(retHoleHashMap.get(fieldInputInfo.useHole));
-            assert(objRefExpression instanceof IntegerConstant);
+            if(!(objRefExpression instanceof IntegerConstant))
+                throw new StaticRegionException("Cannot resolve object references that are not a IntegerConstant");
             objRef = ((IntegerConstant) objRefExpression).value();
         }
         if (!isStatic && (stackSlot != -1)) {

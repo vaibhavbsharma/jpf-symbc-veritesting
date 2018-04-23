@@ -320,7 +320,7 @@ public class MyIVisitor implements SSAInstruction.IVisitor {
         String fieldName = fieldReference.getName().toString();
         intermediateVarName += objRef + ".";
         intermediateVarName += className + "." + fieldName;
-        Expression intermediate = varUtil.makeIntermediateVar(intermediateVarName, false);
+        Expression intermediate = varUtil.makeIntermediateVar(intermediateVarName, true);
         Expression writeVal = varUtil.addVal(instruction.getVal());
         SPFExpr = new Operation(Operator.EQ, intermediate, writeVal);
         if(varUtil.addFieldOutputVal(intermediate, objRef, className, fieldName.toString(),

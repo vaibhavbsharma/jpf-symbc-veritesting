@@ -436,17 +436,21 @@ public class VeritestingMain {
                         //instead of giving up, try to compute a summary of everything from thenUnit up to commonSucc
                         //to allow complex regions
 
+                        //save the 4 VarUtil data structures that will be cleared by varUtil.reset call inside the
+                        // recursive doAnalysis call
                         HashMap<Expression, Expression> savedHoleHashMap = saveHoleHashMap();
                         HashMap<String, Expression> savedVarCache = saveVarCache();
+                        SPFCaseList savedCaseList = varUtil.getSpfCases();
+                        HashSet<Expression> savedDefLocalVars = varUtil.getDefLocalVars();
 
-                        // MWW : recursive call
+                        // recursive call to doAnalysis to try to summarize the inner region
                         doAnalysis(thenUnit, commonSucc);
-                        for(Map.Entry<Expression, Expression> entry: savedHoleHashMap.entrySet()) { //restore holeHshMap
-                            varUtil.holeHashMap.put(entry.getKey(), entry.getValue());
-                        }
-                        for(Map.Entry<String, Expression> entry: savedVarCache.entrySet()) { //restore varCache
-                            varUtil.varCache.put(entry.getKey(), entry.getValue());
-                        }
+
+                        varUtil.holeHashMap.putAll(savedHoleHashMap); //restore holeHashMap
+                        varUtil.varCache.putAll(savedVarCache);
+                        varUtil.getSpfCases().addAll(savedCaseList);
+                        varUtil.getDefLocalVars().addAll(savedDefLocalVars);
+
                         int offset = ((IBytecodeMethod) (ir.getMethod())).getBytecodeIndex(thenUnit.getLastInstructionIndex());
                         String key = currentClassName + "." + currentMethodName + methodSig + "#" + offset;
 
@@ -485,9 +489,7 @@ public class VeritestingMain {
                             }
                             // MWW: end of new code
 
-                            for(Expression e: innerRegion.getOutputVars()) {
-                                varUtil.defLocalVars.add(e);
-                            }
+                            varUtil.defLocalVars.addAll(innerRegion.getOutputVars());
                             for(Map.Entry<Expression, Expression> entry: innerRegion.getHoleHashMap().entrySet()) {
                                 varUtil.holeHashMap.put(entry.getKey(), entry.getValue());
                                 if(((HoleExpression)entry.getKey()).getHoleType() == HoleExpression.HoleType.CONDITION ||
@@ -551,23 +553,24 @@ public class VeritestingMain {
                         }
                         //instead of giving up, try to compute a summary of everything from elseUnit up to commonSucc
                         //to allow complex regions
+
+                        //save the 4 VarUtil data structures that will be cleared by varUtil.reset call inside the
+                        // recursive doAnalysis call
                         HashMap<Expression, Expression> savedHoleHashMap = saveHoleHashMap();
                         HashMap<String, Expression> savedVarCache = saveVarCache();
                         SPFCaseList savedCaseList = varUtil.getSpfCases();
+                        HashSet<Expression> savedDefLocalVars = varUtil.getDefLocalVars();
 
+                        // recursive call to doAnalysis to try to summarize the inner region
                         doAnalysis(elseUnit, commonSucc);
-                        // MWW: Note: you can merge maps in one go with putAll as in e.g., the following:
-                        // varUtil.holeHashMap.putAll(savedHoleHashMap);
-                        // so these loops are not necessary.
+
+                        varUtil.holeHashMap.putAll(savedHoleHashMap); //restore holeHashMap
+                        varUtil.varCache.putAll(savedVarCache);
+                        varUtil.getSpfCases().addAll(savedCaseList);
+                        varUtil.getDefLocalVars().addAll(savedDefLocalVars);
 
                         // Also: doesn't this information get added *again* when we take it from the
                         // inner veritestingRegion?
-                        for(Map.Entry<Expression, Expression> entry: savedHoleHashMap.entrySet()) {
-                            varUtil.holeHashMap.put(entry.getKey(), entry.getValue());
-                        }
-                        for(Map.Entry<String, Expression> entry: savedVarCache.entrySet()) {
-                            varUtil.varCache.put(entry.getKey(), entry.getValue());
-                        }
 
                         int offset = ((IBytecodeMethod) (ir.getMethod())).getBytecodeIndex(elseUnit.getLastInstructionIndex());
                         String key = currentClassName + "." + currentMethodName + methodSig + "#" + offset;
@@ -608,9 +611,7 @@ public class VeritestingMain {
                             }
                             // MWW: end of new code
 
-                            for(Expression e: innerRegion.getOutputVars()) {
-                                varUtil.defLocalVars.add(e);
-                            }
+                            varUtil.defLocalVars.addAll(innerRegion.getOutputVars());
                             for(Map.Entry<Expression, Expression> entry: innerRegion.getHoleHashMap().entrySet()) {
                                 varUtil.holeHashMap.put(entry.getKey(), entry.getValue());
                                 if(((HoleExpression)entry.getKey()).getHoleType() == HoleExpression.HoleType.CONDITION ||

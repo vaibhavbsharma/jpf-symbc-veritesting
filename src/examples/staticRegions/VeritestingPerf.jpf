@@ -1,0 +1,46 @@
+target=VeritestingPerf
+classpath=${jpf-symbc}/build/examples
+sourcepath=${jpf-symbc}/src/examples
+vm.storage.class=nil
+symbolic.debug=false
+
+symbolic.method=VeritestingPerf.testSimple1(sym)
+symbolic.method=VeritestingPerf.nestedRegion(sym)
+symbolic.method=VeritestingPerf.countBitsSet(sym),VeritestingPerf.testDynObject(sym#sym),VeritestingPerf.testSimple1(sym)
+#symbolic.method=VeritestingPerf.checkOperator()
+#symbolic.method=VeritestingPerf.cfgTest(sym)
+#symbolic.method=VeritestingPerf.testMe5(sym#sym)
+#symbolic.method=VeritestingPerf.testMe6(sym#sym#sym#sym)
+#symbolic.method=VeritestingPerf.arrayTest(con#sym)
+
+######## testing ArrrayLoad  ######
+#testing inRange concrete Index
+#symbolic.method=VeritestingPerf.inRangeloadArrayTC(sym#sym)
+
+#symbolic.method=VeritestingPerf.innerCatchOutRangeloadArrayTC(sym#sym)
+
+#testing inRange symbolic Index
+#symbolic.method=VeritestingPerf.catchOutRangeloadArrayTC(sym#sym)
+
+#symbolic.method=VeritestingPerf.outRangeloadArrayTC(sym#sym)
+
+#symbolic.method=VeritestingPerf.boundedOutRangeloadArrayTC(sym#sym)
+#symbolic.method=VeritestingPerf.ifNull(con)
+
+
+#symbolic.method=VeritestingPerf.foo(sym)
+
+#symbolic.method=VeritestingPerf.segmantTest(sym#sym)
+
+#symbolic.method=TestPaths.testMe2(sym#sym)
+
+symbolic.dp=z3bitvector
+
+#symbolic.min_int=-1
+#symbolic.max_int=2
+
+symbolic.min_int=-2147483648
+symbolic.max_int=2147483647
+listener = .symbc.VeritestingListener
+#listener = .symbc.SymbolicListener
+veritestingMode = 3
