@@ -255,7 +255,10 @@ public class WBSV {
 	   // I prefer ite to !a || b for implications.
 	   
 	   // This assertion should prove:
-	   assert((PedalPos > 0 && PedalPos <= 4 && !Skid) ? (Alt_Pressure > 0 || Nor_Pressure > 0) : true);
+	   if (!((PedalPos > 0 && PedalPos <= 4 && !Skid) ? (Alt_Pressure > 0 || Nor_Pressure > 0) : true)) {
+			System.out.println("PedalPos: " + PedalPos + ", Skid: " + Skid + ",  Alt_Pressure: " + Alt_Pressure + ", Nor_Pressure: " + Nor_Pressure);
+		    assert((PedalPos > 0 && PedalPos <= 4 && !Skid) ? (Alt_Pressure > 0 || Nor_Pressure > 0) : true);
+		}
 
 	   // This assertion should fail:
 	    //assert((PedalPos > 0 && PedalPos <= 4 && !Skid) ? (Alt_Pressure > 0) : true);
@@ -275,7 +278,7 @@ public class WBSV {
 		WBSV wbs = new WBSV();
 		wbs.update(pedal1, auto1, skid1);
 		wbs.update(pedal2, auto2, skid2);
-		wbs.update(pedal3, auto3, skid3);
+		// wbs.update(pedal3, auto3, skid3);
 	}
 	
 	public static void main(String[] args) {

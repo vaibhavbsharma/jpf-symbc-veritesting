@@ -4,11 +4,8 @@ package gov.nasa.jpf.symbc.veritesting;
 import gov.nasa.jpf.symbc.veritesting.SPFCase.SPFCase;
 import gov.nasa.jpf.symbc.veritesting.SPFCase.SPFCaseList;
 import za.ac.sun.cs.green.expr.Expression;
-import za.ac.sun.cs.green.expr.Operation;
-
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.Iterator;
 
 /**
  *  MWW: This could be much better managed through a good encapsulated interface.
@@ -21,14 +18,15 @@ import java.util.Iterator;
  *
  */
 
+import java.util.LinkedHashMap;
+
+
 public class VeritestingRegion {
 
     private int startInsnPosition;
     private int endInsnPosition;
     private Expression summaryExpression;
     private HashSet<Expression> outputVars;
-    private String className, methodName;
-    private HashMap<Expression, Expression> holeHashMap;
     private boolean isMethodSummary = false;
     public Expression retVal;
     private String methodSignature;
@@ -130,13 +128,15 @@ public class VeritestingRegion {
         this.methodName = methodName;
     }
 
-    public void setHoleHashMap(HashMap<Expression, Expression> holeHashMap) {
+    private String className, methodName;
+
+    public void setHoleHashMap(LinkedHashMap<Expression,Expression> holeHashMap) {
         this.holeHashMap = holeHashMap;
     }
-    public HashMap<Expression, Expression> getHoleHashMap() {
+    public LinkedHashMap<Expression, Expression> getHoleHashMap() {
         return holeHashMap;
     }
-
+    private LinkedHashMap<Expression, Expression> holeHashMap;
 
     public void setIsMethodSummary(boolean isMethodSummary) {
         this.isMethodSummary = isMethodSummary;

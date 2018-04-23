@@ -67,7 +67,7 @@ public class VeritestingMain {
     int objectReference = -1;
     SSACFG cfg;
     HashSet startingPointsHistory;
-    String currentClassName, methodName, methodSig;
+    String currentClassName, currentMethodName, methodSig;
     VarUtil varUtil;
     HashSet<NatLoop> loops;
     IR ir;
@@ -75,6 +75,7 @@ public class VeritestingMain {
     public VeritestingMain(String appJar) {
         try {
             appJar = System.getenv("TARGET_CLASSPATH_WALA");// + appJar;
+            System.out.println("appJar = " + appJar);
             AnalysisScope scope = AnalysisScopeReader.makeJavaBinaryAnalysisScope(appJar,
                     (new FileProvider()).getFile(CallGraphTestUtil.REGRESSION_EXCLUSIONS));
             cha = ClassHierarchyFactory.make(scope);
@@ -238,10 +239,10 @@ public class VeritestingMain {
             }
             cfg = ir.getControlFlowGraph();
             currentClassName = m.getDeclaringClass().getName().getClassName().toString();
-            methodName = m.getName().toString();
+            currentMethodName = m.getName().toString();
             this.methodSig = methodSig.substring(methodSig.indexOf('('));
-            System.out.println("Starting analysis for " + methodName + "(" + currentClassName + "." + methodSig + ")");
-            varUtil = new VarUtil(ir, currentClassName, methodName);
+            System.out.println("Starting analysis for " + currentMethodName + "(" + currentClassName + "." + methodSig + ")");
+            varUtil = new VarUtil(ir, currentClassName, currentMethodName);
             NumberedDominators<ISSABasicBlock> uninverteddom =
                     (NumberedDominators<ISSABasicBlock>) Dominators.make(cfg, cfg.entry());
             loops = new HashSet<>();
@@ -276,6 +277,11 @@ public class VeritestingMain {
             ISSABasicBlock currUnit, ISSABasicBlock commonSucc,
             int thenUseNum, int elseUseNum,
             HashSet<Integer> summarizedRegionStartBB) throws InvalidClassFileException {
+        /****SH: Begin of handling skipping of both branches, thus we create no region*****/
+//        if((thenUseNum == -1)&&(elseUseNum == -1))
+//            return null;
+        /****SH: End of handling skipping of both branches, thus we create no region *****/
+
         if (thenExpr != null)
             thenExpr = new Operation(Operation.Operator.AND, thenExpr, thenPLAssignSPF);
         else thenExpr = thenPLAssignSPF;
@@ -284,9 +290,9 @@ public class VeritestingMain {
         else elseExpr = elsePLAssignSPF;
 
         // (If && thenExpr) || (ifNot && elseExpr)
-        HoleExpression condition = new HoleExpression(varUtil.nextInt());
+        HoleExpression condition = new HoleExpression(varUtil.nextInt(), currentClassName, currentMethodName);
         condition.setHole(true, HoleExpression.HoleType.CONDITION);
-        HoleExpression negCondition = new HoleExpression(varUtil.nextInt());
+        HoleExpression negCondition = new HoleExpression(varUtil.nextInt(), currentClassName, currentMethodName);
         negCondition.setHole(true, HoleExpression.HoleType.NEGCONDITION);
         varUtil.holeHashMap.put(condition, condition);
         varUtil.holeHashMap.put(negCondition, negCondition);
@@ -324,11 +330,11 @@ public class VeritestingMain {
         }
         veritestingRegion.setOutputVars(hashSet);
         veritestingRegion.setClassName(currentClassName);
-        veritestingRegion.setMethodName(methodName);
+        veritestingRegion.setMethodName(currentMethodName);
         veritestingRegion.setMethodSignature(methodSig);
         veritestingRegion.setStartBBNum(currUnit.getNumber());
         veritestingRegion.setEndBBNum(commonSucc.getNumber());
-        HashMap<Expression, Expression> hashMap = new HashMap<>();
+        LinkedHashMap<Expression, Expression> hashMap = new LinkedHashMap<>();
         for(Map.Entry<Expression, Expression> entry: varUtil.holeHashMap.entrySet()) {
             hashMap.put(entry.getKey(), entry.getValue());
         }
@@ -363,10 +369,23 @@ public class VeritestingMain {
         HashSet<Integer> methodSummarizedRegionStartBB = new HashSet<>();
         while (true) {
             if (currUnit == null || currUnit == endingUnit) break;
+
+            /*
+                Get the list of normal successors (excluding JVM-generated exceptions) and find find their
+                common successor.  If there is no successors, exit, and if only one successor, immediately
+                continue exploration.  The interesting case involves 2 successors.
+                endingUnit can be null.
+
+                When we rewrite this function, I would make varUtil an argument, which I would generate fresh
+                for each iteration and copy into the parent context as needed.  Rather than having while(true),
+                I would use recursion for continuations uniformly.
+
+
+                I would have a co-recursive function that actually built the veritesting region
+             */
             List<ISSABasicBlock> succs = new ArrayList<>(cfg.getNormalSuccessors(currUnit));
             ISSABasicBlock commonSucc = cfg.getIPdom(currUnit.getNumber());
             if (succs.size() == 1) {
-                if(succs.size() == 0) break;
                 currUnit = succs.get(0);
                 continue;
             } else if (succs.size() == 0) break;
@@ -396,7 +415,7 @@ public class VeritestingMain {
                 final int elsePathLabel = varUtil.getPathCounter();
                 ISSABasicBlock thenPred = thenUnit, elsePred = elseUnit;
                 int thenUseNum = -1, elseUseNum = -1;
-                Expression pathLabel = varUtil.makeIntermediateVar(pathLabelString);
+                Expression pathLabel = varUtil.makeIntermediateVar(pathLabelString, true);
                 final Expression thenPLAssignSPF =
                         new Operation(Operation.Operator.EQ, pathLabel,
                                 new IntConstant(thenPathLabel));
@@ -410,14 +429,12 @@ public class VeritestingMain {
                 // Create thenExpr
                 while (thenUnit != commonSucc) { // the meet point not reached yet
                     while(cfg.getNormalSuccessors(thenUnit).size() > 1 && thenUnit != commonSucc && canVeritest) {  //TODO: Support exceptionalSuccessors in the future
-                        if (VeritestingListener.veritestingMode == 1) {
+                        if (VeritestingListener.veritestingMode < 2) {
                             canVeritest = false;
                             break;
                         }
-                        assert(VeritestingListener.veritestingMode == 2 || VeritestingListener.veritestingMode == 3);
                         //instead of giving up, try to compute a summary of everything from thenUnit up to commonSucc
                         //to allow complex regions
-
 
                         HashMap<Expression, Expression> savedHoleHashMap = saveHoleHashMap();
                         HashMap<String, Expression> savedVarCache = saveVarCache();
@@ -431,7 +448,7 @@ public class VeritestingMain {
                             varUtil.varCache.put(entry.getKey(), entry.getValue());
                         }
                         int offset = ((IBytecodeMethod) (ir.getMethod())).getBytecodeIndex(thenUnit.getLastInstructionIndex());
-                        String key = currentClassName + "." + methodName + methodSig + "#" + offset;
+                        String key = currentClassName + "." + currentMethodName + methodSig + "#" + offset;
 
                         // MWW: working with child region here
                         if(VeritestingListener.veritestingRegions.containsKey(key)) { // we are able to summarize the inner region, try to sallow it
@@ -452,13 +469,14 @@ public class VeritestingMain {
                                     Dominators.make(invertedCFG, cfg.exit());
                             boolean bPostDom = (postDom.isDominatedBy(commonSuccthenUnit, commonSucc));
                             assert(bPostDom);
-
                             //start swallow holes from inner region to the outer region by taking a copy of the inner holes to the outer region
                             VeritestingRegion innerRegion = VeritestingListener.veritestingRegions.get(key);
+
                             // MWW: new code.  Note: really exception should never occur, so perhaps this is *too*
                             // defensive.
                             try {
-                                SPFCaseList innerCases = innerRegion.getSpfCases().cloneEmbedPathConstraint(thenExpr);
+                                assert(conditionExpression != null);
+                                SPFCaseList innerCases = innerRegion.getSpfCases().cloneEmbedPathConstraint(conditionExpression);
                                 varUtil.getSpfCases().addAll(innerCases);
                             } catch (StaticRegionException sre) {
                                 System.out.println("Unable to instantiate spfCases: " + sre.toString());
@@ -502,17 +520,7 @@ public class VeritestingMain {
                     if (!canVeritest) break;
                     if (blockSummary.hasNewOrThrow){ //SH: skip to the end of the region when a new Object or throw instruction encountered
                         thenUnit = commonSucc;
-                        ISSABasicBlock endBlock = thenPred;
-                        boolean notEnd = true;
-                        while(notEnd){
-                            endBlock = cfg.getNormalSuccessors(endBlock).iterator().next();
-                            if(endBlock  == commonSucc){
-                                notEnd = false;
-                            }
-                            else
-                                thenPred = endBlock;
-                        }
-                        thenCreateThrow = true;
+                        thenPred = null;
                         break;
                     }
                     thenPred = thenUnit;
@@ -537,11 +545,10 @@ public class VeritestingMain {
                 // Create elseExpr
                 while (canVeritest && elseUnit != commonSucc) {
                     while(cfg.getNormalSuccessors(elseUnit).size() > 1 && elseUnit != commonSucc && canVeritest) {
-                        if (VeritestingListener.veritestingMode == 1) {
+                        if (VeritestingListener.veritestingMode < 2) {
                             canVeritest = false;
                             break;
                         }
-                        assert(VeritestingListener.veritestingMode == 2 || VeritestingListener.veritestingMode == 3);
                         //instead of giving up, try to compute a summary of everything from elseUnit up to commonSucc
                         //to allow complex regions
                         HashMap<Expression, Expression> savedHoleHashMap = saveHoleHashMap();
@@ -563,7 +570,7 @@ public class VeritestingMain {
                         }
 
                         int offset = ((IBytecodeMethod) (ir.getMethod())).getBytecodeIndex(elseUnit.getLastInstructionIndex());
-                        String key = currentClassName + "." + methodName + methodSig + "#" + offset;
+                        String key = currentClassName + "." + currentMethodName + methodSig + "#" + offset;
                         if(VeritestingListener.veritestingRegions.containsKey(key)) {
                             System.out.println("Veritested inner region with key = " + key);
                             //visit all instructions up to and including the condition
@@ -589,7 +596,10 @@ public class VeritestingMain {
                             // MWW: new code.  Note: really exception should never occur, so perhaps this is *too*
                             // defensive.
                             try {
-                                SPFCaseList innerCases = innerRegion.getSpfCases().cloneEmbedPathConstraint(elseExpr);
+                                // need the negation of the condition expression here.
+                                Expression negIfExpr = new Operation(Operation.Operator.EQ, conditionExpression, Operation.FALSE);
+                                SPFCaseList innerCases = innerRegion.getSpfCases().cloneEmbedPathConstraint(
+                                        negIfExpr);
                                 varUtil.getSpfCases().addAll(innerCases);
                             } catch (StaticRegionException sre) {
                                 System.out.println("Unable to instantiate spfCases: " + sre.toString());
@@ -634,17 +644,7 @@ public class VeritestingMain {
                     if (!canVeritest) break;
                     if (blockSummary.hasNewOrThrow){ //SH: skip to the end of the region when a new Object or throw instruction encountered
                         elseUnit = commonSucc;
-                        ISSABasicBlock endBlock = elsePred;
-                        boolean notEnd = true;
-                        while(notEnd){
-                            endBlock = cfg.getNormalSuccessors(endBlock).iterator().next();
-                            if(endBlock  == commonSucc){
-                                notEnd = false;
-                            }
-                            else
-                                elsePred = endBlock;
-                        }
-                        elseCreateThrow = true;
+                        elsePred = null;
                         break;
                     }
                     elsePred = elseUnit;
@@ -667,7 +667,7 @@ public class VeritestingMain {
                 }
 
                 // Assign pathLabel a value in the elseExpr
-                if ((canVeritest) &&(!((thenCreateThrow)&&(elseCreateThrow)))) {
+                if ((canVeritest)) {
                     if(thenPred != null)
                         thenUseNum = Util.whichPred(cfg, thenPred, commonSucc);
                     if(elsePred != null)
@@ -689,7 +689,7 @@ public class VeritestingMain {
                 currUnit = commonSucc;
             } else {
                 System.out.println("more than 2 successors unhandled in stmt = " + currUnit);
-                assert (false);
+                return;
             }
             System.out.println();
         } // end while(true)
@@ -755,7 +755,7 @@ public class VeritestingMain {
 
     public void doMethodAnalysis(ISSABasicBlock startingUnit, ISSABasicBlock endingUnit) throws InvalidClassFileException {
         assert(methodAnalysis);
-        if(VeritestingListener.veritestingMode != 3) {
+        if(VeritestingListener.veritestingMode < 3) {
             return;
         }
         //System.out.println("Starting doMethodAnalysis");
@@ -805,7 +805,7 @@ public class VeritestingMain {
                 //cannot handle returns inside a if-then-else
                 if(blockSummary.getIsExitNode()) return;
                 int startingBC = ((IBytecodeMethod) (ir.getMethod())).getBytecodeIndex(currUnit.getLastInstructionIndex());
-                String key = currentClassName + "." + methodName + methodSig + "#" + startingBC;
+                String key = currentClassName + "." + currentMethodName + methodSig + "#" + startingBC;
                 if(!VeritestingListener.veritestingRegions.containsKey(key)) return;
                 VeritestingRegion veritestingRegion = VeritestingListener.veritestingRegions.get(key);
                 Expression summaryExpression = veritestingRegion.getSummaryExpression();
@@ -852,7 +852,7 @@ public class VeritestingMain {
         veritestingRegion.setOutputVars(varUtil.defLocalVars);
         veritestingRegion.setRetValVars(varUtil.retValVar);
         veritestingRegion.setClassName(currentClassName);
-        veritestingRegion.setMethodName(methodName);
+        veritestingRegion.setMethodName(currentMethodName);
         veritestingRegion.setMethodSignature(methodSig);
         veritestingRegion.setHoleHashMap(varUtil.holeHashMap);
         veritestingRegion.setStartBBNum(startBBNum);
@@ -955,4 +955,10 @@ public class VeritestingMain {
         }
     }
 }
+
+
+
+
+
+
 
