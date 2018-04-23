@@ -20,7 +20,7 @@ public class FillAstHoleVisitor {
     }
 
     public Expression visit(Expression holeExpression) throws StaticRegionException {
-        if (holeExpression instanceof HoleExpression && ((HoleExpression) holeExpression).isHole()) {
+        if (holeExpression instanceof HoleExpression) {
             //assert(holeHashMap.containsKey(holeExpression));
             if (!holeHashMap.containsKey(holeExpression)) {
                 String exp = "visit does not know how to fill hole " + holeExpression.toString();

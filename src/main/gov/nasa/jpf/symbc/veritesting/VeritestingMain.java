@@ -167,11 +167,7 @@ public class VeritestingMain {
                     startAnalysis(methodSummaryClassName, signature);
                 }
             }
-        } catch (MalformedURLException e) {
-            e.printStackTrace();
-        } catch (ClassNotFoundException e) {
-            e.printStackTrace();
-        } catch (IOException e) {
+        } catch (MalformedURLException | ClassNotFoundException e) {
             e.printStackTrace();
         }
     }

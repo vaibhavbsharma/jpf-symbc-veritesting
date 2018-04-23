@@ -867,7 +867,7 @@ public class VeritestingListener extends PropertyListenerAdapter implements Publ
         /*
         this method returns a true to indicate failure, returns false to indicate success
          */
-        public FillNonInputHolesOutput invoke() {
+        public FillNonInputHolesOutput invoke() throws StaticRegionException {
             gov.nasa.jpf.symbc.numeric.Expression spfExpr;
             Expression greenExpr;//fill all holes inside the method summary
             for(Map.Entry<Expression, Expression> entry1 : methodHoles.entrySet()) {
@@ -931,7 +931,7 @@ public class VeritestingListener extends PropertyListenerAdapter implements Publ
             return new FillNonInputHolesOutput(false, fieldOutputExpression);
         }
 
-        private Expression getFieldOutputExpression() {
+        private Expression getFieldOutputExpression() throws StaticRegionException {
             ArrayList<HoleExpression> completedFieldOutputs = new ArrayList<>();
             Expression fieldOutputExpression = null;
             for(Map.Entry<Expression, Expression> entry1 : methodHoles.entrySet()) {
@@ -1002,7 +1002,7 @@ public class VeritestingListener extends PropertyListenerAdapter implements Publ
             return failure;
         }
 
-        public FillInputHoles invoke() {
+        public FillInputHoles invoke() throws StaticRegionException {
             gov.nasa.jpf.symbc.numeric.Expression spfExpr;
             Expression greenExpr;
             for(Map.Entry<Expression, Expression> entry1 : methodHoles.entrySet()) {

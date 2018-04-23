@@ -43,7 +43,7 @@ public class FillFieldInputHole {
         return myResult;
     }
 
-    public boolean invoke() {
+    public boolean invoke() throws StaticRegionException {
         gov.nasa.jpf.symbc.numeric.Expression spfExpr;
         Expression greenExpr;
         if (LocalUtil.updateStackSlot(ti, callSiteInfo, hole, isMethodSummary)) return true;

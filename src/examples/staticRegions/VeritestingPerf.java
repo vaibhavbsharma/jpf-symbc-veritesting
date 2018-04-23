@@ -17,10 +17,10 @@ public class VeritestingPerf {
 
     public static void main(String[] args) {
         //(new VeritestingPerf()).cfgTest(1);
-        //(new VeritestingPerf()).countBitsSet(1);
+        (new VeritestingPerf()).countBitsSet(1);
 
         // (new VeritestingPerf()).nestedRegion(1);
-        (new VeritestingPerf()).testSimple1(1);
+        //(new VeritestingPerf()).testSimple1(1);
         //(new VeritestingPerf()).testDynObject(false, 1);
                 //int x[] = {1, 2};
                 //(new VeritestingPerf()).inRangeloadArrayTC(22, 2);
