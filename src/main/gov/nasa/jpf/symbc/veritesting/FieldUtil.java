@@ -5,10 +5,9 @@ import gov.nasa.jpf.vm.StackFrame;
 import gov.nasa.jpf.vm.ThreadInfo;
 import za.ac.sun.cs.green.expr.Expression;
 import za.ac.sun.cs.green.expr.IntConstant;
+import za.ac.sun.cs.green.expr.Operation;
 
-import java.util.HashMap;
-import java.util.LinkedHashMap;
-import java.util.Map;
+import java.util.*;
 
 import static gov.nasa.jpf.symbc.veritesting.LocalUtil.updateStackSlot;
 import static gov.nasa.jpf.symbc.veritesting.HoleExpression.HoleType.FIELD_INPUT;
@@ -277,6 +276,60 @@ public class FieldUtil {
 
     public static boolean isField(HoleExpression hole) {
         return hole.getHoleType() == FIELD_INPUT || hole.getHoleType() == FIELD_OUTPUT || hole.getHoleType() == FIELD_PHI;
+    }
+
+    /*
+    Returns an expression which lets the field output be one of the output variables in outputVars or be the value of
+    the field before the region. The assignments are predicated on the pathlabel assignment being satisfied, where the
+    pathlabel assignment comes from each output variable. This method will return a phi expression over all fields that
+    are the same field from the same aliased object. This method needs to be called only once per field output.
+    holeExpression = one of the output variables in outputVars
+    outputVars = output variables of the region
+    finalValue = intermediate symbolic variable that will be written into the field
+    prevValue = value of the field before the region
+    retHoleHashMap = hashmap that maps holes to instantiated green expressions
+     */
+    public static Expression findCommonFieldOutputs(ThreadInfo ti, StackFrame sf,
+                                              HoleExpression holeExpression, HashSet<Expression> outputVars,
+                                              Expression finalValue, Expression prevValue,
+                                              LinkedHashMap<Expression, Expression> methodHoles,
+                                              LinkedHashMap<Expression, Expression> retHoleHashMap,
+                                              boolean isMethodSummary, InvokeInfo callSiteInfo) {
+        Expression ret = null;
+        Iterator iterator = outputVars.iterator();
+        Expression disjAllPLAssign = null;
+        // FYI: outputVars doesn't contain FIELD_PHI holes
+        while(iterator.hasNext()) {
+            HoleExpression outputVar = (HoleExpression) iterator.next();
+            if(outputVar.getHoleType() != FIELD_OUTPUT) continue;
+            if(!outputVar.isLatestWrite()) continue;
+            if(FieldUtil.isSameField(ti, sf, holeExpression, outputVar, methodHoles, retHoleHashMap, isMethodSummary, callSiteInfo, false)) {
+                if(outputVar.PLAssign == null) {
+                    outputVar.setIsLatestWrite(false);
+                    continue;
+                }
+                assert(outputVar.getFieldInfo().writeValue != null);
+                Expression thisOutputVar = new Operation(Operation.Operator.AND,
+                        outputVar.PLAssign,
+                        new Operation(Operation.Operator.EQ, finalValue, outputVar.getFieldInfo().writeValue));
+                if(ret == null) {
+                    ret = thisOutputVar;
+                    assert(disjAllPLAssign == null);
+                    disjAllPLAssign = outputVar.PLAssign;
+                }
+                else {
+                    assert(disjAllPLAssign != null);
+                    ret = new Operation(Operation.Operator.OR, ret, thisOutputVar);
+                    disjAllPLAssign = new Operation(Operation.Operator.OR, disjAllPLAssign, outputVar.PLAssign);
+                }
+                outputVar.setIsLatestWrite(false);
+            }
+        }
+        Expression prevAssign = new Operation(Operation.Operator.AND,
+                new Operation(Operation.Operator.NOT, disjAllPLAssign),
+                new Operation(Operation.Operator.EQ, finalValue, prevValue));
+        assert(ret != null);
+        return new Operation(Operation.Operator.OR, ret, prevAssign);
     }
 
 }

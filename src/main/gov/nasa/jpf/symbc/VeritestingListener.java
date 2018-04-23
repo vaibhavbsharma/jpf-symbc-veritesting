@@ -42,6 +42,7 @@ import java.util.*;
 import gov.nasa.jpf.symbc.veritesting.ExpressionUtil;
 
 import static gov.nasa.jpf.symbc.veritesting.ExpressionUtil.SPFToGreenExpr;
+import static gov.nasa.jpf.symbc.veritesting.FieldUtil.findCommonFieldOutputs;
 import static gov.nasa.jpf.symbc.veritesting.LocalUtil.updateStackSlot;
 import static gov.nasa.jpf.symbc.veritesting.HoleExpression.HoleType.*;
 
@@ -102,6 +103,10 @@ public class VeritestingListener extends PropertyListenerAdapter implements Publ
             discoverRegions(ti); // static analysis to discover regions
         }
         String key = generateRegionKey(ti, instructionToExecute);
+
+        if(key.contains("testNestedMiddle")) {
+            System.out.println("");
+        }
 
         if (veritestingRegions != null && veritestingRegions.containsKey(key)) {
             VeritestingRegion region = veritestingRegions.get(key);
@@ -274,18 +279,13 @@ public class VeritestingListener extends PropertyListenerAdapter implements Publ
         FillHolesOutput fillHolesOutput =
                 fillHoles(region, instructionInfo, sf, ti);
         if (fillHolesOutput == null || fillHolesOutput.holeHashMap == null) return null;
-        Expression summaryExpression = region.getSummaryExpression();
-        Expression finalSummaryExpression = summaryExpression;
-        if (fillHolesOutput.additionalAST != null) {
-            if (summaryExpression != null)
-                finalSummaryExpression = new Operation(Operation.Operator.AND, summaryExpression, fillHolesOutput.additionalAST);
-            else finalSummaryExpression = fillHolesOutput.additionalAST;
-        }
+        Expression finalSummaryExpression = ExpressionUtil.nonNullOp(Operation.Operator.AND,
+                region.getSummaryExpression(), fillHolesOutput.additionalAST);
         if(finalSummaryExpression == null) {
             //System.out.println("used empty region");
             //assert(false);
         }
-        populateOutputs(ti,sf, region, fillHolesOutput.holeHashMap);
+        populateOutputs(ti,sf, region, fillHolesOutput);
         finalSummaryExpression = fillASTHoles(finalSummaryExpression, fillHolesOutput.holeHashMap); //not constant-folding for now
         return finalSummaryExpression;
     }
@@ -417,15 +417,18 @@ public class VeritestingListener extends PropertyListenerAdapter implements Publ
     }
 
     /*
-    write all outputs of the veritesting region
+    write all outputs of the veritesting region, FIELD_OUTPUT have the value to be written in a field named writeValue
+    LOCAL_OUTPUT and FIELD_PHIs have the final value mapped in fillHolesOutput.holeHashMap
      */
-    //TODO make this method write the outputs atomically,
-    // either all of them get written or none of them do and then SPF takes over
+    //TODO make this method write the outputs atomically, either all of them get written or none of them do and then SPF takes over
     private void populateOutputs(ThreadInfo ti, StackFrame stackFrame, VeritestingRegion region,
-                                 LinkedHashMap<Expression, Expression> retHoleHashMap) {
-        HashSet<Expression> outputVars = region.getOutputVars();
+                                 FillHolesOutput fillHolesOutput) {
+        LinkedHashMap<Expression, Expression> retHoleHashMap = fillHolesOutput.holeHashMap;
+        HashSet<Expression> allOutputVars = new HashSet<>();
+        allOutputVars.addAll(region.getOutputVars());
+        allOutputVars.addAll(fillHolesOutput.additionalOutputVars);
         LinkedHashMap<Expression, Expression> methodHoles = region.getHoleHashMap();
-        Iterator iterator = outputVars.iterator();
+        Iterator iterator = allOutputVars.iterator();
         while (iterator.hasNext()) {
             Expression expression = (Expression) iterator.next(), value;
             assert (expression instanceof HoleExpression);
@@ -439,6 +442,10 @@ public class VeritestingListener extends PropertyListenerAdapter implements Publ
                 case FIELD_OUTPUT:
                     if(holeExpression.isLatestWrite()) {
                         value = holeExpression.getFieldInfo().writeValue;
+                        if(value instanceof HoleExpression) {
+                            assert (retHoleHashMap.containsKey(value));
+                            value = retHoleHashMap.get(value);
+                        }
                         fillFieldHole(ti, stackFrame, holeExpression, methodHoles, retHoleHashMap, false, null,
                                 false,
                                 ExpressionUtil.GreenToSPFExpression(value));
@@ -454,60 +461,6 @@ public class VeritestingListener extends PropertyListenerAdapter implements Publ
                     break;
             }
         }
-    }
-
-    /*
-    Returns an expression which lets the field output be one of the output variables in outputVars or be the value of
-    the field before the region. The assignments are predicated on the pathlabel assignment being satisfied, where the
-    pathlabel assignment comes from each output variable. This method will return a phi expression over all fields that
-    are the same field from the same aliased object. This method needs to be called only once per field output.
-    holeExpression = one of the output variables in outputVars
-    outputVars = output variables of the region
-    finalValue = intermediate symbolic variable that will be written into the field
-    prevValue = value of the field before the region
-    retHoleHashMap = hashmap that maps holes to instantiated green expressions
-     */
-    private Expression findCommonFieldOutputs(ThreadInfo ti, StackFrame sf,
-                                              HoleExpression holeExpression, HashSet<Expression> outputVars,
-                                              Expression finalValue, Expression prevValue,
-                                              LinkedHashMap<Expression, Expression> methodHoles,
-                                              LinkedHashMap<Expression, Expression> retHoleHashMap,
-                                              boolean isMethodSummary, InvokeInfo callSiteInfo) {
-        Expression ret = null;
-        Iterator iterator = outputVars.iterator();
-        Expression disjAllPLAssign = null;
-        // FYI: outputVars doesn't contain FIELD_PHI holes
-        while(iterator.hasNext()) {
-            HoleExpression outputVar = (HoleExpression) iterator.next();
-            if(outputVar.getHoleType() != FIELD_OUTPUT) continue;
-            if(!outputVar.isLatestWrite()) continue;
-            if(FieldUtil.isSameField(ti, sf, holeExpression, outputVar, methodHoles, retHoleHashMap, isMethodSummary, callSiteInfo, false)) {
-                if(outputVar.PLAssign == null) {
-                    outputVar.setIsLatestWrite(false);
-                    continue;
-                }
-                assert(outputVar.getFieldInfo().writeValue != null);
-                Expression thisOutputVar = new Operation(Operation.Operator.AND,
-                        outputVar.PLAssign,
-                        new Operation(Operation.Operator.EQ, finalValue, outputVar.getFieldInfo().writeValue));
-                if(ret == null) {
-                    ret = thisOutputVar;
-                    assert(disjAllPLAssign == null);
-                    disjAllPLAssign = outputVar.PLAssign;
-                }
-                else {
-                    assert(disjAllPLAssign != null);
-                    ret = new Operation(Operation.Operator.OR, ret, thisOutputVar);
-                    disjAllPLAssign = new Operation(Operation.Operator.OR, disjAllPLAssign, outputVar.PLAssign);
-                }
-                outputVar.setIsLatestWrite(false);
-            }
-        }
-        Expression prevAssign = new Operation(Operation.Operator.AND,
-                new Operation(Operation.Operator.NOT, disjAllPLAssign),
-                new Operation(Operation.Operator.EQ, finalValue, prevValue));
-        assert(ret != null);
-        return new Operation(Operation.Operator.OR, ret, prevAssign);
     }
 
     /*
@@ -590,6 +543,7 @@ public class VeritestingListener extends PropertyListenerAdapter implements Publ
                                       final ThreadInfo ti) {
         LinkedHashMap<Expression, Expression> holeHashMap = region.getHoleHashMap();
         LinkedHashMap<Expression, Expression> retHoleHashMap = new LinkedHashMap<>();
+        HashSet<HoleExpression> additionalOutputVars = new HashSet<>();
         Expression additionalAST = null;
         FillNonInputHoles fillNonInputHoles =
                 new FillNonInputHoles(retHoleHashMap, null, holeHashMap, instructionInfo, false, ti, stackFrame, region);
@@ -605,6 +559,7 @@ public class VeritestingListener extends PropertyListenerAdapter implements Publ
         if (fillInvokeHole.is()) return null;
         retHoleHashMap = fillInvokeHole.getRetHoleHashMap();
         additionalAST = fillInvokeHole.getAdditionalAST();
+        additionalOutputVars = fillInvokeHole.getAdditionalOutputVars();
         /* populate the return value of methodSummary regions that have a non-null return value */
         if(region.isMethodSummary() && region.retVal != null) {
             ti.getModifiableTopFrame().push(0);
@@ -614,7 +569,7 @@ public class VeritestingListener extends PropertyListenerAdapter implements Publ
         }
 
 
-        return new FillHolesOutput(retHoleHashMap, additionalAST);
+        return new FillHolesOutput(retHoleHashMap, additionalAST, additionalOutputVars);
     }
 
     private boolean fillArrayLoadHoles(VeritestingRegion region, LinkedHashMap<Expression, Expression> holeHashMap, InstructionInfo instructionInfo,
@@ -763,10 +718,10 @@ public class VeritestingListener extends PropertyListenerAdapter implements Publ
                 } else {
                     int fieldSize = fieldInfo.getStorageSize();
                     if (fieldSize == 1) {
-                        eiFieldOwner.set1SlotField(fieldInfo, 0); // field value should not matter (I think)
+                        eiFieldOwner.set1SlotField(fieldInfo, 0); // field value should not matter (I, Vaibhav, think)
                         eiFieldOwner.setFieldAttr(fieldInfo, finalValue);
                     } else {
-                        eiFieldOwner.set2SlotField(fieldInfo, 0); // field value should not matter (I think)
+                        eiFieldOwner.set2SlotField(fieldInfo, 0); // field value should not matter (I, Vaibhav, think)
                         eiFieldOwner.setFieldAttr(fieldInfo, finalValue);
                     }
                 }
@@ -1188,6 +1143,8 @@ public class VeritestingListener extends PropertyListenerAdapter implements Publ
         private HoleExpression keyHoleExpression;
         private InvokeInfo callSiteInfo;
         private VeritestingRegion methodSummary;
+        private HashSet<HoleExpression> additionalOutputVars;
+
 
         public FillMethodSummary(StackFrame stackFrame, ThreadInfo ti, LinkedHashMap<Expression, Expression> holeHashMap,
                                  LinkedHashMap<Expression, Expression> retHoleHashMap, Expression additionalAST,
@@ -1200,6 +1157,7 @@ public class VeritestingListener extends PropertyListenerAdapter implements Publ
             this.keyHoleExpression = keyHoleExpression;
             this.callSiteInfo = callSiteInfo;
             this.methodSummary = methodSummary;
+            this.additionalOutputVars = new HashSet<>();
         }
 
         boolean is() {
@@ -1234,6 +1192,7 @@ public class VeritestingListener extends PropertyListenerAdapter implements Publ
 
             additionalAST = ExpressionUtil.nonNullOp(Operation.Operator.AND, additionalAST, fillNonInputHolesOutput.getFieldOutputExpression());
             retHoleHashMap = fillNonInputHoles.retHoleHashMap;
+            findAdditionalOutputVars(methodHoles);
 
             FillInputHoles fillInputHolesMS =
                     new FillInputHoles(stackFrame, ti, retHoleHashMap, callSiteInfo, methodHoles, true).invoke();
@@ -1251,6 +1210,7 @@ public class VeritestingListener extends PropertyListenerAdapter implements Publ
             }
             retHoleHashMap = fillInvokeHole.getRetHoleHashMap();
             additionalAST = fillInvokeHole.getAdditionalAST();
+            additionalOutputVars.addAll(fillInvokeHole.getAdditionalOutputVars());
 
             Expression retValEq = null;
             if (methodSummary.retVal != null)
@@ -1274,6 +1234,21 @@ public class VeritestingListener extends PropertyListenerAdapter implements Publ
             myResult = false;
             return this;
         }
+
+        private void findAdditionalOutputVars(LinkedHashMap<Expression, Expression> methodHoles) {
+            for(Map.Entry<Expression, Expression> entry: methodHoles.entrySet()) {
+                HoleExpression h = (HoleExpression) entry.getKey();
+                if((h.getHoleType() == FIELD_OUTPUT || h.getHoleType() == FIELD_PHI) &&
+                        (h.getGlobalStackSlot() != -1 || h.getFieldInfo().isStaticField)) {
+                    assert(retHoleHashMap.containsKey(h));
+                    additionalOutputVars.add(h);
+                }
+            }
+        }
+
+        public HashSet<HoleExpression> getAdditionalOutputVars() {
+            return additionalOutputVars;
+        }
     }
 
     private class FillInvokeHole {
@@ -1284,6 +1259,12 @@ public class VeritestingListener extends PropertyListenerAdapter implements Publ
         private LinkedHashMap<Expression, Expression> retHoleHashMap;
         private Expression additionalAST;
 
+        public HashSet<HoleExpression> getAdditionalOutputVars() {
+            return additionalOutputVars;
+        }
+
+        private HashSet<HoleExpression> additionalOutputVars;
+
         public FillInvokeHole(StackFrame stackFrame, ThreadInfo ti, LinkedHashMap<Expression, Expression> holeHashMap,
                               LinkedHashMap<Expression, Expression> retHoleHashMap, Expression additionalAST) {
             this.stackFrame = stackFrame;
@@ -1291,6 +1272,7 @@ public class VeritestingListener extends PropertyListenerAdapter implements Publ
             this.holeHashMap = holeHashMap;
             this.retHoleHashMap = retHoleHashMap;
             this.additionalAST = additionalAST;
+            additionalOutputVars = new HashSet<>();
         }
 
         boolean is() {
@@ -1356,6 +1338,7 @@ public class VeritestingListener extends PropertyListenerAdapter implements Publ
                         }
                         retHoleHashMap = fillMethodSummary.getRetHoleHashMap();
                         additionalAST = fillMethodSummary.getAdditionalAST();
+                        additionalOutputVars = fillMethodSummary.getAdditionalOutputVars();
                         break;
                 }
             }

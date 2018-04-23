@@ -62,7 +62,8 @@ public class FillFieldInputHole {
                 retHoleHashMap.put(hole, retHoleHashMap.get(holeExpression.getFieldInfo().writeValue));
             }
             if(holeExpression.getHoleType() == FIELD_PHI) {
-                // FIELD_PHI holes are mapped to intermediate variables
+                // FIELD_PHI holes are mapped to intermediate variables whereas FIELD_OUTPUT holes have a write value
+                // saved within them in the FieldInfo.writeValue field
                 retHoleHashMap.put(hole, retHoleHashMap.get(holeExpression));
             }
         } else {

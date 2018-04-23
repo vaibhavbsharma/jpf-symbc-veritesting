@@ -11,6 +11,7 @@ import java.util.Map;
 public class ExpressionUtil {
 
     public static gov.nasa.jpf.symbc.numeric.Expression GreenToSPFExpression(Expression greenExpression) {
+        assert(!(greenExpression instanceof HoleExpression));
         GreenToSPFTranslator toSPFTranslator = new GreenToSPFTranslator();
         return toSPFTranslator.translate(greenExpression);
     }
