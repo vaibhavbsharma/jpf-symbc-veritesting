@@ -1009,7 +1009,6 @@ public class VeritestingListener extends PropertyListenerAdapter implements Publ
         private LinkedHashMap<Expression, Expression> retHoleHashMap;
         private InvokeInfo callSiteInfo;
         private LinkedHashMap<Expression, Expression> methodHoles;
-        private ArrayList<Expression> paramEqList;
 
         public FillInputHoles(StackFrame stackFrame, ThreadInfo ti, LinkedHashMap<Expression, Expression> retHoleHashMap,
                               InvokeInfo callSiteInfo, LinkedHashMap<Expression, Expression> methodHoles,
@@ -1026,14 +1025,9 @@ public class VeritestingListener extends PropertyListenerAdapter implements Publ
             return failure;
         }
 
-        public ArrayList<Expression> getParamEqList() {
-            return paramEqList;
-        }
-
         public FillInputHoles invoke() {
             gov.nasa.jpf.symbc.numeric.Expression spfExpr;
             Expression greenExpr;
-            paramEqList = new ArrayList<>();
             for(Map.Entry<Expression, Expression> entry1 : methodHoles.entrySet()) {
                 Expression methodKeyExpr = entry1.getKey();
                 assert(methodKeyExpr instanceof HoleExpression);
@@ -1061,9 +1055,6 @@ public class VeritestingListener extends PropertyListenerAdapter implements Publ
                                     }
                                     else //a constant could have been passed as an argument instead of a variable
                                         retHoleHashMap.put(methodKeyHole, callSiteInfo.paramList.get(methodLocalStackSlot));
-                                    paramEqList.add(new Operation(Operation.Operator.EQ,
-                                            methodKeyHole,
-                                            callSiteInfo.paramList.get(methodLocalStackSlot)));
                                 } else {
                                     //Local variables in the method summary should just become intermediate variables
                                     gov.nasa.jpf.symbc.numeric.Expression finalValueSPF =
@@ -1200,7 +1191,6 @@ public class VeritestingListener extends PropertyListenerAdapter implements Publ
                 myResult = true;
                 return this;
             }
-            ArrayList<Expression> paramEqList = fillInputHolesMS.getParamEqList();
             retHoleHashMap = fillInputHolesMS.retHoleHashMap;
 
             FillInvokeHole fillInvokeHole = new FillInvokeHole(stackFrame, ti, methodHoles, retHoleHashMap, additionalAST).invoke();
@@ -1216,17 +1206,9 @@ public class VeritestingListener extends PropertyListenerAdapter implements Publ
             if (methodSummary.retVal != null)
                 retValEq = new Operation(Operation.Operator.EQ, methodSummary.retVal, keyHoleExpression);
             Expression mappingOperation = retValEq;
-            for(int i=0; i < paramEqList.size(); i++) {
-                //paramList.length-1 because there won't be a constraint created for the object reference
-                if(mappingOperation != null)
-                    mappingOperation = new Operation(Operation.Operator.AND, mappingOperation, paramEqList.get(i));
-                else mappingOperation = paramEqList.get(i);
-            }
             if (methodSummary.getSummaryExpression() != null)
                 mappingOperation = new Operation(Operation.Operator.AND, mappingOperation, methodSummary.getSummaryExpression());
-            if (additionalAST != null)
-                additionalAST = new Operation(Operation.Operator.AND, additionalAST, mappingOperation);
-            else additionalAST = mappingOperation;
+            additionalAST = ExpressionUtil.nonNullOp(Operation.Operator.AND, additionalAST, mappingOperation);
             Expression finalValueGreen = SPFToGreenExpr(makeSymbolicInteger(keyHoleExpression.getHoleVarName() + pathLabelCount));
             retHoleHashMap.put(keyHoleExpression, finalValueGreen);
             methodSummary.ranIntoCount++;

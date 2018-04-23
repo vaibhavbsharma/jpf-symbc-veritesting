@@ -172,8 +172,7 @@ public class VeritestingPerf {
             x = x >>> 1; // logical right shift
         }
         assert(xOrig == 0 || TempClassDerived.tempInt == 6);
-        //int bitCount = Bits.populationCount(xOrig);
-        //assert(bitCount == count);
+        //assert(Bits.populationCount(xOrig) == count);
         System.out.println("TempClassDerived.tempInt = " + TempClassDerived.tempInt);
         System.out.println("TempClass.tempInt = " + TempClass.tempInt);
         return count;
@@ -390,8 +389,8 @@ class TempClassDerived extends TempClass {
         //VeritestingPerf.count += 1;
         //return tempInt;
         //return nestedRegion(myInt);
-        //return getTempInt(tempInt);
-        return 1;
+        return getTempInt(tempInt);
+        //return 1;
     }
 
     public int nestedRegion(int x) {
