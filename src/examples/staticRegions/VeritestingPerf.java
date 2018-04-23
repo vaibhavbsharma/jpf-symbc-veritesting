@@ -1,12 +1,15 @@
-/*
+package staticRegions;/*
  * example to demonstrate veritesting
 */
 
 
+import com.ibm.wala.util.intset.Bits;
 import gov.nasa.jpf.symbc.Debug;
 import sun.reflect.annotation.ExceptionProxy;
 
 import java.util.ArrayList;
+
+import static com.ibm.wala.util.math.Logs.isPowerOf2;
 
 public class VeritestingPerf {
 
@@ -15,6 +18,7 @@ public class VeritestingPerf {
     public static void main(String[] args) {
         //(new VeritestingPerf()).cfgTest(1);
         //(new VeritestingPerf()).countBitsSet(1);
+
         // (new VeritestingPerf()).nestedRegion(1);
         (new VeritestingPerf()).testSimple1(1);
         //(new VeritestingPerf()).testDynObject(false, 1);
@@ -30,8 +34,18 @@ public class VeritestingPerf {
 
                 // System.out.println("!!!!!!!!!!!!!!! Start Testing! ");
                 //  (new VeritestingPerf()).testMe2(0,true);
+        //(new VeritestingPerf()).readAfterWriteTest(1);
+        //(new VeritestingPerf()).testSimple(1);
+        //(new VeritestingPerf()).testNested(1);
+        //(new VeritestingPerf()).testSimple1(1);
+        //(new VeritestingPerf()).simpleRegion(1);
+        //(new VeritestingPerf()).fieldWriteTestBranch2(1);
+        //(new VeritestingPerf()).fieldWriteTestBranch1(1);
+        //(new VeritestingPerf()).testSimple2(1);
+        //(new VeritestingPerf()).testSimpleFail(1);
         //(new VeritestingPerf()).nestedRegion(1);
-        //int x[] = {1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20};
+        //(new VeritestingPerf()).nestedRegion1(true, true);
+        int x[] = {1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20};
 //        (new VeritestingPerf()).inRangeloadArrayTC( 22, 10);
 //        (new VeritestingPerf()).outRangeloadArrayTC( 2, 10);
         //       (new VeritestingPerf()).outRangeConcreteTC( 20, 10);
@@ -60,59 +74,56 @@ public class VeritestingPerf {
         x++;
     }
 
-    public int countBitsSetSimple(int x) {
-        //int count = 0;
-        while (x != 0) {
-            int lowbit = x & 1;
-            int flag;// = 0;
-            if (lowbit != 0) flag = 1;
-            else flag = 0;
-            count += flag;
-            x = x >>> 1; // logical right shift
-        }
-        return count;
+    private void testNested(int x) {
+        testNestedMiddle(x);
+        assert(x != 0 && x > 0 ? count == 3 : true);
+        assert(x != 0 && x <= 0 ? count == 4 : true);
+        assert(x ==0 ? count == 5 : true);
     }
 
-    public int countBitsSet(int x) {
-        TempClass tempClass = new TempClassDerived();
-        count = 1;
-        //TempClass tempClass = new TempClass();
-        while (x != 0) {
-            if ((x & 1) != 0) {
-                // nested field access test case 1
-                //count += tempClass.tempClass2.tempInt2;
-                //nested field access test case 2
-                //TempClass2 tempClass2 = tempClass.tempClass2;
-                //tempClass2.tempInt2 += count;
-                //tempClass.tempInt = 1; //creates r/w interference with tempClass.getOne's method summary
-                count += tempClass.getOne(0); //method summary test + higher order region test
-                //count += tempClass.myInt; //use this to test dynamic field access
-            }
-            x = x >>> 1; // logical right shift
-        }
-        return count;
+    private int testNestedMiddle(int x) {
+        int retval = 0;
+        retval += nestedRegion(x);
+        return retval;
     }
 
     public int nestedRegion(int x) {
+        int count = 0;
         if (x != 0) {
             if (x > 0) { count = 3; } else { count = 4;  }
         } else { count = 5; }
+//        assert(x != 0 && x > 0 ? count == 3 : true);
+//        assert(x != 0 && x <= 0 ? count == 4 : true);
+//        assert(x ==0 ? count == 5 : true);
         return count;
     }
+
+    public int nestedRegion1(boolean x, boolean y) {
+        int a = 0;
+        if (y) {
+            a = 1;
+            if (x) {
+                a = 3;
+            } else {
+                a = 2;
+            }
+        }
+        return a;
+    }
+
 
     // MWW:
     // Here is the problem.  If I uncomment 'count', then the program works correctly.
     // There is a problem with nested fields and regions right now.
     public int simpleRegion(int x) {
-        //int count;
-        if (x > 0) { count = 3; }
-        else { count = 4; }
+        //count = 4;
+        if (x > 0) { count = 1; count = 3; }
+        else { count = 2; count = 4; }
         return count;
     }
 
     // this fails.
     public void testSimple(int x) {
-        int count;
         count = simpleRegion(x);
         System.out.println("x: " + x + "; count: " + count);
         assert(x > 0 ? count == 3 : true);
@@ -159,6 +170,87 @@ public class VeritestingPerf {
         assert(x == 0 ? count == 5 : true);
     }
 
+
+    public int countBitsSetSimple(int x) {
+        //int count = 0;
+        while (x != 0) {
+            int lowbit = x & 1;
+            int flag;// = 0;
+            if (lowbit != 0) flag = 1;
+            else flag = 0;
+            count += flag;
+            x = x >>> 1; // logical right shift
+        }
+        return count;
+    }
+
+    public int countBitsSet(int x) {
+        TempClass tempClass = new TempClassDerived();
+        count = 0;
+        int a = 1;
+        int xOrig = x;
+        //TempClass tempClass = new TempClass();
+        while (x != 0) {
+            if ((x & 1) != 0) {
+                // nested field access test case 1
+                //count += tempClass.tempClass2.tempInt2;
+                // nested field access test case 2
+                //TempClass2 tempClass2 = tempClass.tempClass2;
+                //tempClass2.tempInt2 += count;
+                // Test case 3: method summary test + higher order region test
+
+                count += tempClass.getOne(0);
+                //TempClassDerived.myInt = 1; //creates r/w interference with tempClass.getOne's method summary
+                // Test case 4: use this to test dynamic field access
+                //count += tempClass.myInt;
+                // Test case 5: testing read-after-write in a simple region
+                //count += 1;
+//                a += count;
+//                count += 2;
+                // Test case 6
+                //count += tempClass.nestedRegion(a);
+            }
+            x = x >>> 1; // logical right shift
+        }
+        assert(xOrig == 0 || TempClassDerived.tempInt == 6);
+        //assert(Bits.populationCount(xOrig) == count);
+        System.out.println("TempClassDerived.tempInt = " + TempClassDerived.tempInt);
+        System.out.println("TempClass.tempInt = " + TempClass.tempInt);
+        return count;
+    }
+
+    public int readAfterWriteTest(int x) {
+        TempClass tempClass1 = new TempClassDerived();
+        TempClass tempClass2 = new TempClassDerived();
+        count = 0;
+        int a = 1;
+        int xOrig = x;
+        //TempClass tempClass = new TempClass();
+        while (x != 0) {
+            if ((x & 1) != 0) {
+                tempClass1.tempInt += 1;
+                a = tempClass2.tempInt; // should not cause a read after write
+                //tempClass1.tempInt += 1;
+                count += 1;
+            }
+            x = x >>> 1; // logical right shift
+        }
+        assert(xOrig == 0 ? count == 0 : true);
+        assert(isPowerOf2(xOrig) ? count == 1 : true);
+        System.out.println("a = " + a);
+        return count;
+    }
+
+    public int fieldWriteTestBranch2(int x) {
+        if(x != 0) count = 1;
+        else count = 2;
+        return count;
+    }
+
+    public int fieldWriteTestBranch1(int x) {
+        if(x != 0) count = 1;
+        return count;
+    }
 
     //testing inRangeArrayLoad for symbolic & concrete index
     public int inRangeloadArrayTC(int index, int length) {
@@ -412,28 +504,28 @@ public class VeritestingPerf {
 
 class TempClassDerived extends TempClass {
 
-    public static int tempInt = 1; //change this to 2 to test read after write on a class field inside a Veritesting region
+    public static int tempInt = 2; //change this to 2 to test read after write on a class field inside a Veritesting region
 
-    public int myInt = 1;
+    public static int myInt = 1;
 
     public int getAnotherAnotherTempInt(int a) {
         //TempClass2 t = new TempClass2();
         //t.tempMethod();
-        return tempInt;
+        return 1;
     }
 
     public int getAnotherTempInt(int a) {
         //TempClass2 t = new TempClass2();
         //t.tempMethod();
         //return tempInt;
-        return getAnotherAnotherTempInt(myInt);
+        return getAnotherAnotherTempInt(TempClassDerived.myInt);
     }
 
     public int getTempInt(int a) {
         //TempClass2 t = new TempClass2();
         //t.tempMethod();
         //return tempInt;
-        return getAnotherTempInt(myInt);
+        return getAnotherTempInt(TempClassDerived.myInt);
     }
 
     public int getOne(int a) {
@@ -441,11 +533,13 @@ class TempClassDerived extends TempClass {
         tempInt = a +1; //LOCAL_INPUT,  FIELD_OUTPUT holes
         a = tempInt + 2; //LOCAL_OUTPUT, FIELD_INPUT holes
         tempInt = a+ 3; //LOCAL_INPUT,  FIELD_INPUT holes
+        //tempInt = 6 + a;
 
         //VeritestingPerf.count += 1;
         //return tempInt;
         //return nestedRegion(myInt);
         return getTempInt(tempInt);
+        //return 1;
     }
 
     public int nestedRegion(int x) {
@@ -461,7 +555,7 @@ class TempClass {
 
     public static int tempInt = 1;
 
-    public int myInt = 1;
+    public static int myInt = 1;
 
     public TempClass() {
         this.tempClass2 = new TempClass2();
@@ -471,9 +565,14 @@ class TempClass {
         return tempInt;
     }
 
-    public int getOne(int a) { tempInt = a; return tempInt; }
+    public int getOne(int a) {
+        System.out.println("called TempClass.getOne");
+        tempInt = a; return tempInt;
+    }
 
     TempClass2 tempClass2;
+
+    public int nestedRegion(int a) { return 0; }
 }
 
 class TempClass2 {

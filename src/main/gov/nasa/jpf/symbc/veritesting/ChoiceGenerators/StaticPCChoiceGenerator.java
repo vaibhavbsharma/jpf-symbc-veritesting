@@ -117,6 +117,14 @@ public abstract class StaticPCChoiceGenerator extends PCChoiceGenerator {
             numOperands--;
         }
 
+        /* methodSummary regions with a non-null return value should finish at a return statement.
+        This invariant is checked here but the return value is populated inside fillHoles. */
+        if(region.isMethodSummary() && region.retVal != null) {
+            assert(insn.getMnemonic().contains("return"));
+        }
+        //((PCChoiceGenerator) ti.getVM().getSystemState().getChoiceGenerator()).setCurrentPC(pc);
+        ti.setNextPC(insn);
+
         region.usedCount++;
         return insn;
     }

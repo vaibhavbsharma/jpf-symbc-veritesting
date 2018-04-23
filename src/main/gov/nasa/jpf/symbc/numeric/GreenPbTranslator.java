@@ -158,6 +158,8 @@ class GreenPbTranslator extends Visitor {
                     break;
                 case IMPLIES:
 				    stack.push((Expr) context.logical_implies(l, r));
+				    // Vaibhav: use the below line to implement implies if the one on the line above is unimplemented
+                    //stack.push((Expr) context.logical_or(context.logical_not(l), r));
 				    break;
                 case ADD:
                     stack.push((Expr) context.plus( l, r));
