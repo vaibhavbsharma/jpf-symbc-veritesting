@@ -320,10 +320,11 @@ public class VeritestingMain {
                         new Operation(Operation.Operator.AND, condition, thenExpr),
                         new Operation(Operation.Operator.AND, negCondition, elseExpr));
 
-        MyIVisitor myIVisitor = new MyIVisitor(varUtil, thenUseNum, elseUseNum, true, null);
+        MyIVisitor myIVisitor;
         Expression phiExprSPF, finalPathExpr = pathExpr1;
         Iterator<SSAInstruction> iterator = commonSucc.iterator();
         while(iterator.hasNext()) {
+            myIVisitor = new MyIVisitor(varUtil, thenUseNum, elseUseNum, true, null);
             iterator.next().visit(myIVisitor);
             if (myIVisitor.hasPhiExpr()) {
                 phiExprSPF = myIVisitor.getPhiExprSPF(thenPLAssignSPF, elsePLAssignSPF);

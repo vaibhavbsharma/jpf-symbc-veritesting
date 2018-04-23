@@ -3,6 +3,9 @@
   <component name="ChangeListManager">
     <list default="true" id="5bbd63a1-f5ba-4046-80fa-1784a65f532f" name="Default" comment="">
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/.idea/workspace.xml" afterPath="$PROJECT_DIR$/.idea/workspace.xml" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/examples/VeritestingPerf.java" afterPath="$PROJECT_DIR$/src/examples/VeritestingPerf.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/examples/VeritestingPerf.jpf" afterPath="$PROJECT_DIR$/src/examples/VeritestingPerf.jpf" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/main/gov/nasa/jpf/symbc/veritesting/VeritestingMain.java" afterPath="$PROJECT_DIR$/src/main/gov/nasa/jpf/symbc/veritesting/VeritestingMain.java" />
     </list>
     <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
     <option name="TRACKING_ENABLED" value="true" />
@@ -15,11 +18,11 @@
     <SUITE FILE_PATH="coverage/jpf_symbc_veritesting$tcas.coverage" NAME="tcas Coverage Results" MODIFIED="1516311830471" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="idea" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" />
   </component>
   <component name="FileEditorManager">
-    <leaf SIDE_TABS_SIZE_LIMIT_KEY="300">
+    <leaf>
       <file leaf-file-name="VeritestingListener.java" pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/src/main/gov/nasa/jpf/symbc/VeritestingListener.java">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="283">
+            <state relative-caret-position="483">
               <caret line="1207" column="39" lean-forward="false" selection-start-line="1207" selection-start-column="23" selection-end-line="1207" selection-end-column="39" />
               <folding>
                 <element signature="e#0#76627#0" expanded="true" />
@@ -33,44 +36,22 @@
           </provider>
         </entry>
       </file>
-      <file leaf-file-name="FillHolesOutput.java" pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/src/main/gov/nasa/jpf/symbc/veritesting/FillHolesOutput.java">
-          <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="68">
-              <caret line="9" column="13" lean-forward="false" selection-start-line="9" selection-start-column="13" selection-end-line="9" selection-end-column="13" />
-              <folding />
-            </state>
-          </provider>
-        </entry>
-      </file>
       <file leaf-file-name="VeritestingPerf.jpf" pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/src/examples/VeritestingPerf.jpf">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="447">
+            <state relative-caret-position="373">
               <caret line="34" column="0" lean-forward="false" selection-start-line="34" selection-start-column="0" selection-end-line="34" selection-end-column="0" />
               <folding />
             </state>
           </provider>
         </entry>
       </file>
-      <file leaf-file-name="VeritestingPerf.java" pinned="false" current-in-tab="true">
+      <file leaf-file-name="VeritestingPerf.java" pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/src/examples/VeritestingPerf.java">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="108">
-              <caret line="35" column="0" lean-forward="true" selection-start-line="35" selection-start-column="0" selection-end-line="35" selection-end-column="0" />
+            <state relative-caret-position="235">
+              <caret line="79" column="20" lean-forward="true" selection-start-line="79" selection-start-column="20" selection-end-line="79" selection-end-column="20" />
               <folding />
-            </state>
-          </provider>
-        </entry>
-      </file>
-      <file leaf-file-name="FieldUtil.java" pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/src/main/gov/nasa/jpf/symbc/veritesting/FieldUtil.java">
-          <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="62">
-              <caret line="291" column="29" lean-forward="false" selection-start-line="291" selection-start-column="29" selection-end-line="291" selection-end-column="29" />
-              <folding>
-                <element signature="imports" expanded="true" />
-              </folding>
             </state>
           </provider>
         </entry>
@@ -78,7 +59,7 @@
       <file leaf-file-name="FillFieldInputHole.java" pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/src/main/gov/nasa/jpf/symbc/veritesting/FillFieldInputHole.java">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="145">
+            <state relative-caret-position="398">
               <caret line="50" column="0" lean-forward="false" selection-start-line="50" selection-start-column="0" selection-end-line="50" selection-end-column="0" />
               <folding>
                 <element signature="imports" expanded="true" />
@@ -87,24 +68,32 @@
           </provider>
         </entry>
       </file>
-      <file leaf-file-name="VeritestingMain.java" pinned="false" current-in-tab="false">
+      <file leaf-file-name="VeritestingMain.java" pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/src/main/gov/nasa/jpf/symbc/veritesting/VeritestingMain.java">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="141">
-              <caret line="557" column="0" lean-forward="false" selection-start-line="557" selection-start-column="0" selection-end-line="557" selection-end-column="0" />
+            <state relative-caret-position="72">
+              <caret line="276" column="0" lean-forward="false" selection-start-line="276" selection-start-column="0" selection-end-line="276" selection-end-column="0" />
               <folding />
             </state>
           </provider>
         </entry>
       </file>
-      <file leaf-file-name="ExpressionUtil.java" pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/src/main/gov/nasa/jpf/symbc/veritesting/ExpressionUtil.java">
+      <file leaf-file-name="SSAGetInstruction.java" pinned="false" current-in-tab="false">
+        <entry file="jar://$PROJECT_DIR$/lib/com.ibm.wala.core-1.4.4-SNAPSHOT-sources.jar!/com/ibm/wala/ssa/SSAGetInstruction.java">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="216">
-              <caret line="129" column="29" lean-forward="false" selection-start-line="129" selection-start-column="29" selection-end-line="129" selection-end-column="29" />
-              <folding>
-                <element signature="imports" expanded="true" />
-              </folding>
+            <state relative-caret-position="336">
+              <caret line="56" column="0" lean-forward="false" selection-start-line="56" selection-start-column="0" selection-end-line="56" selection-end-column="0" />
+              <folding />
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file leaf-file-name="SSAPhiInstruction.java" pinned="false" current-in-tab="false">
+        <entry file="jar://$PROJECT_DIR$/lib/com.ibm.wala.core-1.4.4-SNAPSHOT-sources.jar!/com/ibm/wala/ssa/SSAPhiInstruction.java">
+          <provider selected="true" editor-type-id="text-editor">
+            <state relative-caret-position="377">
+              <caret line="90" column="0" lean-forward="false" selection-start-line="90" selection-start-column="0" selection-end-line="90" selection-end-column="0" />
+              <folding />
             </state>
           </provider>
         </entry>
@@ -112,11 +101,33 @@
       <file leaf-file-name="VarUtil.java" pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/src/main/gov/nasa/jpf/symbc/veritesting/VarUtil.java">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="145">
-              <caret line="92" column="0" lean-forward="false" selection-start-line="92" selection-start-column="0" selection-end-line="92" selection-end-column="0" />
+            <state relative-caret-position="334">
+              <caret line="376" column="28" lean-forward="false" selection-start-line="376" selection-start-column="28" selection-end-line="376" selection-end-column="28" />
+              <folding />
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file leaf-file-name="MyIVisitor.java" pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/src/main/gov/nasa/jpf/symbc/veritesting/MyIVisitor.java">
+          <provider selected="true" editor-type-id="text-editor">
+            <state relative-caret-position="217">
+              <caret line="272" column="0" lean-forward="false" selection-start-line="272" selection-start-column="0" selection-end-line="272" selection-end-column="0" />
               <folding>
-                <element signature="e#3735#4696#0" expanded="true" />
-                <element signature="e#4695#4696#0" expanded="true" />
+                <element signature="e#20839#20840#0" expanded="true" />
+                <element signature="e#20880#20881#0" expanded="true" />
+              </folding>
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file leaf-file-name="ExpressionUtil.java" pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/src/main/gov/nasa/jpf/symbc/veritesting/ExpressionUtil.java">
+          <provider selected="true" editor-type-id="text-editor">
+            <state relative-caret-position="789">
+              <caret line="129" column="29" lean-forward="false" selection-start-line="129" selection-start-column="29" selection-end-line="129" selection-end-column="29" />
+              <folding>
+                <element signature="imports" expanded="true" />
               </folding>
             </state>
           </provider>
@@ -134,8 +145,6 @@
   </component>
   <component name="FindInProjectRecents">
     <findStrings>
-      <find>isLocal</find>
-      <find>then</find>
       <find>Could not find method summ</find>
       <find>return</find>
       <find>setGlobal</find>
@@ -155,7 +164,6 @@
       <find>fieldWriteAfterRead</find>
       <find>fieldReadAfterWrite</find>
       <find>fieldOutputExpression</find>
-      <find>nestedRegion</find>
       <find>outputvar</find>
       <find>FillInvokeHole</find>
       <find>populateOutputs</find>
@@ -164,6 +172,9 @@
       <find>populateOutput</find>
       <find>opulate</find>
       <find>paramEqList</find>
+      <find>visitPhi</find>
+      <find>getPhiExpr</find>
+      <find>nestedRegion</find>
     </findStrings>
     <replaceStrings>
       <replace>ti.getModifiableTopFrame</replace>
@@ -238,7 +249,6 @@
         <option value="$PROJECT_DIR$/src/main/gov/nasa/jpf/symbc/FillFieldInputHole.java" />
         <option value="$PROJECT_DIR$/src/main/gov/nasa/jpf/symbc/veritesting/MyIVisitor.java" />
         <option value="$PROJECT_DIR$/src/main/gov/nasa/jpf/symbc/veritesting/VarUtil.java" />
-        <option value="$PROJECT_DIR$/src/main/gov/nasa/jpf/symbc/veritesting/VeritestingMain.java" />
         <option value="$PROJECT_DIR$/src/main/gov/nasa/jpf/symbc/veritesting/HoleExpression.java" />
         <option value="$PROJECT_DIR$/src/main/gov/nasa/jpf/symbc/veritesting/LocalUtil.java" />
         <option value="$PROJECT_DIR$/src/main/gov/nasa/jpf/symbc/veritesting/FieldUtil.java" />
@@ -246,6 +256,7 @@
         <option value="$PROJECT_DIR$/src/main/gov/nasa/jpf/symbc/veritesting/FillFieldInputHole.java" />
         <option value="$PROJECT_DIR$/src/main/gov/nasa/jpf/symbc/veritesting/ExpressionUtil.java" />
         <option value="$PROJECT_DIR$/src/main/gov/nasa/jpf/symbc/VeritestingListener.java" />
+        <option value="$PROJECT_DIR$/src/main/gov/nasa/jpf/symbc/veritesting/VeritestingMain.java" />
         <option value="$PROJECT_DIR$/src/examples/VeritestingPerf.java" />
         <option value="$PROJECT_DIR$/src/examples/VeritestingPerf.jpf" />
       </list>
@@ -259,7 +270,7 @@
   </component>
   <component name="ProjectFrameBounds" extendedState="6">
     <option name="x" value="-1536" />
-    <option name="y" value="204" />
+    <option name="y" value="160" />
     <option name="width" value="1196" />
     <option name="height" value="777" />
   </component>
@@ -353,8 +364,9 @@
     <property name="project.structure.last.edited" value="Modules" />
     <property name="project.structure.proportion" value="0.15" />
     <property name="project.structure.side.proportion" value="0.45632184" />
-    <property name="settings.editor.selected.configurable" value="preferences.keymap" />
+    <property name="settings.editor.selected.configurable" value="preferences.lookFeel" />
     <property name="extract.method.default.visibility" value="public" />
+    <property name="full.screen.before.presentation.mode" value="false" />
   </component>
   <component name="RecentsManager">
     <key name="MoveFile.RECENT_KEYS">
@@ -534,13 +546,6 @@
       <option name="number" value="Default" />
       <option name="presentableId" value="Default" />
       <updated>1515257450739</updated>
-    </task>
-    <task id="LOCAL-00008" summary="More fixes towards avoiding crashes and allowing the static analysis&#10;to dive deeper.">
-      <created>1515904516499</created>
-      <option name="number" value="00008" />
-      <option name="presentableId" value="LOCAL-00008" />
-      <option name="project" value="LOCAL" />
-      <updated>1515904516499</updated>
     </task>
     <task id="LOCAL-00009" summary="Fixing a serious bug with putStatic and putField instructions.&#10;&#10;The bug was to do with how we fill up FIELD_OUTPUT holes (which &#10;are created for both putStatic and putField instructions, with the &#10;putStatic ones having FieldInfo.localStackSlot set to -1 and putField&#10;ones having Field.localStackSlot set to the local variable's stack slot&#10;from where the object reference will be read). &#10;&#10;For FIELD_OUTPUT holes, we would simply set them to be output variables&#10;of a region and write them into the corresponding field in a veritesting&#10;region. But, if a putStatic or putField for the same field was encountered on both sides&#10;of a branch, then this would cause two writes into the same field, which&#10;is wrong.&#10;&#10;We now create a intermediate variable hole and set it inside FIELD_OUTPUT&#10;hole's FieldInfo.writeVal. This is used to lookup the variable to be&#10;written into the field. This intermediate variable takes on a value&#10;depending on which side of the branch was taken.">
       <created>1515972832035</created>
@@ -878,7 +883,14 @@
       <option name="project" value="LOCAL" />
       <updated>1524454406962</updated>
     </task>
-    <option name="localTasksCounter" value="57" />
+    <task id="LOCAL-00057" summary="Committing workspace.xml">
+      <created>1524455745778</created>
+      <option name="number" value="00057" />
+      <option name="presentableId" value="LOCAL-00057" />
+      <option name="project" value="LOCAL" />
+      <updated>1524455745778</updated>
+    </task>
+    <option name="localTasksCounter" value="58" />
     <servers />
   </component>
   <component name="TodoView" selected-index="4">
@@ -891,7 +903,7 @@
     </todo-panel>
   </component>
   <component name="ToolWindowManager">
-    <frame x="-1920" y="23" width="1920" height="1057" extended-state="6" />
+    <frame x="-1920" y="-21" width="1920" height="1057" extended-state="6" />
     <editor active="true" />
     <layout>
       <window_info id="TODO" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.32952183" sideWeight="0.5" order="5" side_tool="false" content_ui="tabs" />
@@ -900,7 +912,7 @@
       <window_info id="Palette&#9;" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="3" side_tool="false" content_ui="tabs" />
       <window_info id="Event Log" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="7" side_tool="true" content_ui="tabs" />
       <window_info id="Maven Projects" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.32960597" sideWeight="0.5" order="4" side_tool="false" content_ui="tabs" />
-      <window_info id="Run" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" show_stripe_button="true" weight="0.43035343" sideWeight="0.5" order="2" side_tool="false" content_ui="tabs" />
+      <window_info id="Run" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.43035343" sideWeight="0.5" order="2" side_tool="false" content_ui="tabs" />
       <window_info id="Version Control" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.32952183" sideWeight="0.5" order="8" side_tool="false" content_ui="tabs" />
       <window_info id="Terminal" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.32952183" sideWeight="0.5" order="9" side_tool="false" content_ui="tabs" />
       <window_info id="Designer" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="2" side_tool="false" content_ui="tabs" />
@@ -908,7 +920,7 @@
       <window_info id="Find" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.32328483" sideWeight="0.5" order="1" side_tool="false" content_ui="tabs" />
       <window_info id="Structure" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.25" sideWeight="0.5" order="1" side_tool="false" content_ui="tabs" />
       <window_info id="Ant Build" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" show_stripe_button="true" weight="0.12087327" sideWeight="0.5" order="5" side_tool="false" content_ui="tabs" />
-      <window_info id="Debug" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.493763" sideWeight="0.5" order="11" side_tool="false" content_ui="tabs" />
+      <window_info id="Debug" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" show_stripe_button="true" weight="0.493763" sideWeight="0.5" order="11" side_tool="false" content_ui="tabs" />
       <window_info id="Favorites" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="3" side_tool="true" content_ui="tabs" />
       <window_info id="Cvs" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.25" sideWeight="0.5" order="3" side_tool="false" content_ui="tabs" />
       <window_info id="Message" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="0" side_tool="false" content_ui="tabs" />
@@ -922,7 +934,6 @@
     <option name="myLimit" value="2678400000" />
   </component>
   <component name="VcsManagerConfiguration">
-    <MESSAGE value="1. Allowing multiple outputs to be phi'd at the end of a veritesting region&#10;2. Refactoring VeritestingListener.fillHoles() in preparation of implementing higher-order regions" />
     <MESSAGE value="Adding support for comparing object references dynamically when computing a read-write interference between a outer region and a method summary. &#10;&#10;Previously we would compare field information to find a intersection, but comparing object references at runtime is the right way to do it." />
     <MESSAGE value="Looking up a field based on the dynamic class type of the object reference instead of using the static class type." />
     <MESSAGE value="1. Converting the HashMap of holes to a LinkedHashMap because it maintains the order in which holes are created. This is useful because nested field accesses need previously created holes corresponding to an intermediate object reference to be resolved before the current field access can be resolved. &#10;2. Adding support for nested field accesses." />
@@ -947,7 +958,8 @@
     <MESSAGE value="1. Doing read-write interference-checking across higher-order regions instead&#10;of only checking every region with its adjacent region in the invoke&#10;call-chain.&#10;2. Updating the global stack slot only if the context (classname, methodname)&#10;of a hole does not match the outermost region's context." />
     <MESSAGE value="1. Writes to fields in higher-order regions should persist beyond the &#10;outermost region  &#10;2. FIELD_OUTPUTs may not always have a hole as their writeValue. Use&#10;the hole hashmap only if the writeValue is a hole." />
     <MESSAGE value="Simplifying the construction of symbolic formulas when equating parameters&#10;in a method summary" />
-    <option name="LAST_COMMIT_MESSAGE" value="Simplifying the construction of symbolic formulas when equating parameters&#10;in a method summary" />
+    <MESSAGE value="Committing workspace.xml" />
+    <option name="LAST_COMMIT_MESSAGE" value="Committing workspace.xml" />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>
@@ -1035,12 +1047,6 @@
           <line>169</line>
           <properties />
           <option name="timeStamp" value="141" />
-        </line-breakpoint>
-        <line-breakpoint type="java-line">
-          <url>file://$PROJECT_DIR$/src/main/gov/nasa/jpf/symbc/veritesting/MyIVisitor.java</url>
-          <line>416</line>
-          <properties />
-          <option name="timeStamp" value="159" />
         </line-breakpoint>
         <line-breakpoint enabled="true" type="java-line">
           <url>file://$PROJECT_DIR$/src/main/gov/nasa/jpf/symbc/veritesting/VarUtil.java</url>
@@ -1270,11 +1276,29 @@
           <properties />
           <option name="timeStamp" value="419" />
         </line-breakpoint>
+        <line-breakpoint enabled="true" type="java-line">
+          <url>file://$PROJECT_DIR$/src/main/gov/nasa/jpf/symbc/veritesting/VeritestingMain.java</url>
+          <line>542</line>
+          <properties />
+          <option name="timeStamp" value="420" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" type="java-line">
+          <url>file://$PROJECT_DIR$/src/main/gov/nasa/jpf/symbc/veritesting/VeritestingMain.java</url>
+          <line>444</line>
+          <properties />
+          <option name="timeStamp" value="421" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" type="java-line">
+          <url>file://$PROJECT_DIR$/src/main/gov/nasa/jpf/symbc/veritesting/VeritestingMain.java</url>
+          <line>276</line>
+          <properties />
+          <option name="timeStamp" value="424" />
+        </line-breakpoint>
       </breakpoints>
       <breakpoints-dialog>
         <breakpoints-dialog />
       </breakpoints-dialog>
-      <option name="time" value="420" />
+      <option name="time" value="427" />
     </breakpoint-manager>
     <watches-manager />
   </component>
@@ -1303,17 +1327,6 @@
     </buildFile>
   </component>
   <component name="editorHistoryManager">
-    <entry file="file://$PROJECT_DIR$/src/main/gov/nasa/jpf/symbc/veritesting/InvokeInfo.java">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="479">
-          <caret line="47" column="28" lean-forward="false" selection-start-line="47" selection-start-column="28" selection-end-line="47" selection-end-column="28" />
-          <folding>
-            <element signature="e#1304#1305#0" expanded="false" />
-            <element signature="e#1358#1359#0" expanded="false" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
     <entry file="jar://$PROJECT_DIR$/lib/com.ibm.wala.core-1.4.4-SNAPSHOT-sources.jar!/com/ibm/wala/ssa/SSAInvokeInstruction.java">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="269">
@@ -1461,14 +1474,6 @@
         </state>
       </provider>
     </entry>
-    <entry file="jar://$PROJECT_DIR$/lib/com.ibm.wala.core-1.4.4-SNAPSHOT-sources.jar!/com/ibm/wala/ssa/SSAGetInstruction.java">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="197">
-          <caret line="56" column="0" lean-forward="false" selection-start-line="56" selection-start-column="0" selection-end-line="56" selection-end-column="0" />
-          <folding />
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/src/main/gov/nasa/jpf/symbc/numeric/Expression.java">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="218">
@@ -1576,14 +1581,6 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/src/main/gov/nasa/jpf/symbc/veritesting/MyIVisitor.java">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="145">
-          <caret line="289" column="0" lean-forward="false" selection-start-line="289" selection-start-column="0" selection-end-line="289" selection-end-column="0" />
-          <folding />
-        </state>
-      </provider>
-    </entry>
     <entry file="jar://$PROJECT_DIR$/lib/com.ibm.wala.util-1.4.4-SNAPSHOT-sources.jar!/com/ibm/wala/util/intset/Bits.java">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="265">
@@ -1656,25 +1653,6 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/src/main/gov/nasa/jpf/symbc/veritesting/VarUtil.java">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="145">
-          <caret line="92" column="0" lean-forward="false" selection-start-line="92" selection-start-column="0" selection-end-line="92" selection-end-column="0" />
-          <folding>
-            <element signature="e#3735#4696#0" expanded="true" />
-            <element signature="e#4695#4696#0" expanded="true" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/src/main/gov/nasa/jpf/symbc/veritesting/VeritestingMain.java">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="141">
-          <caret line="557" column="0" lean-forward="false" selection-start-line="557" selection-start-column="0" selection-end-line="557" selection-end-column="0" />
-          <folding />
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/src/main/gov/nasa/jpf/symbc/veritesting/FillHolesOutput.java">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="68">
@@ -1703,7 +1681,7 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/src/main/gov/nasa/jpf/symbc/veritesting/ExpressionUtil.java">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="216">
+        <state relative-caret-position="789">
           <caret line="129" column="29" lean-forward="false" selection-start-line="129" selection-start-column="29" selection-end-line="129" selection-end-column="29" />
           <folding>
             <element signature="imports" expanded="true" />
@@ -1711,9 +1689,44 @@
         </state>
       </provider>
     </entry>
+    <entry file="file://$PROJECT_DIR$/src/main/gov/nasa/jpf/symbc/veritesting/MyIVisitor.java">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="217">
+          <caret line="272" column="0" lean-forward="false" selection-start-line="272" selection-start-column="0" selection-end-line="272" selection-end-column="0" />
+          <folding>
+            <element signature="e#20839#20840#0" expanded="true" />
+            <element signature="e#20880#20881#0" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/src/main/gov/nasa/jpf/symbc/veritesting/VarUtil.java">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="334">
+          <caret line="376" column="28" lean-forward="false" selection-start-line="376" selection-start-column="28" selection-end-line="376" selection-end-column="28" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="jar://$PROJECT_DIR$/lib/com.ibm.wala.core-1.4.4-SNAPSHOT-sources.jar!/com/ibm/wala/ssa/SSAPhiInstruction.java">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="377">
+          <caret line="90" column="0" lean-forward="false" selection-start-line="90" selection-start-column="0" selection-end-line="90" selection-end-column="0" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="jar://$PROJECT_DIR$/lib/com.ibm.wala.core-1.4.4-SNAPSHOT-sources.jar!/com/ibm/wala/ssa/SSAGetInstruction.java">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="336">
+          <caret line="56" column="0" lean-forward="false" selection-start-line="56" selection-start-column="0" selection-end-line="56" selection-end-column="0" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
     <entry file="file://$PROJECT_DIR$/src/main/gov/nasa/jpf/symbc/veritesting/FillFieldInputHole.java">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="145">
+        <state relative-caret-position="398">
           <caret line="50" column="0" lean-forward="false" selection-start-line="50" selection-start-column="0" selection-end-line="50" selection-end-column="0" />
           <folding>
             <element signature="imports" expanded="true" />
@@ -1723,7 +1736,7 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/src/main/gov/nasa/jpf/symbc/VeritestingListener.java">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="283">
+        <state relative-caret-position="483">
           <caret line="1207" column="39" lean-forward="false" selection-start-line="1207" selection-start-column="23" selection-end-line="1207" selection-end-column="39" />
           <folding>
             <element signature="e#0#76627#0" expanded="true" />
@@ -1738,7 +1751,7 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/src/examples/VeritestingPerf.jpf">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="447">
+        <state relative-caret-position="373">
           <caret line="34" column="0" lean-forward="false" selection-start-line="34" selection-start-column="0" selection-end-line="34" selection-end-column="0" />
           <folding />
         </state>
@@ -1746,8 +1759,16 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/src/examples/VeritestingPerf.java">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="108">
-          <caret line="35" column="0" lean-forward="true" selection-start-line="35" selection-start-column="0" selection-end-line="35" selection-end-column="0" />
+        <state relative-caret-position="235">
+          <caret line="79" column="20" lean-forward="true" selection-start-line="79" selection-start-column="20" selection-end-line="79" selection-end-column="20" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/src/main/gov/nasa/jpf/symbc/veritesting/VeritestingMain.java">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="72">
+          <caret line="276" column="0" lean-forward="false" selection-start-line="276" selection-start-column="0" selection-end-line="276" selection-end-column="0" />
           <folding />
         </state>
       </provider>

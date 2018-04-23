@@ -17,7 +17,7 @@ public class VeritestingPerf {
 
     public static void main(String[] args) {
         //(new VeritestingPerf()).cfgTest(1);
-        (new VeritestingPerf()).countBitsSet(1);
+        //(new VeritestingPerf()).countBitsSet(1);
 
         //(new VeritestingPerf()).readAfterWriteTest(1);
         //(new VeritestingPerf()).testSimple(1);
@@ -31,6 +31,7 @@ public class VeritestingPerf {
         //(new VeritestingPerf()).testSimpleFail(1);
 
         //(new VeritestingPerf()).nestedRegion(1);
+        (new VeritestingPerf()).nestedRegion1(true, true);
         int x[] = {1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20};
 //        (new VeritestingPerf()).inRangeloadArrayTC( 22, 10);
 
@@ -62,6 +63,7 @@ public class VeritestingPerf {
     }
 
     public int nestedRegion(int x) {
+        int count = 0;
         if (x != 0) {
             if (x > 0) { count = 3; } else { count = 4;  }
         } else { count = 5; }
@@ -70,6 +72,20 @@ public class VeritestingPerf {
 //        assert(x ==0 ? count == 5 : true);
         return count;
     }
+
+    public int nestedRegion1(boolean x, boolean y) {
+        int a = 0;
+        if (y) {
+            a = 1;
+            if (x) {
+                a = 3;
+            } else {
+                a = 2;
+            }
+        }
+        return a;
+    }
+
 
     // MWW:
     // Here is the problem.  If I uncomment 'count', then the program works correctly.
