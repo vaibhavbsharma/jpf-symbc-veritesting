@@ -277,6 +277,11 @@ public class VeritestingMain {
             ISSABasicBlock currUnit, ISSABasicBlock commonSucc,
             int thenUseNum, int elseUseNum,
             HashSet<Integer> summarizedRegionStartBB) throws InvalidClassFileException {
+        /****SH: Begin of handling skipping of both branches, thus we create no region*****/
+//        if((thenUseNum == -1)&&(elseUseNum == -1))
+//            return null;
+        /****SH: End of handling skipping of both branches, thus we create no region *****/
+
         if (thenExpr != null)
             thenExpr = new Operation(Operation.Operator.AND, thenExpr, thenPLAssignSPF);
         else thenExpr = thenPLAssignSPF;
@@ -355,6 +360,9 @@ public class VeritestingMain {
 
     public void doAnalysis(ISSABasicBlock startingUnit, ISSABasicBlock endingUnit) throws InvalidClassFileException {
         //System.out.println("Starting doAnalysis");
+        boolean thenCreateThrow = false;
+        boolean elseCreateThrow = false;
+
         ISSABasicBlock currUnit = startingUnit;
         if (startingPointsHistory.contains(startingUnit)) return;
         Expression methodExpression = null;
@@ -510,7 +518,13 @@ public class VeritestingMain {
                     assert(blockSummary.getIfExpression() == null);
                     //cannot handle returns inside a if-then-else
                     if(blockSummary.getIsExitNode()) canVeritest = false;
+                    //SH: supporting new object or throw instructions
                     if (!canVeritest) break;
+                    if (blockSummary.hasNewOrThrow){ //SH: skip to the end of the region when a new Object or throw instruction encountered
+                        thenUnit = commonSucc;
+                        thenPred = null;
+                        break;
+                    }
                     thenPred = thenUnit;
                     thenUnit = cfg.getNormalSuccessors(thenUnit).iterator().next();
                     if (thenUnit == endingUnit) break;
@@ -629,6 +643,11 @@ public class VeritestingMain {
                     //cannot handle returns inside a if-then-else
                     if(blockSummary.getIsExitNode()) canVeritest = false;
                     if (!canVeritest) break;
+                    if (blockSummary.hasNewOrThrow){ //SH: skip to the end of the region when a new Object or throw instruction encountered
+                        elseUnit = commonSucc;
+                        elsePred = null;
+                        break;
+                    }
                     elsePred = elseUnit;
                     elseUnit = cfg.getNormalSuccessors(elseUnit).iterator().next();
                     if (elseUnit == endingUnit) break;
@@ -649,7 +668,7 @@ public class VeritestingMain {
                 }
 
                 // Assign pathLabel a value in the elseExpr
-                if (canVeritest) {
+                if ((canVeritest)) {
                     if(thenPred != null)
                         thenUseNum = Util.whichPred(cfg, thenPred, commonSucc);
                     if(elsePred != null)
@@ -855,6 +874,11 @@ public class VeritestingMain {
         private Expression expression;
         private Expression lastExpression;
         private boolean isExitNode = false;
+        private boolean hasNewOrThrow = false;
+
+        public boolean isHasNewOrThrow() {
+            return hasNewOrThrow;
+        }
 
         public Expression getIfExpression() {
             return ifExpression;
@@ -895,7 +919,8 @@ public class VeritestingMain {
             while (ssaInstructionIterator.hasNext()) {
                 //phi expressions are summarized in the constructVeritestingRegion method, dont try to summarize them here
                 myIVisitor = new MyIVisitor(varUtil, -1, -1, false, pathLabelHole);
-                ssaInstructionIterator.next().visit(myIVisitor);
+                SSAInstruction instruction = ssaInstructionIterator.next();
+                instruction.visit(myIVisitor);
 
                 if (!myIVisitor.canVeritest()) {
                     canVeritest = false;
@@ -918,6 +943,10 @@ public class VeritestingMain {
                     isExitNode = true;
                     break;
                 }
+                if(myIVisitor.isHasNewOrThrow()) {
+                    hasNewOrThrow = true;
+                    break;
+                }
             }
             return this;
         }
@@ -927,4 +956,10 @@ public class VeritestingMain {
         }
     }
 }
+
+
+
+
+
+
 
