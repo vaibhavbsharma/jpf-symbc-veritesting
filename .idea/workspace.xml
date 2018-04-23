@@ -3,8 +3,6 @@
   <component name="ChangeListManager">
     <list default="true" id="5bbd63a1-f5ba-4046-80fa-1784a65f532f" name="Default" comment="">
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/.idea/workspace.xml" afterPath="$PROJECT_DIR$/.idea/workspace.xml" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/examples/VeritestingPerf.java" afterPath="$PROJECT_DIR$/src/examples/VeritestingPerf.java" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/main/gov/nasa/jpf/symbc/VeritestingListener.java" afterPath="$PROJECT_DIR$/src/main/gov/nasa/jpf/symbc/VeritestingListener.java" />
     </list>
     <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
     <option name="TRACKING_ENABLED" value="true" />
@@ -58,8 +56,8 @@
       <file leaf-file-name="VeritestingPerf.java" pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/src/examples/VeritestingPerf.java">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="1608">
-              <caret line="174" column="10" lean-forward="false" selection-start-line="174" selection-start-column="10" selection-end-line="174" selection-end-column="10" />
+            <state relative-caret-position="108">
+              <caret line="35" column="0" lean-forward="true" selection-start-line="35" selection-start-column="0" selection-end-line="35" selection-end-column="0" />
               <folding />
             </state>
           </provider>
@@ -537,13 +535,6 @@
       <option name="presentableId" value="Default" />
       <updated>1515257450739</updated>
     </task>
-    <task id="LOCAL-00007" summary="A bunch of defensive commits to prevent SPF-veritesting from crashing&#10;in various scenarios encountered when I converted tcas.java to be&#10;completely non-static.">
-      <created>1515867448588</created>
-      <option name="number" value="00007" />
-      <option name="presentableId" value="LOCAL-00007" />
-      <option name="project" value="LOCAL" />
-      <updated>1515867448588</updated>
-    </task>
     <task id="LOCAL-00008" summary="More fixes towards avoiding crashes and allowing the static analysis&#10;to dive deeper.">
       <created>1515904516499</created>
       <option name="number" value="00008" />
@@ -880,7 +871,14 @@
       <option name="project" value="LOCAL" />
       <updated>1524453008248</updated>
     </task>
-    <option name="localTasksCounter" value="56" />
+    <task id="LOCAL-00056" summary="Simplifying the construction of symbolic formulas when equating parameters&#10;in a method summary">
+      <created>1524454406961</created>
+      <option name="number" value="00056" />
+      <option name="presentableId" value="LOCAL-00056" />
+      <option name="project" value="LOCAL" />
+      <updated>1524454406962</updated>
+    </task>
+    <option name="localTasksCounter" value="57" />
     <servers />
   </component>
   <component name="TodoView" selected-index="4">
@@ -924,7 +922,6 @@
     <option name="myLimit" value="2678400000" />
   </component>
   <component name="VcsManagerConfiguration">
-    <MESSAGE value="1. Adding support for logical_not operator especially for use in GreenConstraint&#10;2. Allowing write-after-write and write-after-read operations for now" />
     <MESSAGE value="1. Allowing multiple outputs to be phi'd at the end of a veritesting region&#10;2. Refactoring VeritestingListener.fillHoles() in preparation of implementing higher-order regions" />
     <MESSAGE value="Adding support for comparing object references dynamically when computing a read-write interference between a outer region and a method summary. &#10;&#10;Previously we would compare field information to find a intersection, but comparing object references at runtime is the right way to do it." />
     <MESSAGE value="Looking up a field based on the dynamic class type of the object reference instead of using the static class type." />
@@ -949,7 +946,8 @@
     <MESSAGE value="Removing the stack slots (localStackSlot and callSiteStackSlot) from &#10;FieldInfo. From now on, we will use a total of 2 stack slots in every&#10;HoleExpression object, a local stack slot and a global stack slot.&#10;&#10;The global stack slot maintains the stack slot from the outermost region." />
     <MESSAGE value="1. Doing read-write interference-checking across higher-order regions instead&#10;of only checking every region with its adjacent region in the invoke&#10;call-chain.&#10;2. Updating the global stack slot only if the context (classname, methodname)&#10;of a hole does not match the outermost region's context." />
     <MESSAGE value="1. Writes to fields in higher-order regions should persist beyond the &#10;outermost region  &#10;2. FIELD_OUTPUTs may not always have a hole as their writeValue. Use&#10;the hole hashmap only if the writeValue is a hole." />
-    <option name="LAST_COMMIT_MESSAGE" value="1. Writes to fields in higher-order regions should persist beyond the &#10;outermost region  &#10;2. FIELD_OUTPUTs may not always have a hole as their writeValue. Use&#10;the hole hashmap only if the writeValue is a hole." />
+    <MESSAGE value="Simplifying the construction of symbolic formulas when equating parameters&#10;in a method summary" />
+    <option name="LAST_COMMIT_MESSAGE" value="Simplifying the construction of symbolic formulas when equating parameters&#10;in a method summary" />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>
@@ -1748,8 +1746,8 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/src/examples/VeritestingPerf.java">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="1608">
-          <caret line="174" column="10" lean-forward="false" selection-start-line="174" selection-start-column="10" selection-end-line="174" selection-end-column="10" />
+        <state relative-caret-position="108">
+          <caret line="35" column="0" lean-forward="true" selection-start-line="35" selection-start-column="0" selection-end-line="35" selection-end-column="0" />
           <folding />
         </state>
       </provider>
