@@ -1,5 +1,6 @@
 package gov.nasa.jpf.symbc.veritesting.Visitors;
 
+import choco.Var;
 import com.ibm.wala.classLoader.CallSiteReference;
 import com.ibm.wala.shrikeBT.IBinaryOpInstruction;
 import com.ibm.wala.shrikeBT.IConditionalBranchInstruction;
@@ -24,9 +25,11 @@ import za.ac.sun.cs.green.expr.Operation.Operator;
 import java.util.ArrayList;
 
 public class MyIVisitor implements SSAInstruction.IVisitor {
-    private final int thenUseNum;
-    private final int elseUseNum;
-    private final boolean isMeetVisitor;
+    private int thenUseNum;
+    private int elseUseNum;
+    private boolean isMeetVisitor;
+    private Expression PLAssign;
+    boolean isPhiInstruction = false;
     VarUtil varUtil;
     private Expression phiExprThen = null;
     private Expression phiExprElse = null;
@@ -69,21 +72,24 @@ public class MyIVisitor implements SSAInstruction.IVisitor {
 
     private Expression SPFExpr;
 
-    public MyIVisitor(VarUtil _varUtil, int _thenUseNum, int _elseUseNum, boolean _isMeetVisitor) {
+    public MyIVisitor(VarUtil _varUtil, int _thenUseNum, int _elseUseNum, boolean _isMeetVisitor, Expression PLAssign) {
         varUtil = _varUtil;
         thenUseNum = _thenUseNum;
         elseUseNum = _elseUseNum;
         isMeetVisitor = _isMeetVisitor;
+        this.PLAssign = PLAssign;
         //SPFExpr = new String();
     }
 
-    public MyIVisitor(VarUtil _varUtil, int _thenUseNum, int _elseUseNum, boolean _isMeetVisitor, Expression pathLabelHole) {
+    public MyIVisitor(VarUtil _varUtil, int _thenUseNum, int _elseUseNum, boolean _isMeetVisitor,
+                      Expression PLAssign, Expression pathLabelHole) {
         varUtil = _varUtil;
         thenUseNum = _thenUseNum;
         elseUseNum = _elseUseNum;
         isMeetVisitor = _isMeetVisitor;
         //SPFExpr = new String();
         this.pathLabelHole = pathLabelHole;
+        this.PLAssign = PLAssign;
     }
 
     public void setCanVeritest(boolean val, SSAInstruction instruction) {
@@ -91,6 +97,7 @@ public class MyIVisitor implements SSAInstruction.IVisitor {
         if(!canVeritest) {
             System.out.println("Cannot veritest SSAInstruction: " + instruction);
         }
+
     }
 
     @Override
@@ -105,14 +112,15 @@ public class MyIVisitor implements SSAInstruction.IVisitor {
         if(isMeetVisitor) return;
         System.out.println("SSAArrayLoadInstruction = " + instruction);
         int lhs = instruction.getDef();
-        Expression lhsExpr = varUtil.makeIntermediateVar(lhs, true);
+        Expression lhsExpr = varUtil.makeIntermediateVar(lhs, true, PLAssign);
         // Expression arrayLoadResult = new IntVariable("arrayLoadResult", Integer.MIN_VALUE, Integer.MAX_VALUE);
         int arrayRef = instruction.getUse(0);
         int arrayIndex = instruction.getUse(1);
         TypeReference arrayType = instruction.getElementType();
-        Expression arrayRefHole = varUtil.addVal(arrayRef);
-        Expression arrayIndexHole = varUtil.addVal(arrayIndex);
-        Expression arrayLoadHole = varUtil.addArrayLoadVal(arrayRefHole, arrayIndexHole, lhsExpr, arrayType, HoleExpression.HoleType.ARRAYLOAD, instruction, pathLabelHole);
+        Expression arrayRefHole = varUtil.addVal(arrayRef, PLAssign);
+        Expression arrayIndexHole = varUtil.addVal(arrayIndex, PLAssign);
+        Expression arrayLoadHole = varUtil.addArrayLoadVal(arrayRefHole, arrayIndexHole, lhsExpr, arrayType,
+                HoleExpression.HoleType.ARRAYLOAD, instruction, pathLabelHole, PLAssign);
 
         // MWW: new code!  TODO: get rid of arrayRefHole and arrayIndexHole: they are discoverable.
         ArrayBoundsReason reason = new ArrayBoundsReason(arrayRefHole, arrayIndexHole, arrayLoadHole);
@@ -145,9 +153,9 @@ public class MyIVisitor implements SSAInstruction.IVisitor {
         //variables written to in a veritesting region will always become intermediates because they will be
         //phi'd at the end of the region or be written into a class field later
         //lhsExpr will also be a intermediate variable if we are summarizing a method
-        Expression lhsExpr = varUtil.makeIntermediateVar(lhs, true);
-        Expression operand1Expr = varUtil.addVal(operand1);
-        Expression operand2Expr = varUtil.addVal(operand2);
+        Expression lhsExpr = varUtil.makeIntermediateVar(lhs, true, PLAssign);
+        Expression operand1Expr = varUtil.addVal(operand1, PLAssign);
+        Expression operand2Expr = varUtil.addVal(operand2, PLAssign);
 
         assert(!varUtil.isConstant(lhs));
         Operator operator = null;
@@ -237,8 +245,8 @@ public class MyIVisitor implements SSAInstruction.IVisitor {
             setCanVeritest(false, instruction);
             return;
         }
-        Expression operand1 = varUtil.addVal(instruction.getUse(0));
-        Expression operand2 = varUtil.addVal(instruction.getUse(1));
+        Expression operand1 = varUtil.addVal(instruction.getUse(0), PLAssign);
+        Expression operand2 = varUtil.addVal(instruction.getUse(1), PLAssign);
         ifExpr = new Operation(opGreen, operand1, operand2);
         //Expression ifNotExpr = new Operation(negOpGreen, operand1, operand2);
         //SPFExpr = new Operation(Operator.OR, ifExpr, ifNotExpr);
@@ -293,8 +301,8 @@ public class MyIVisitor implements SSAInstruction.IVisitor {
         System.out.println("declaringClass = " + declaringClass + ", currentMethodName = " + fieldName);
         int def = instruction.getDef(0);
         if(varUtil.addFieldInputVal(def, objRef, declaringClass.toString(), fieldName.toString(),
-                HoleExpression.HoleType.FIELD_INPUT, instruction.isStatic()) == null) {
-            setCanVeritest(false, instruction);
+                instruction.isStatic(), this.PLAssign) == null) {
+                setCanVeritest(false, instruction);
         } else {
             setCanVeritest(true, instruction);
         }
@@ -304,27 +312,25 @@ public class MyIVisitor implements SSAInstruction.IVisitor {
     public void visitPut(SSAPutInstruction instruction) {
         if(isMeetVisitor) return;
         System.out.println("SSAPutInstruction = " + instruction);
-        String intermediateVarName = "";
+        String holeName = "";
         if(instruction.isStatic()) {
             assert(instruction.getNumberOfUses()==1);
             assert(instruction.getNumberOfDefs()==0);
-            intermediateVarName = "putStatic.";
+            holeName = "putStatic.";
         } else {
             assert (instruction.getNumberOfUses() == 2);
             assert (instruction.getNumberOfDefs() == 0);
-            intermediateVarName = "putField.";
+            holeName = "putField.";
         }
         FieldReference fieldReference = instruction.getDeclaredField();
         int objRef = instruction.getRef();
         String className = fieldReference.getDeclaringClass().getName().getClassName().toString();
         String fieldName = fieldReference.getName().toString();
-        intermediateVarName += objRef + ".";
-        intermediateVarName += className + "." + fieldName;
-        Expression intermediate = varUtil.makeIntermediateVar(intermediateVarName, true);
-        Expression writeVal = varUtil.addVal(instruction.getVal());
-        SPFExpr = new Operation(Operator.EQ, intermediate, writeVal);
-        if(varUtil.addFieldOutputVal(intermediate, objRef, className, fieldName.toString(),
-                HoleExpression.HoleType.FIELD_OUTPUT, instruction.isStatic()) == null) {
+        holeName += objRef + ".";
+        holeName += className + "." + fieldName + VarUtil.nextInt();
+        Expression writeVal = varUtil.addVal(instruction.getVal(), PLAssign);
+        if(varUtil.addFieldOutputVal(writeVal, objRef, className, fieldName.toString(),
+                instruction.isStatic(), PLAssign, holeName) == null) {
             setCanVeritest(false, instruction);
         } else {
             setCanVeritest(true, instruction);
@@ -353,7 +359,7 @@ public class MyIVisitor implements SSAInstruction.IVisitor {
         if(instruction.getNumberOfReturnValues() == 1) defVal = instruction.getDef(); // represents the return value
         ArrayList<Expression> paramList = new ArrayList<>();
         for(int i=0; i < instruction.getNumberOfParameters(); i++) {
-            paramList.add(varUtil.addVal(instruction.getUse(i)));
+            paramList.add(varUtil.addVal(instruction.getUse(i), PLAssign));
         }
         InvokeInfo callSiteInfo = new InvokeInfo();
         callSiteInfo.isVirtualInvoke = (site.getInvocationCode() == IInvokeInstruction.Dispatch.VIRTUAL);
@@ -363,7 +369,7 @@ public class MyIVisitor implements SSAInstruction.IVisitor {
         callSiteInfo.setMethodName(methodName.toString());
         callSiteInfo.setMethodSignature(methodSig);
         callSiteInfo.setParamList(paramList);
-        varUtil.addInvokeHole(callSiteInfo);
+        varUtil.addInvokeHole(callSiteInfo, PLAssign);
         invokeClassName = declaringClass.toString();
         isInvoke = true;
         setCanVeritest(true, instruction);
@@ -426,12 +432,12 @@ public class MyIVisitor implements SSAInstruction.IVisitor {
         assert(instruction.getNumberOfUses()>=2);
         assert(instruction.getNumberOfDefs()==1);
 
-        if (thenUseNum != -1) phiExprThen = varUtil.addVal(instruction.getUse(thenUseNum));
-        if (elseUseNum != -1) phiExprElse = varUtil.addVal(instruction.getUse(elseUseNum));
+        if (thenUseNum != -1) phiExprThen = varUtil.addVal(instruction.getUse(thenUseNum), PLAssign);
+        if (elseUseNum != -1) phiExprElse = varUtil.addVal(instruction.getUse(elseUseNum), PLAssign);
         if (thenUseNum != -1 || elseUseNum != -1) {
             phiExprLHS = varUtil.addDefVal(instruction.getDef(0));
-            assert (!(phiExprLHS instanceof HoleExpression && !((HoleExpression) phiExprLHS).isHole()));
-            assert (varUtil.getIr().getSymbolTable().isConstant(instruction.getDef(0)) == false);
+            assert ((phiExprLHS instanceof HoleExpression));
+            assert (varUtil.getIR().getSymbolTable().isConstant(instruction.getDef(0)) == false);
         }
         setCanVeritest(true, instruction);
         //while other instructions may also update local variables, those should always become lhsExpr variables

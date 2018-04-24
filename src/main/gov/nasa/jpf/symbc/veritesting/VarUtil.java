@@ -7,10 +7,10 @@ import gov.nasa.jpf.symbc.VeritestingListener;
 import gov.nasa.jpf.symbc.veritesting.SPFCase.SPFCase;
 import gov.nasa.jpf.symbc.veritesting.SPFCase.SPFCaseList;
 import gov.nasa.jpf.vm.StackFrame;
+
 import za.ac.sun.cs.green.expr.Expression;
 import za.ac.sun.cs.green.expr.IntConstant;
 
-import java.lang.annotation.ElementType;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -24,6 +24,11 @@ public class VarUtil {
     private static int nextIntermediateCount = 1;
     String className;
     String methodName;
+
+    public IR getIR() {
+        return ir;
+    }
+
     IR ir;
     // Maps each WALA IR variable to its corresponding stack slot, if one exists
     HashMap<Integer, Integer> varsMap;
@@ -40,29 +45,29 @@ public class VarUtil {
     private static long holeID = 0;
 
     // contains the return values hole expression found in the region
-    public Expression retValVar;
+    public Expression retValVar = null;
 
     public void addSpfCase(SPFCase c) { spfCases.addCase(c); }
     public SPFCaseList getSpfCases() { return spfCases; }
 
     public static final int getPathCounter() { pathCounter++; return pathCounter; }
 
-    public Expression makeIntermediateVar(int val, boolean useVarCache) {
+    public Expression makeIntermediateVar(int val, boolean useVarCache, Expression PLAssign) {
         String name = "v" + val;
-        return makeIntermediateVar(name, useVarCache);
+        return makeIntermediateVar(name, useVarCache, PLAssign);
     }
 
     // makes a intermediate variable hole, does not use varCache if useVarCache is false
     // useVarCache is useful when creating intermediate variable hole to be used in as the writeExpr in a FIELD_OUTPUT
     // hole because we would like to creat a new intermediate variable hole for every write into a field
-    public Expression makeIntermediateVar(String name, boolean useVarCache) {
+    public Expression makeIntermediateVar(String name, boolean useVarCache, Expression PLAssign) {
         name = className + "." + methodName + "." + name;
         if(varCache.containsKey(name)) {
             if(useVarCache) return varCache.get(name);
             else name += VarUtil.nextIntermediateCount();
         }
-        HoleExpression holeExpression = new HoleExpression(nextInt(), className, methodName);
-        holeExpression.setHole(true, HoleExpression.HoleType.INTERMEDIATE);
+        HoleExpression holeExpression = new HoleExpression(nextInt(), className, methodName,
+                HoleExpression.HoleType.INTERMEDIATE, PLAssign, -1, -1);
         holeExpression.setHoleVarName(name);
         varCache.put(name, holeExpression);
         return holeExpression;
@@ -74,27 +79,25 @@ public class VarUtil {
         return ret;
     }
 
-    public Expression makeLocalInputVar(int val) {
+    public Expression makeLocalInputVar(int val, Expression PLAssign) {
         assert(varsMap.containsKey(val));
         String name = className + "." + methodName + ".v" + val;
         if(varCache.containsKey(name))
             return varCache.get(name);
-        HoleExpression holeExpression = new HoleExpression(nextInt(), className, methodName);
-        holeExpression.setHole(true, HoleExpression.HoleType.LOCAL_INPUT);
-        holeExpression.setLocalStackSlot(varsMap.get(val));
+        HoleExpression holeExpression = new HoleExpression(nextInt(), className, methodName,
+                HoleExpression.HoleType.LOCAL_INPUT, PLAssign, varsMap.get(val), -1);
         holeExpression.setHoleVarName(name);
         varCache.put(name, holeExpression);
         return holeExpression;
     }
 
-    public Expression makeLocalOutputVar(int val) {
+    public Expression makeLocalOutputVar(int val, Expression PLAssign) {
         assert(varsMap.containsKey(val));
         String name = className + "." + methodName + ".v" + val;
         if(varCache.containsKey(name))
             return varCache.get(name);
-        HoleExpression holeExpression = new HoleExpression(nextInt(), className, methodName);
-        holeExpression.setHole(true, HoleExpression.HoleType.LOCAL_OUTPUT);
-        holeExpression.setLocalStackSlot(varsMap.get(val));
+        HoleExpression holeExpression = new HoleExpression(nextInt(), className, methodName,
+                HoleExpression.HoleType.LOCAL_OUTPUT, PLAssign, varsMap.get(val), -1);
         holeExpression.setHoleVarName(name);
         varCache.put(name, holeExpression);
         return holeExpression;
@@ -108,17 +111,16 @@ public class VarUtil {
         varCache = new HashMap<String, Expression> () {
             @Override
             public Expression put(String key, Expression expression) {
-                if(expression instanceof HoleExpression && ((HoleExpression)expression).isHole()) {
+                if(expression instanceof HoleExpression) {
                     // using non-hole IntegerConstant object containing 0 as placeholder
                     // for final filled-up hole object
                     if(!holeHashMap.containsKey(expression)) {
-                        setLatestWrite(expression);
                         /// MWW: in this stmt, I might put 'null' to signify that there is nothing useful in the codomain.
                         holeHashMap.put(expression, expression);
-                        checkReadAfterWrite(expression);
                     }
                     if(((HoleExpression)expression).getHoleType() == HoleExpression.HoleType.FIELD_OUTPUT ||
-                            ((HoleExpression)expression).getHoleType() == HoleExpression.HoleType.LOCAL_OUTPUT)
+                            ((HoleExpression)expression).getHoleType() == HoleExpression.HoleType.LOCAL_OUTPUT ||
+                            ((HoleExpression)expression).getHoleType() == HoleExpression.HoleType.FIELD_PHI)
                         defLocalVars.add(expression);
                 }
                 return super.put(key, expression);
@@ -342,28 +344,6 @@ public class VarUtil {
         } while(localVarUpdated);
     }
 
-    private void checkReadAfterWrite(Expression expression) {
-        HoleExpression holeExpression = ((HoleExpression)expression);
-        if(holeExpression.getHoleType() == HoleExpression.HoleType.LOCAL_INPUT) {
-            for(HashMap.Entry<Expression, Expression> entry: holeHashMap.entrySet()) {
-                HoleExpression holeExpression1 = (HoleExpression) entry.getKey();
-                if(holeExpression1.getHoleType() != HoleExpression.HoleType.LOCAL_OUTPUT) continue;
-                if(holeExpression.getLocalStackSlot() == holeExpression1.getLocalStackSlot() &&
-                        holeExpression1.isLatestWrite)
-                    holeExpression.dependsOn = holeExpression1;
-            }
-        }
-        if(holeExpression.getHoleType() == HoleExpression.HoleType.FIELD_INPUT) {
-            for(HashMap.Entry<Expression, Expression> entry: holeHashMap.entrySet()) {
-                HoleExpression holeExpression1 = (HoleExpression) entry.getKey();
-                if(holeExpression1.getHoleType() != HoleExpression.HoleType.FIELD_OUTPUT) continue;
-                if(holeExpression.getFieldInfo().equals(holeExpression1.getFieldInfo()) &&
-                        holeExpression1.isLatestWrite)
-                    holeExpression.dependsOn = holeExpression1;
-            }
-        }
-    }
-
     private boolean updateLocalVarsForPhi(SSAPhiInstruction phiInstruction, int val) {
         boolean ret = false;
         for(int use = 0; use < phiInstruction.getNumberOfUses(); use++) {
@@ -387,7 +367,7 @@ public class VarUtil {
         return ret;
     }
 
-    public Expression addVal(int val) {
+    public Expression addVal(int val, Expression PLAssign) {
         String name = className + "." + methodName + ".v" + val;
         if(varCache.containsKey(name))
             return varCache.get(name);
@@ -397,8 +377,8 @@ public class VarUtil {
             varCache.put(name, ret);
             return ret;
         }
-        if(isLocalVariable(val)) ret = makeLocalInputVar(val);
-        else ret = makeIntermediateVar(val, true);
+        if(isLocalVariable(val)) ret = makeLocalInputVar(val, PLAssign);
+        else ret = makeIntermediateVar(val, true, PLAssign);
         varCache.put(name, ret);
         return ret;
     }
@@ -415,7 +395,7 @@ public class VarUtil {
     public Expression addDefVal(int def) {
         //this assumes that we dont need to do anything special for lhsExpr vars defined in a region
         if(isLocalVariable(def)) {
-            return makeLocalOutputVar(def);
+            return makeLocalOutputVar(def, null);
         }
         System.out.println("non-local value cannot be defined (" + def + ")");
         assert(false);
@@ -428,21 +408,23 @@ public class VarUtil {
         return ret;
     }*/
 
-    public Expression addArrayLoadVal(Expression arrayRef, Expression arrayIndex, Expression lhsSide, TypeReference arrayType, HoleExpression.HoleType holeType, SSAArrayLoadInstruction instructionName, Expression pathLabelHole) {
+    public Expression addArrayLoadVal(Expression arrayRef, Expression arrayIndex, Expression lhsSide,
+                                      TypeReference arrayType, HoleExpression.HoleType holeType,
+                                      SSAArrayLoadInstruction instructionName, Expression pathLabelHole,
+                                      Expression PLAssign) {
         assert(holeType == HoleExpression.HoleType.ARRAYLOAD);
-        HoleExpression holeExpression = new HoleExpression(nextInt(), className, methodName);
+        HoleExpression holeExpression = new HoleExpression(nextInt(), className, methodName, holeType, PLAssign, -1, -1);
         holeExpression.setHoleVarName(instructionName.toString());
-        holeExpression.setHole(true, holeType);
         holeExpression.setArrayInfo(arrayRef, arrayIndex, lhsSide, arrayType, pathLabelHole);
+
         varCache.put(holeExpression.getHoleVarName(), holeExpression);
         holeExpression.toString();
         return holeExpression;
     }
 
     // def will be value being defined in case of FIELD_INPUT hole
-    public Expression addFieldInputVal(int def, int use, String fieldClassName, String fieldName,
-                                       HoleExpression.HoleType holeType, boolean isStaticField) {
-        assert(holeType == HoleExpression.HoleType.FIELD_INPUT);
+    public Expression addFieldInputVal(int def, int use, String fieldStaticClassName, String fieldName,
+                                       boolean isStaticField, Expression PLAssign) {
         HoleExpression useHole = null;
         //If the field does not belong to a local object, then it has to be an already created object or a static field
         // meaning use equals -1
@@ -455,69 +437,22 @@ public class VarUtil {
             assert(use != -1);
             localStackSlot = varsMap.get(use);
         }
-        HoleExpression holeExpression = new HoleExpression(nextInt(), this.className, methodName);
-        holeExpression.setHole(true, holeType);
-        holeExpression.setFieldInfo(fieldClassName, fieldName, methodName, localStackSlot, -1, null,
+        HoleExpression holeExpression = new HoleExpression(nextInt(), this.className, methodName,
+                HoleExpression.HoleType.FIELD_INPUT, PLAssign, localStackSlot, -1);
+        holeExpression.setFieldInfo(fieldStaticClassName, fieldName, methodName, null,
                 isStaticField, useHole);
         String name = this.className + "." + this.methodName + ".v" + def;
         holeExpression.setHoleVarName(name);
-        if(fieldHasRWOperation(holeExpression, HoleExpression.HoleType.FIELD_OUTPUT, holeHashMap, null, null)) {
-            VeritestingListener.fieldReadAfterWrite += 1;
-            if((VeritestingListener.allowFieldReadAfterWrite == false))
-                return null;
-        }
         varCache.put(holeExpression.getHoleVarName(), holeExpression);
         return holeExpression;
     }
 
-    /*
-    Checks if there is a read/write (specified in holeType) operation happening on the same field in holeExpression
-    and some hole in holeHashMap.
-    This method assumes that holeExpression comes from a method summary, holeHashMap is the hashmap of holes of the
-    outer region.
-     */
-    public static boolean fieldHasRWOperation(HoleExpression holeExpression, HoleExpression.HoleType holeType,
-                                        HashMap<Expression, Expression> holeHashMap, InvokeInfo callSiteInfo,
-                                              StackFrame stackFrame) {
-        assert(holeExpression.getHoleType() == HoleExpression.HoleType.FIELD_INPUT ||
-                holeExpression.getHoleType() == HoleExpression.HoleType.FIELD_OUTPUT);
-        for(HashMap.Entry<Expression, Expression> entry: holeHashMap.entrySet()) {
-            HoleExpression holeExpression1 = (HoleExpression) entry.getKey();
-            if(holeExpression1.getHoleType() != holeType) continue;
-            //One of the field accesses is non-static, so there cannot be a r/w operation to the same field
-            if(holeExpression1.getFieldInfo().isStaticField && !holeExpression.getFieldInfo().isStaticField) continue;
-            if(!holeExpression1.getFieldInfo().isStaticField && holeExpression.getFieldInfo().isStaticField) continue;
-            if(!holeExpression.getFieldInfo().fieldName.equals(holeExpression1.getFieldInfo().fieldName)) continue;
-            //Both field accesses are static and access the same field
-            if(holeExpression1.getFieldInfo().isStaticField && holeExpression.getFieldInfo().isStaticField)
-                if(holeExpression.getFieldInfo().equals(holeExpression1.getFieldInfo()))
-                    return true;
-            //At this point, both field accesses operate on the same type of field and are both non-static
-            //we now need to determine if these two fields belong to the same object
-            //Assume that holeExpression comes from a method summary if callSiteInfo is not null
-            if(callSiteInfo == null) return true;
-            if(holeExpression.getFieldInfo().localStackSlot == 0) {
-                int objRefMS = stackFrame.getLocalVariable(((HoleExpression) callSiteInfo.paramList.get(0)).getLocalStackSlot());
-                int objRefOR = stackFrame.getLocalVariable(holeExpression1.getFieldInfo().localStackSlot);
-                if(objRefMS == objRefOR) return true;
-                else return false;
-            } else {
-                //We cannot load the object reference for an object that is created locally within the method summary
-                return false;
-            }
-        }
-        return false;
-    }
-
     // def will be value being defined in case of FIELD_INPUT hole
     public Expression addFieldOutputVal(Expression writeExpr, int use,
-                                       String fieldClassName,
+                                       String fieldStaticClassName,
                                        String fieldName,
-                                       HoleExpression.HoleType holeType,
-                                        boolean isStaticField) {
-        assert(holeType == HoleExpression.HoleType.FIELD_OUTPUT);
-        assert(writeExpr instanceof HoleExpression);
-        assert(((HoleExpression)writeExpr).getHoleType() == HoleExpression.HoleType.INTERMEDIATE);
+                                        boolean isStaticField,
+                                        Expression PLAssign, String holeName) {
         HoleExpression useHole = null;
         //If the field does not belong to a local object, then it has to be an already created object or a static field
         // meaning use equals -1
@@ -531,25 +466,15 @@ public class VarUtil {
             assert(use != -1);
             localStackSlot = varsMap.get(use);
         }
-        String name = "FIELD_OUTPUT." + ((HoleExpression)writeExpr).getHoleVarName();
-        //varCache should not already have a hole with "name" holeVarName because every field output should have a
-        // new intermediate variable as the writeExpr
-        //assert(!varCache.containsKey(name));
-        HoleExpression holeExpression = new HoleExpression(nextInt(), this.className, methodName);
-        holeExpression.setHole(true, holeType);
-        holeExpression.setFieldInfo(fieldClassName, fieldName, methodName, localStackSlot, -1, writeExpr, isStaticField, useHole);
-        holeExpression.setHoleVarName(name);
-        if(fieldHasRWOperation(holeExpression, HoleExpression.HoleType.FIELD_INPUT, holeHashMap, null, null)) {
-            VeritestingListener.fieldWriteAfterRead += 1;
-            if((VeritestingListener.allowFieldWriteAfterRead == false))
-                return null;
-        }
-        if(fieldHasRWOperation(holeExpression, HoleExpression.HoleType.FIELD_OUTPUT, holeHashMap, null, null)) {
-            VeritestingListener.fieldWriteAfterWrite += 1;
-            if((VeritestingListener.allowFieldWriteAfterWrite == false))
-                return null;
-        }
-        varCache.put(name, holeExpression);
+        // varCache should not already have a hole with "holeName" holeName because every field output variable name
+        // contains a monotonically increasing counter as a suffix
+        assert(!varCache.containsKey(holeName));
+        HoleExpression holeExpression = new HoleExpression(nextInt(), this.className, methodName,
+                HoleExpression.HoleType.FIELD_OUTPUT, PLAssign, localStackSlot, -1);
+        holeExpression.setFieldInfo(fieldStaticClassName, fieldName, methodName, writeExpr,
+                isStaticField, useHole);
+        holeExpression.setHoleVarName(holeName);
+        varCache.put(holeName, holeExpression);
         return holeExpression;
     }
 
@@ -582,15 +507,15 @@ public class VarUtil {
         retValVar = null;
     }
 
-    public long nextInt() {
+    public static long nextInt() {
         holeID++;
         return holeID;
     }
 
-    public Expression addInvokeHole(InvokeInfo invokeInfo) {
-        HoleExpression holeExpression = new HoleExpression(nextInt(), className, methodName);
+    public Expression addInvokeHole(InvokeInfo invokeInfo, Expression PLAssign) {
+        HoleExpression holeExpression = new HoleExpression(nextInt(), className, methodName,
+                HoleExpression.HoleType.INVOKE, PLAssign, -1, -1);
         String name = className + "." + methodName + ".v" + invokeInfo.defVal;
-        holeExpression.setHole(true, HoleExpression.HoleType.INVOKE);
         holeExpression.setInvokeInfo(invokeInfo);
         //The return value of this invokeVirtual will be this holeExpression object.
         //The only way to fill this hole is to map it to the corresponding method summary return value
@@ -608,32 +533,6 @@ public class VarUtil {
             assert (varCache.containsKey(name));
             retValVar = varCache.get(name);
         } else retValVar = new IntConstant(getConstant(use));
-    }
-
-    public void setLatestWrite(Expression expression) {
-        HoleExpression holeExpression = (HoleExpression) expression;
-        if(holeExpression.getHoleType() == HoleExpression.HoleType.LOCAL_OUTPUT) {
-            for(HashMap.Entry<Expression, Expression> entry: holeHashMap.entrySet()) {
-                HoleExpression holeExpression1 = (HoleExpression) entry.getKey();
-                if(holeExpression1.getHoleType() != HoleExpression.HoleType.LOCAL_OUTPUT) continue;
-                if(holeExpression.getLocalStackSlot() == holeExpression1.getLocalStackSlot())
-                    holeExpression1.isLatestWrite = false;
-            }
-        }
-        if(holeExpression.getHoleType() == HoleExpression.HoleType.FIELD_OUTPUT) {
-            for(HashMap.Entry<Expression, Expression> entry: holeHashMap.entrySet()) {
-                HoleExpression holeExpression1 = (HoleExpression) entry.getKey();
-                if(holeExpression1.getHoleType() != HoleExpression.HoleType.FIELD_OUTPUT) continue;
-                if(holeExpression.getFieldInfo().equals(holeExpression1.getFieldInfo()))
-                    holeExpression1.isLatestWrite = false;
-            }
-        }
-    }
-
-    public IR getIr() {return ir; }
-
-    public HashSet<Expression> getDefLocalVars() {
-        return defLocalVars;
     }
 }
 
