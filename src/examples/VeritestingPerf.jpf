@@ -4,7 +4,10 @@ sourcepath=${jpf-symbc}/src/examples
 vm.storage.class=nil
 symbolic.debug=false
 
-#symbolic.method=VeritestingPerf.checkOperator()
+#symbolic.method=VeritestingPerf.testSimple1(sym)
+#symbolic.method=VeritestingPerf.nestedRegion(sym)
+#symbolic.method=VeritestingPerf.countBitsSet(sym),VeritestingPerf.testDynObject(sym#sym),VeritestingPerf.testSimple1(sym)
+symbolic.method=VeritestingPerf.checkOperator()
 
 symbolic.method=VeritestingPerf.testSimple(sym),VeritestingPerf.simpleRegion(sym),VeritestingPerf.fieldWriteTestBranch2(sym),VeritestingPerf.fieldWriteTestBranch1(sym),VeritestingPerf.testSimple1(sym),VeritestingPerf.testSimple2(sym),VeritestingPerf.testSimpleFail(sym),VeritestingPerf.countBitsSet(sym),VeritestingPerf.readAfterWriteTest(sym),VeritestingPerf.nestedRegion(sym),VeritestingPerf.testNested(sym),VeritestingPerf.nestedRegion1(sym#sym),VeritestingPerf.testDynObject(sym#sym)
 #symbolic.method=VeritestingPerf.cfgTest(sym)
@@ -13,24 +16,37 @@ symbolic.method=VeritestingPerf.testSimple(sym),VeritestingPerf.simpleRegion(sym
 #symbolic.method=VeritestingPerf.arrayTest(con#sym)
 
 ######## testing ArrrayLoad  ######
-#testing inRange concrete Index
 #symbolic.method=VeritestingPerf.inRangeloadArrayTC(sym#sym)
-
 #symbolic.method=VeritestingPerf.innerCatchOutRangeloadArrayTC(sym#sym)
-
-#testing inRange symbolic Index
 #symbolic.method=VeritestingPerf.catchOutRangeloadArrayTC(sym#sym)
-
 #symbolic.method=VeritestingPerf.outRangeloadArrayTC(sym#sym)
-
 #symbolic.method=VeritestingPerf.boundedOutRangeloadArrayTC(sym#sym)
-#symbolic.method=VeritestingPerf.ifNull(con)
-
-
-#symbolic.method=VeritestingPerf.foo(sym)
-
 #symbolic.method=VeritestingPerf.segmantTest(sym#sym)
+#symbolic.method=VeritestingPerf.testSegment2(sym#sym#sym)
 
+
+######## testing createObject  ######
+#symbolic.method=VeritestingPerf.createObjectTC1(sym#sym)
+#symbolic.method=VeritestingPerf.createObjectTC2(sym#sym)
+#symbolic.method=VeritestingPerf.createObjectTC3(sym#sym)
+#symbolic.method=VeritestingPerf.createObjectTC4(sym#sym)
+#symbolic.method=VeritestingPerf.createObjectTC5(sym#sym)
+#symbolic.method=VeritestingPerf.createObjectTC6(sym#sym)
+#symbolic.method=VeritestingPerf.createObjectTC7(sym#sym)
+#symbolic.method=VeritestingPerf.createObjectTC8(sym#sym)
+#symbolic.method=VeritestingPerf.assertRegions(sym#sym)
+#symbolic.method=VeritestingPerf.createObjectComplexRegionTC1(sym#sym)
+symbolic.method=VeritestingPerf.createObjectComplexRegionTC2(sym#sym)
+#symbolic.method=VeritestingPerf.createObjectComplexRegionTC3(sym#sym)
+#symbolic.method=VeritestingPerf.createObjectComplexRegionTC4(sym#sym)
+#symbolic.method=VeritestingPerf.createObjectComplexRegionTC5(sym#sym)
+#symbolic.method=VeritestingPerf.createObjectComplexRegionTC6(sym#sym)
+
+
+######## testing complexRegions  ######
+#symbolic.method=VeritestingPerf.foo(sym)
+#symbolic.method=VeritestingPerf.assertRegions(sym#sym)
+#symbolic.method=VeritestingPerf.ifNull(con)
 #symbolic.method=TestPaths.testMe2(sym#sym)
 
 symbolic.dp=z3bitvector
