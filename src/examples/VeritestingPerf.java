@@ -1,8 +1,3 @@
-package staticRegions;/*
- * example to demonstrate veritesting
-*/
-
-
 import gov.nasa.jpf.symbc.Debug;
 
 import java.util.ArrayList;
@@ -123,9 +118,9 @@ public class VeritestingPerf {
     // this fails.
     public void testSimple(int x) {
         count = simpleRegion(x);
-        System.out.println("x: " + x + "; count: " + count);
         assert(x > 0 ? count == 3 : true);
         assert(x <= 0 ? count == 4 : true);
+        System.out.println("x: " + x + "; count: " + count);
     }
 
     // MWW fails incorrectly: 4/8/2018

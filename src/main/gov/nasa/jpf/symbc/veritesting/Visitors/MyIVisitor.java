@@ -351,7 +351,10 @@ public class MyIVisitor implements SSAInstruction.IVisitor {
             return;
         }
         assert(instruction.getNumberOfUses() == instruction.getNumberOfParameters());
-        Atom declaringClass = methodReference.getDeclaringClass().getName().getClassName();
+        String declaringClass = methodReference.getDeclaringClass().getName().getClassName().toString();
+        //String packageName = methodReference.getDeclaringClass().getName().getPackage().toString();
+        //packageName = packageName.replace("/",".");
+        //declaringClass = packageName + declaringClass;
         Atom methodName = methodReference.getName();
         String methodSig = methodReference.getSignature();
         methodSig = methodSig.substring(methodSig.indexOf('('));

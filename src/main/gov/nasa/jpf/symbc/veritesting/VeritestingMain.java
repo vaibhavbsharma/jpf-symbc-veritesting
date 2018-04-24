@@ -205,13 +205,21 @@ public class VeritestingMain {
                     options.getSSAOptions().setPiNodePolicy(SSAOptions.getAllBuiltInPiNodes());
                     IAnalysisCacheView cache = new AnalysisCacheImpl(options.getSSAOptions());
                     ir = cache.getIR(iMethod, Everywhere.EVERYWHERE);
+                    if(ir == null) {
+                        System.out.println("failed to get WALA IR for method: " + className +"." + signature);
+                        continue;
+                    }
                     Iterator<CallSiteReference> iterator = ir.iterateCallSites();
                     while (iterator.hasNext()) {
                         CallSiteReference reference = iterator.next();
                         MethodReference methodReference = reference.getDeclaredTarget();
                         String declaringClass = methodReference.getDeclaringClass().getName().getClassName().toString();
-                        if (!methodSummaryClassNames.contains(declaringClass)) {
-                            newClassNames.add(declaringClass);
+                        //String packageName = methodReference.getDeclaringClass().getName().getPackage().toString();
+                        //packageName = packageName.replace("/",".");
+                        //String newClassName = packageName + "." + declaringClass;
+                        String newClassName = declaringClass;
+                        if (!methodSummaryClassNames.contains(newClassName)) {
+                            newClassNames.add(newClassName);
                         }
                     }
                 }
@@ -226,7 +234,7 @@ public class VeritestingMain {
             MethodReference mr = StringStuff.makeMethodReference(className + "." + methodSig);
             IMethod m = cha.resolveMethod(mr);
             if (m == null) {
-                System.out.println("could not resolve " + mr);
+                System.out.println("could not resolve " + className + "." + methodSig);
                 return;
                 //Assertions.UNREACHABLE("could not resolve " + mr);
             }
@@ -235,10 +243,10 @@ public class VeritestingMain {
             IAnalysisCacheView cache = new AnalysisCacheImpl(options.getSSAOptions());
             ir = cache.getIR(m, Everywhere.EVERYWHERE);
             if (ir == null) {
-                Assertions.UNREACHABLE("Null IR for " + m);
+                Assertions.UNREACHABLE("Null IR for " + className + "." + methodSig);
             }
             cfg = ir.getControlFlowGraph();
-            currentClassName = m.getDeclaringClass().getName().getClassName().toString();
+            currentClassName = className;
             currentMethodName = m.getName().toString();
             this.methodSig = methodSig.substring(methodSig.indexOf('('));
             System.out.println("Starting analysis for " + currentMethodName + "(" + currentClassName + "." + methodSig + ")");
@@ -907,7 +915,7 @@ public class VeritestingMain {
             while (ssaInstructionIterator.hasNext()) {
                 //phi expressions are summarized in the constructVeritestingRegion method, dont try to summarize them here
 
-                myIVisitor = new MyIVisitor(varUtil, -1, -1, false, pathLabelHole, PLAssign);
+                myIVisitor = new MyIVisitor(varUtil, -1, -1, false, PLAssign, pathLabelHole);
                 SSAInstruction instruction = ssaInstructionIterator.next();
                 instruction.visit(myIVisitor);
 

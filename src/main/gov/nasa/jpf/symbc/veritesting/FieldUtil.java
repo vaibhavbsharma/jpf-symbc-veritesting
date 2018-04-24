@@ -292,14 +292,14 @@ public class FieldUtil {
                                               Expression finalValue, Expression prevValue,
                                               LinkedHashMap<Expression, Expression> methodHoles,
                                               LinkedHashMap<Expression, Expression> retHoleHashMap,
-                                              boolean isMethodSummary, InvokeInfo callSiteInfo) throws StaticRegionException {
+                                              boolean isMethodSummary, InvokeInfo callSiteInfo)
+            throws StaticRegionException {
         Expression ret = null;
         Iterator iterator = outputVars.iterator();
         Expression disjAllPLAssign = null;
-        // FYI: outputVars doesn't contain FIELD_PHI holes
         while(iterator.hasNext()) {
             HoleExpression outputVar = (HoleExpression) iterator.next();
-            if(outputVar.getHoleType() != FIELD_OUTPUT) continue;
+            if(outputVar.getHoleType() != FIELD_OUTPUT && outputVar.getHoleType() != FIELD_PHI) continue;
             if(!outputVar.isLatestWrite()) continue;
             if(FieldUtil.isSameField(ti, sf, holeExpression, outputVar, methodHoles, retHoleHashMap, isMethodSummary, callSiteInfo, false)) {
                 if(outputVar.PLAssign == null) {

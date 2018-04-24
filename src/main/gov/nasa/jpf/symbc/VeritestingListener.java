@@ -92,7 +92,7 @@ public class VeritestingListener extends PropertyListenerAdapter implements Publ
     public static int fieldReadAfterWrite = 0;
     public static int fieldWriteAfterWrite = 0;
     public static int fieldWriteAfterRead = 0;
-    public static final boolean allowFieldReadAfterWrite = false;
+    public static final boolean allowFieldReadAfterWrite = true;
     public static final boolean allowFieldWriteAfterRead = true;
     public static final boolean allowFieldWriteAfterWrite = true;
     private static int methodSummaryRWInterference = 0;
@@ -133,6 +133,8 @@ public class VeritestingListener extends PropertyListenerAdapter implements Publ
 
         // Here is the real code
         String key = generateRegionKey(ti, instructionToExecute);
+        if(key.contains("simple"))
+            System.out.println("");
 
         if (veritestingRegions.containsKey(key)) {
             VeritestingRegion region = veritestingRegions.get(key);
@@ -181,7 +183,7 @@ public class VeritestingListener extends PropertyListenerAdapter implements Publ
                     PathCondition pc = ((PCChoiceGenerator) ti.getVM().getSystemState().getChoiceGenerator()).getCurrentPC();
                     pc._addDet(new GreenConstraint(regionSummary));
                     // MWW: for debugging.
-                    System.out.println("pc: " + pc);
+                    //System.out.println("pc: " + pc);
                     ((PCChoiceGenerator) ti.getVM().getSystemState().getChoiceGenerator()).setCurrentPC(pc);
                     // MWW: end of add.
 
@@ -257,12 +259,14 @@ public class VeritestingListener extends PropertyListenerAdapter implements Publ
                 region.getSummaryExpression(), fillHolesOutput.additionalAST);
         FillAstHoleVisitor visitor = new FillAstHoleVisitor(fillHolesOutput.holeHashMap);
         finalSummaryExpression = visitor.visit(finalSummaryExpression); //not constant-folding for now
-        region.getSpfCases().instantiate(fillHolesOutput.holeHashMap);
-        region.getSpfCases().simplify();
+        if (VeritestingListener.veritestingMode >= 4) {
+            region.getSpfCases().instantiate(fillHolesOutput.holeHashMap);
+            region.getSpfCases().simplify();
+        }
         // exitTransitionsFillASTHoles(fillHolesOutput.holeHashMap);
 
         // pc._addDet(new GreenConstraint(finalSummaryExpression));
-        if (!boostPerf) {
+        if (boostPerf == false) {
             //String finalSummaryExpressionString = ASTToString(finalSummaryExpression);
             if (!pc.simplify()) {
                 System.out.println("veritesting region added unsat summary");
@@ -1156,7 +1160,7 @@ public class VeritestingListener extends PropertyListenerAdapter implements Publ
 
             additionalAST = ExpressionUtil.nonNullOp(Operation.Operator.AND, additionalAST, fillNonInputHolesOutput.getFieldOutputExpression());
             retHoleHashMap = fillNonInputHoles.retHoleHashMap;
-            findAdditionalOutputVars(methodHoles);
+            findAdditionalOutputVars(methodHoles);// reports if the method summary writes to any fields
 
             FillInputHoles fillInputHolesMS =
                     new FillInputHoles(stackFrame, ti, retHoleHashMap, callSiteInfo, methodHoles, true).invoke();
