@@ -11,10 +11,7 @@ import gov.nasa.jpf.vm.StackFrame;
 import za.ac.sun.cs.green.expr.Expression;
 import za.ac.sun.cs.green.expr.IntConstant;
 
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.LinkedHashMap;
+import java.util.*;
 
 // MWW: are all these methods and data essentially static?
 // How does this class cohere?
@@ -33,10 +30,10 @@ public class VarUtil {
     // Maps each WALA IR variable to its corresponding stack slot, if one exists
     HashMap<Integer, Integer> varsMap;
 
-    public HashMap<String, Expression> varCache;
+    public LinkedHashMap<String, Expression> varCache;
 
     // these represent the outputs of a veritesting region
-    public HashSet<Expression> defLocalVars;
+    public LinkedHashSet<Expression> defLocalVars;
 
     // contains all the holes in the cnlie AST
     public LinkedHashMap<Expression, Expression> holeHashMap;
@@ -106,9 +103,15 @@ public class VarUtil {
     public VarUtil(IR _ir, String _className, String _methodName) {
         spfCases = new SPFCaseList();
         varsMap = new HashMap<> ();
-        defLocalVars = new HashSet<>();
+        defLocalVars = new LinkedHashSet<>();
         holeHashMap = new LinkedHashMap<>();
-        varCache = new HashMap<String, Expression> () {
+        varCache = new LinkedHashMap<String, Expression> () {
+            @Override
+            public void putAll(Map<? extends String, ? extends Expression> m) {
+                m.forEach((key, value) -> this.put(key, value));
+                super.putAll(m);
+            }
+
             @Override
             public Expression put(String key, Expression expression) {
                 if(expression instanceof HoleExpression) {
@@ -500,7 +503,7 @@ public class VarUtil {
     }
 
     public void reset() {
-        defLocalVars = new HashSet<>();
+        defLocalVars = new LinkedHashSet<>();
         varCache.clear();
         holeHashMap.clear();
         spfCases = new SPFCaseList();
@@ -524,13 +527,12 @@ public class VarUtil {
         return holeExpression;
     }
 
-    public void addRetValHole(int use) {
+    public void addRetValHole(int use) throws StaticRegionException {
         if(!isConstant(use)) {
             String name = className + "." + methodName + ".v" + use;
             if(!varCache.containsKey(name)) {
-                System.out.println("varCache does not contain " + name);
+                throw new StaticRegionException("varCache does not contain " + name);
             }
-            assert (varCache.containsKey(name));
             retValVar = varCache.get(name);
         } else retValVar = new IntConstant(getConstant(use));
     }

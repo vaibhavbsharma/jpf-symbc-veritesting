@@ -1,3 +1,4 @@
+import com.ibm.wala.util.intset.Bits;
 import gov.nasa.jpf.symbc.Debug;
 
 import java.util.ArrayList;
@@ -10,9 +11,11 @@ public class VeritestingPerf {
 
     public static void main(String[] args) {
         //(new VeritestingPerf()).cfgTest(1);
-        (new VeritestingPerf()).countBitsSet(1);
+        //(new VeritestingPerf()).countBitsSet(1);
 
-        // (new VeritestingPerf()).nestedRegion(1);
+        //(new VeritestingPerf()).nestedRegion(1);
+        //(new VeritestingPerf()).testNestedMiddle(1);
+        //(new VeritestingPerf()).testNested(1);
         //(new VeritestingPerf()).testSimple1(1);
         //(new VeritestingPerf()).testDynObject(false, 1);
                 //int x[] = {1, 2};
@@ -29,7 +32,7 @@ public class VeritestingPerf {
                 //  (new VeritestingPerf()).testMe2(0,true);
         //(new VeritestingPerf()).readAfterWriteTest(1);
         //(new VeritestingPerf()).testSimple(1);
-        //(new VeritestingPerf()).testNested(1);
+
         //(new VeritestingPerf()).testSimple1(1);
         //(new VeritestingPerf()).simpleRegion(1);
         //(new VeritestingPerf()).fieldWriteTestBranch2(1);
@@ -37,7 +40,7 @@ public class VeritestingPerf {
         //(new VeritestingPerf()).testSimple2(1);
         //(new VeritestingPerf()).testSimpleFail(1);
         //(new VeritestingPerf()).nestedRegion(1);
-        //(new VeritestingPerf()).nestedRegion1(true, true);
+        (new VeritestingPerf()).nestedRegion1(true, true);
         int x[] = {1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20};
 //        (new VeritestingPerf()).inRangeloadArrayTC( 22, 10);
 //        (new VeritestingPerf()).outRangeloadArrayTC( 2, 10);
@@ -77,30 +80,44 @@ public class VeritestingPerf {
     private int testNestedMiddle(int x) {
         int retval = 0;
         retval += nestedRegion(x);
+//        assert(x != 0 && x > 0 ? count == 3 : true);
+//        assert(x != 0 && x <= 0 ? count == 4 : true);
+//        assert(x ==0 ? count == 5 : true);
         return retval;
     }
 
     public int nestedRegion(int x) {
-        int count = 0;
+        //int count = 0;
         if (x != 0) {
             if (x > 0) { count = 3; } else { count = 4;  }
         } else { count = 5; }
-//        assert(x != 0 && x > 0 ? count == 3 : true);
-//        assert(x != 0 && x <= 0 ? count == 4 : true);
-//        assert(x ==0 ? count == 5 : true);
+        assert(x != 0 && x > 0 ? count == 3 : true);
+        assert(x != 0 && x <= 0 ? count == 4 : true);
+        assert(x ==0 ? count == 5 : true);
         return count;
     }
 
     public int nestedRegion1(boolean x, boolean y) {
-        int a = 0;
+        //int a = 0;
         if (y) {
             a = 1;
             if (x) {
-                a = 3;
-            } else {
                 a = 2;
+            } else {
+                a = 3;
             }
+            //a = 4;
+        } else {
+            a = 5;
+            if (x) a = 6;
+            else a = 7;
+//            a = 8;
         }
+        //assert (y ? a == 4 : true);
+        assert (y && x ? a == 2 : true);
+        assert (y && !x ? a == 3 : true);
+//        assert (!y && x ? a == 6 : true);
+//        assert (!y && !x ? a == 7 : true);
         return a;
     }
 
@@ -153,7 +170,7 @@ public class VeritestingPerf {
 
     // MWW checks correctly: 4/8/2018
     public void testSimple2(int x) {
-        int count;
+        //int count;
         if (x != 0) {
             if (x > 0) { count = 3; } else { count = 4;  }
         } else { count = 5; }
@@ -179,7 +196,7 @@ public class VeritestingPerf {
 
     public int countBitsSet(int x) {
         TempClass tempClass = new TempClassDerived();
-        count = 0;
+        int count = 0;
         int a = 1;
         int xOrig = x;
         //TempClass tempClass = new TempClass();
@@ -206,7 +223,7 @@ public class VeritestingPerf {
             x = x >>> 1; // logical right shift
         }
         assert(xOrig == 0 || TempClassDerived.tempInt == 6);
-        //assert(Bits.populationCount(xOrig) == count);
+        if(x >= -15 && x < 16) assert(Bits.populationCount(xOrig) == count);
         System.out.println("TempClassDerived.tempInt = " + TempClassDerived.tempInt);
         System.out.println("TempClass.tempInt = " + TempClass.tempInt);
         return count;
@@ -221,8 +238,8 @@ public class VeritestingPerf {
         //TempClass tempClass = new TempClass();
         while (x != 0) {
             if ((x & 1) != 0) {
-                tempClass1.tempInt += 1;
-                a = tempClass2.tempInt; // should not cause a read after write
+                //tempClass1.tempInt += 1;
+                //a = tempClass2.tempInt; // should not cause a read after write
                 //tempClass1.tempInt += 1;
                 count += 1;
             }
@@ -282,7 +299,7 @@ public class VeritestingPerf {
         return y;
     }
 
-    public int catchOutRangeloadArrayTC(int index, int length) throws ArrayIndexOutOfBoundsException {
+    /*public int catchOutRangeloadArrayTC(int index, int length) throws ArrayIndexOutOfBoundsException {
         int[] x = {1, 2};
         int temp = 1;
         int y = 1;
@@ -334,7 +351,7 @@ public class VeritestingPerf {
         else
             y = 0;
         return y;
-    }
+    }*/
 
 
 
@@ -349,7 +366,7 @@ public class VeritestingPerf {
     }
 
 
-    public int segmantTest(int index, int length) throws ArrayIndexOutOfBoundsException {
+    /*public int segmantTest(int index, int length) throws ArrayIndexOutOfBoundsException {
         int[] x = {300};
         int temp = 1;
         int y = 1;
@@ -360,7 +377,7 @@ public class VeritestingPerf {
             temp = 2;
         }
         return temp;
-    }
+    }*/
 
 
     public int ifNull(String x){
@@ -387,7 +404,7 @@ public class VeritestingPerf {
         }
     }
 
-    public int countArrayList(ArrayList<Integer> x) {
+    /*public int countArrayList(ArrayList<Integer> x) {
         // x = ArrayList of symbolic integers with
         // concrete length
         int sum = 0;
@@ -401,7 +418,7 @@ public class VeritestingPerf {
         else if (sum > 0) System.out.println("pos");
         else System.out.println("bug");
         return sum;
-    }
+    }*/
 
     static int a, b, c, d, e, f;
 

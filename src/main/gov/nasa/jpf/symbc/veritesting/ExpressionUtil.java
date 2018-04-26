@@ -85,7 +85,7 @@ public class ExpressionUtil {
     varUtil.holeHashMap and varUtil.defLocalVars
      */
     public static LinkedHashMap<HoleExpression, HoleExpression> copyHoleHashMap(LinkedHashMap<Expression, Expression> holeHashMap,
-                                                                        VarUtil varUtil, Expression thisPLAssign,
+                                                                        Expression thisPLAssign,
                                                                         String currentClassName, String currentMethodName) {
         LinkedHashMap<HoleExpression, HoleExpression> retHoleHashMap = new LinkedHashMap<>();
         for (Map.Entry<Expression, Expression> entry : holeHashMap.entrySet()) {
@@ -100,7 +100,13 @@ public class ExpressionUtil {
             if (innerHole.PLAssign != null)
                 plAssign = new Operation(Operation.Operator.AND,
                         innerHole.PLAssign, thisPLAssign);
-            HoleExpression innerHoleCopy = innerHole.clone(varUtil, currentClassName, currentMethodName, plAssign);
+            HoleExpression innerHoleCopy = innerHole.clone(currentClassName, currentMethodName, plAssign);
+            if(innerHoleCopy.getHoleType() == HoleExpression.HoleType.FIELD_PHI) {
+                innerHoleCopy.getFieldInfo().fieldInputHole = retHoleHashMap.get(innerHole.getFieldInfo().fieldInputHole);
+            }
+            if(FieldUtil.isField(innerHoleCopy) && innerHoleCopy.getFieldInfo().useHole != null) {
+                innerHoleCopy.getFieldInfo().useHole = retHoleHashMap.get(innerHole.getFieldInfo().useHole);
+            }
             retHoleHashMap.put(innerHole, innerHoleCopy);
         }
         return retHoleHashMap;
@@ -131,6 +137,6 @@ public class ExpressionUtil {
         if(a != null) {
             if (b != null) return new Operation(op, a, b);
             else return a;
-        } return b;
+        } else return b;
     }
 }

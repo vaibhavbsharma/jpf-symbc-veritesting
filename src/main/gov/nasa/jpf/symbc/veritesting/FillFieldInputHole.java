@@ -59,8 +59,10 @@ public class FillFieldInputHole {
                     FIELD_OUTPUT, ti, stackFrame, methodHoles, retHoleHashMap, isMethodSummary, callSiteInfo);
             assert(holeExpression.getHoleType() == FIELD_OUTPUT || holeExpression.getHoleType() == FIELD_PHI);
             if(holeExpression.getHoleType() == FIELD_OUTPUT) {
-                assert(retHoleHashMap.containsKey(holeExpression.getFieldInfo().writeValue));
-                retHoleHashMap.put(hole, retHoleHashMap.get(holeExpression.getFieldInfo().writeValue));
+                if (holeExpression.getFieldInfo().writeValue instanceof HoleExpression) {
+                    assert (retHoleHashMap.containsKey(holeExpression.getFieldInfo().writeValue));
+                    retHoleHashMap.put(hole, retHoleHashMap.get(holeExpression.getFieldInfo().writeValue));
+                } else retHoleHashMap.put(hole, holeExpression.getFieldInfo().writeValue);
             }
             if(holeExpression.getHoleType() == FIELD_PHI) {
                 // FIELD_PHI holes are mapped to intermediate variables whereas FIELD_OUTPUT holes have a write value

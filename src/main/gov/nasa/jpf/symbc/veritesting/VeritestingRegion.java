@@ -19,6 +19,7 @@ import java.util.HashSet;
  */
 
 import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
 
 
 public class VeritestingRegion {
@@ -26,7 +27,7 @@ public class VeritestingRegion {
     private int startInsnPosition;
     private int endInsnPosition;
     private Expression summaryExpression;
-    private HashSet<Expression> outputVars;
+    private LinkedHashSet<Expression> outputVars;
     private boolean isMethodSummary = false;
     public Expression retVal;
     private String methodSignature;
@@ -107,10 +108,10 @@ public class VeritestingRegion {
         this.summaryExpression = CNLIE;
     }
 
-    public HashSet<Expression> getOutputVars() {
+    public LinkedHashSet<Expression> getOutputVars() {
         return outputVars;
     }
-    public void setOutputVars(HashSet outputVars) {
+    public void setOutputVars(LinkedHashSet outputVars) {
         this.outputVars = outputVars;
     }
 

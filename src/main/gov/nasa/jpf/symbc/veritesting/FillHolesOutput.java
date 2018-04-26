@@ -6,13 +6,14 @@ import za.ac.sun.cs.green.expr.Operation;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
 
 public class FillHolesOutput {
     public LinkedHashMap<Expression, Expression> holeHashMap;
     public Expression additionalAST;
-    public HashSet<HoleExpression> additionalOutputVars;
+    public LinkedHashSet<HoleExpression> additionalOutputVars;
     public FillHolesOutput(LinkedHashMap<Expression, Expression> h, Expression additionalAST,
-                           HashSet<HoleExpression> additionalOutputVars) {
+                           LinkedHashSet<HoleExpression> additionalOutputVars) {
         this.holeHashMap = h;
         this.additionalAST = additionalAST;
         this.additionalOutputVars = additionalOutputVars;

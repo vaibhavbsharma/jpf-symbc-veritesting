@@ -7,9 +7,9 @@ symbolic.debug=false
 #symbolic.method=VeritestingPerf.testSimple1(sym)
 #symbolic.method=VeritestingPerf.nestedRegion(sym)
 #symbolic.method=VeritestingPerf.countBitsSet(sym),VeritestingPerf.testDynObject(sym#sym),VeritestingPerf.testSimple1(sym)
-symbolic.method=VeritestingPerf.checkOperator()
+#symbolic.method=VeritestingPerf.checkOperator()
 
-symbolic.method=VeritestingPerf.testSimple(sym),VeritestingPerf.simpleRegion(sym),VeritestingPerf.fieldWriteTestBranch2(sym),VeritestingPerf.fieldWriteTestBranch1(sym),VeritestingPerf.testSimple1(sym),VeritestingPerf.testSimple2(sym),VeritestingPerf.testSimpleFail(sym),VeritestingPerf.countBitsSet(sym),VeritestingPerf.readAfterWriteTest(sym),VeritestingPerf.nestedRegion(sym),VeritestingPerf.testNested(sym),VeritestingPerf.nestedRegion1(sym#sym),VeritestingPerf.testDynObject(sym#sym)
+symbolic.method=VeritestingPerf.testSimple(sym),VeritestingPerf.simpleRegion(sym),VeritestingPerf.fieldWriteTestBranch2(sym),VeritestingPerf.fieldWriteTestBranch1(sym),VeritestingPerf.testSimple1(sym),VeritestingPerf.testSimple2(sym),VeritestingPerf.testSimpleFail(sym),VeritestingPerf.countBitsSet(sym),VeritestingPerf.readAfterWriteTest(sym),VeritestingPerf.nestedRegion(sym),VeritestingPerf.testNested(sym),VeritestingPerf.testNestedMiddle(sym),VeritestingPerf.nestedRegion1(sym#sym),VeritestingPerf.testDynObject(sym#sym)
 #symbolic.method=VeritestingPerf.cfgTest(sym)
 #symbolic.method=VeritestingPerf.testMe5(sym#sym)
 #symbolic.method=VeritestingPerf.testMe6(sym#sym#sym#sym)
@@ -36,7 +36,7 @@ symbolic.method=VeritestingPerf.testSimple(sym),VeritestingPerf.simpleRegion(sym
 #symbolic.method=VeritestingPerf.createObjectTC8(sym#sym)
 #symbolic.method=VeritestingPerf.assertRegions(sym#sym)
 #symbolic.method=VeritestingPerf.createObjectComplexRegionTC1(sym#sym)
-symbolic.method=VeritestingPerf.createObjectComplexRegionTC2(sym#sym)
+#symbolic.method=VeritestingPerf.createObjectComplexRegionTC2(sym#sym)
 #symbolic.method=VeritestingPerf.createObjectComplexRegionTC3(sym#sym)
 #symbolic.method=VeritestingPerf.createObjectComplexRegionTC4(sym#sym)
 #symbolic.method=VeritestingPerf.createObjectComplexRegionTC5(sym#sym)
@@ -54,11 +54,11 @@ symbolic.dp=z3bitvector
 #symbolic.min_int=-1
 #symbolic.max_int=2
 
-#symbolic.min_int=-15
-#symbolic.max_int=16
+symbolic.min_int=-15
+symbolic.max_int=16
 
-symbolic.min_int=-2147483648
-symbolic.max_int=2147483647
+#symbolic.min_int=-2147483648
+#symbolic.max_int=2147483647
 listener = .symbc.VeritestingListener
 #listener = .symbc.SymbolicListener
 veritestingMode = 3

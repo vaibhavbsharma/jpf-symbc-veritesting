@@ -1,6 +1,5 @@
 package gov.nasa.jpf.symbc.veritesting;
 
-import gov.nasa.jpf.vm.StackFrame;
 import gov.nasa.jpf.vm.ThreadInfo;
 import za.ac.sun.cs.green.expr.Expression;
 
@@ -14,6 +13,7 @@ public class LocalUtil {
             return false;
         for (Map.Entry<Expression, Expression> entry : methodHoles.entrySet()) {
             HoleExpression h1 = (HoleExpression) entry.getKey();
+            if(h1 == h) return false;
             if(h1.getHoleType() != HoleExpression.HoleType.LOCAL_OUTPUT)
                 continue;
             if(h.getLocalStackSlot() == h1.getLocalStackSlot()) return true;
@@ -22,10 +22,9 @@ public class LocalUtil {
     }
 
     public static HoleExpression findPreviousWrite(HoleExpression h,
-                                                   LinkedHashMap<Expression, Expression> holeHashMap) {
+                                                   LinkedHashMap<Expression, Expression> holeHashMap) throws StaticRegionException {
         if(!hasWriteBefore(h, holeHashMap)) {
-            System.out.println("Warning: LocalUtil.findPreviousRW called where no previous write was found");
-            return null;
+            throw new StaticRegionException("Warning: LocalUtil.findPreviousRW called where no previous write was found");
         }
         if(h.getHoleType() != HoleExpression.HoleType.LOCAL_INPUT &&
                 h.getHoleType() != HoleExpression.HoleType.LOCAL_OUTPUT) {
@@ -35,6 +34,9 @@ public class LocalUtil {
         HoleExpression prevWrite = null;
         for (Map.Entry<Expression, Expression> entry : holeHashMap.entrySet()) {
             HoleExpression h1 = (HoleExpression) entry.getKey();
+            if(h == h1) {
+                throw new StaticRegionException("LocalUtil.findPreviousWrite failed to find a previous write but hasWriteBefore was satisfied on hole: " + h.toString());
+            }
             if(h1.getHoleType() != HoleExpression.HoleType.LOCAL_OUTPUT)
                 continue;
             if(h.getLocalStackSlot() == h1.getLocalStackSlot())

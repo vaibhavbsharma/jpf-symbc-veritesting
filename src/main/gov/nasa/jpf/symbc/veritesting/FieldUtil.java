@@ -61,7 +61,7 @@ public class FieldUtil {
                                          LinkedHashMap<Expression, Expression> methodHoles,
                                          LinkedHashMap<Expression, Expression> retHoleHashMap,
                                          boolean isMethodSummary, InvokeInfo callSiteInfo) throws StaticRegionException {
-        if(holeExpression.getHoleType() != FIELD_INPUT && holeExpression.getHoleType() != FIELD_OUTPUT) {
+        if(!FieldUtil.isField(holeExpression)) {
             System.out.println("Warning: Did you really mean to check FieldUtil.hasWriteBefore on holeType = " +
                     holeExpression.getHoleType() + " ?");
             return false;
@@ -174,6 +174,32 @@ public class FieldUtil {
         return prevWrite;
     }
 
+    public static ArrayList<HoleExpression> findAllPreviousRW(HoleExpression holeExpression,
+                                                HoleExpression.HoleType rwOperation,
+                                                ThreadInfo ti,
+                                                StackFrame stackFrame,
+                                                LinkedHashMap<Expression, Expression> methodHoles,
+                                                LinkedHashMap<Expression, Expression> retHoleHashMap,
+                                                boolean isMethodSummary, InvokeInfo callSiteInfo) throws StaticRegionException {
+        assert(FieldUtil.isFieldHasRWWithMap(holeExpression, rwOperation, ti, stackFrame, methodHoles, retHoleHashMap,
+                isMethodSummary, callSiteInfo) == true);
+        assert(holeExpression.getHoleType() == HoleExpression.HoleType.FIELD_INPUT ||
+                holeExpression.getHoleType() == FIELD_OUTPUT || holeExpression.getHoleType() == FIELD_PHI);
+        ArrayList<HoleExpression> ret = new ArrayList<>();
+        for(HashMap.Entry<Expression, Expression> entry: methodHoles.entrySet()) {
+            HoleExpression holeExpression1 = (HoleExpression) entry.getKey();
+            if(holeExpression == holeExpression1 || holeExpression1.equals(holeExpression))
+                break;
+            if(isTwoFieldsRW(holeExpression, holeExpression1, rwOperation, ti, stackFrame, methodHoles, retHoleHashMap,
+                    isMethodSummary, callSiteInfo)) {
+                ret.add(holeExpression1);
+            }
+
+        }
+        assert(ret.size() != 0);
+        return ret;
+    }
+
     /*
     Sets previous writes to the same field as not-the-latest-write and this write to is-latest-write
      */
@@ -182,11 +208,12 @@ public class FieldUtil {
                                       LinkedHashMap<Expression, Expression> retHoleHashMap,
                                       boolean isMethodSummary, InvokeInfo callSiteInfo) throws StaticRegionException {
         if(hasWriteBefore(methodKeyHole, ti, stackFrame, methodHoles, retHoleHashMap, isMethodSummary, callSiteInfo) &&
-                methodKeyHole.getHoleType() == FIELD_OUTPUT) {
-            HoleExpression prevWrite = findPreviousRW(methodKeyHole, FIELD_OUTPUT, ti, stackFrame, methodHoles, retHoleHashMap, isMethodSummary, callSiteInfo);
-            prevWrite.setIsLatestWrite(false);
+                (methodKeyHole.getHoleType() == FIELD_OUTPUT || methodKeyHole.getHoleType() == FIELD_PHI)) {
+            ArrayList<HoleExpression> prevWrites = findAllPreviousRW(methodKeyHole, FIELD_OUTPUT, ti, stackFrame, methodHoles, retHoleHashMap, isMethodSummary, callSiteInfo);
+            for (HoleExpression h: prevWrites)
+                h.setIsLatestWrite(false);
         }
-        if(methodKeyHole.getHoleType() == FIELD_OUTPUT)
+        if(methodKeyHole.getHoleType() == FIELD_OUTPUT || methodKeyHole.getHoleType() == FIELD_PHI)
             methodKeyHole.setIsLatestWrite(true);
     }
 
@@ -288,7 +315,7 @@ public class FieldUtil {
     retHoleHashMap = hashmap that maps holes to instantiated green expressions
      */
     public static Expression findCommonFieldOutputs(ThreadInfo ti, StackFrame sf,
-                                              HoleExpression holeExpression, HashSet<Expression> outputVars,
+                                              HoleExpression holeExpression, LinkedHashSet<Expression> outputVars,
                                               Expression finalValue, Expression prevValue,
                                               LinkedHashMap<Expression, Expression> methodHoles,
                                               LinkedHashMap<Expression, Expression> retHoleHashMap,
@@ -297,19 +324,26 @@ public class FieldUtil {
         Expression ret = null;
         Iterator iterator = outputVars.iterator();
         Expression disjAllPLAssign = null;
+        assert(holeExpression.getHoleType() == FIELD_PHI);
         while(iterator.hasNext()) {
             HoleExpression outputVar = (HoleExpression) iterator.next();
+            if(outputVar == holeExpression) break;
             if(outputVar.getHoleType() != FIELD_OUTPUT && outputVar.getHoleType() != FIELD_PHI) continue;
+            assert(holeExpression.getFieldInfo().getFieldInputHole().getHoleType() == FIELD_INPUT);
+            if(!isH1AfterH2(outputVar, holeExpression.getFieldInfo().getFieldInputHole(), methodHoles)) continue;
             if(!outputVar.isLatestWrite()) continue;
+
             if(FieldUtil.isSameField(ti, sf, holeExpression, outputVar, methodHoles, retHoleHashMap, isMethodSummary, callSiteInfo, false)) {
-                if(outputVar.PLAssign == null) {
-                    outputVar.setIsLatestWrite(false);
-                    continue;
+                assert(outputVar.PLAssign != null);
+                Expression thisWriteValue = null;
+                if (outputVar.getHoleType() == FIELD_OUTPUT) thisWriteValue = outputVar.getFieldInfo().writeValue;
+                else if (outputVar.getHoleType() == FIELD_PHI) thisWriteValue = outputVar;
+                if(thisWriteValue == null) {
+                    throw new StaticRegionException("dont know how to use outputVar: " + outputVar.toString());
                 }
-                assert(outputVar.getFieldInfo().writeValue != null);
                 Expression thisOutputVar = new Operation(Operation.Operator.AND,
                         outputVar.PLAssign,
-                        new Operation(Operation.Operator.EQ, finalValue, outputVar.getFieldInfo().writeValue));
+                        new Operation(Operation.Operator.EQ, finalValue, thisWriteValue));
                 if(ret == null) {
                     ret = thisOutputVar;
                     assert(disjAllPLAssign == null);
@@ -328,6 +362,22 @@ public class FieldUtil {
                 new Operation(Operation.Operator.EQ, finalValue, prevValue));
         assert(ret != null);
         return new Operation(Operation.Operator.OR, ret, prevAssign);
+    }
+
+    private static boolean isH1AfterH2(HoleExpression outputVar, HoleExpression fieldInputHole,
+                                       LinkedHashMap<Expression, Expression> hashMap) {
+        assert(hashMap.containsKey(outputVar));
+        assert(hashMap.containsKey(fieldInputHole));
+        boolean foundInputHole = false;
+        for(Map.Entry<Expression, Expression> e: hashMap.entrySet()) {
+            if (e.getKey() == fieldInputHole) foundInputHole = true;
+            if (e.getKey() == outputVar) {
+                if (foundInputHole) return true;
+                else return false;
+            }
+        }
+        assert(false);
+        return false;
     }
 
 }

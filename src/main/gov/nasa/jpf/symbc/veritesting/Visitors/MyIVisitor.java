@@ -16,6 +16,7 @@ import gov.nasa.jpf.symbc.veritesting.InvokeInfo;
 import gov.nasa.jpf.symbc.veritesting.SPFCase.ArrayBoundsReason;
 import gov.nasa.jpf.symbc.veritesting.SPFCase.SPFCase;
 import gov.nasa.jpf.symbc.veritesting.SPFCase.TrueReason;
+import gov.nasa.jpf.symbc.veritesting.StaticRegionException;
 import gov.nasa.jpf.symbc.veritesting.VarUtil;
 import za.ac.sun.cs.green.expr.Expression;
 
@@ -276,9 +277,15 @@ public class MyIVisitor implements SSAInstruction.IVisitor {
         }
         isExitNode = true;
         if(instruction.getNumberOfUses()==1) {
-            varUtil.addRetValHole(instruction.getUse(0));
+            try {
+                varUtil.addRetValHole(instruction.getUse(0));
+                setCanVeritest(true, instruction);
+            } catch (StaticRegionException e) {
+                System.out.println(e.getMessage());
+                setCanVeritest(false, instruction);
+            }
         }
-        setCanVeritest(true, instruction);
+
     }
 
     @Override
@@ -339,7 +346,6 @@ public class MyIVisitor implements SSAInstruction.IVisitor {
 
     @Override
     public void visitInvoke(SSAInvokeInstruction instruction) {
-        if(isMeetVisitor) return;
         System.out.println("SSAInvokeInstruction = " + instruction);
         MethodReference methodReference = instruction.getDeclaredTarget();
         CallSiteReference site = instruction.getCallSite();
@@ -403,7 +409,7 @@ public class MyIVisitor implements SSAInstruction.IVisitor {
         TrueReason reason = new TrueReason(TrueReason.Cause.EXCEPTION_THROWN);
         SPFCase c = new SPFCase(pathLabelHole, reason);
         varUtil.addSpfCase(c);
-        canVeritest = false;
+        setCanVeritest(false, instruction);
         hasNewOrThrow = true;
     }
 
@@ -430,7 +436,10 @@ public class MyIVisitor implements SSAInstruction.IVisitor {
 
     @Override
     public void visitPhi(SSAPhiInstruction instruction) {
-        if(!isMeetVisitor) return;
+        if(!isMeetVisitor) {
+            setCanVeritest(true, instruction);
+            return;
+        }
         System.out.println("SSAPhiInstruction = " + instruction);
         assert(instruction.getNumberOfUses()>=2);
         assert(instruction.getNumberOfDefs()==1);

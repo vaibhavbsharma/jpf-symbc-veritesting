@@ -15,6 +15,7 @@ import java.net.URL;
 import java.net.URLClassLoader;
 import java.util.*;
 
+import com.ibm.wala.cfg.CFGSanitizer;
 import com.ibm.wala.cfg.Util;
 import com.ibm.wala.classLoader.CallSiteReference;
 import com.ibm.wala.classLoader.IBytecodeMethod;
@@ -257,10 +258,13 @@ public class VeritestingMain {
             HashSet<Integer> visited = new HashSet<>();
             NatLoopSolver.findAllLoops(cfg, uninverteddom, loops, visited, cfg.getNode(0));
             // Here is where the magic happens.
-            if(!methodAnalysis)
+            if(!methodAnalysis) {
                 doAnalysis(cfg.entry(), null);
+            }
             else doMethodAnalysis(cfg.entry(), cfg.exit());
         } catch (InvalidClassFileException e) {
+            e.printStackTrace();
+        } catch (WalaException e) {
             e.printStackTrace();
         }
     }
@@ -308,7 +312,7 @@ public class VeritestingMain {
         // VeritestingListener.FillNonInputHoles. Don't add the FIELD_PHI hole into region.outputVars aka
         // varUtil.defLocalVars because every FIELD_OUTPUT hole is already in region.outputVars.
         Iterator itr = varUtil.defLocalVars.iterator();
-        HashSet<HoleExpression> extraOutputs = new HashSet<>();
+        HashSet<HoleExpression> extraHoles = new HashSet<>();
         while(itr.hasNext()) {
             HoleExpression h = (HoleExpression) itr.next();
             if(h.getHoleType() == FIELD_OUTPUT) {
@@ -316,19 +320,22 @@ public class VeritestingMain {
                         HoleExpression.HoleType.FIELD_PHI, null, h.getLocalStackSlot(), h.getGlobalStackSlot());
                 h1.setFieldInfo(h.getFieldInfo());
                 h1.getFieldInfo().writeValue = null;
-                h1.setHoleVarName(h.getHoleVarName().replaceAll("FIELD_OUTPUT","FIELD_PHI"));
-                extraOutputs.add(h1);
+                h1.setHoleVarName(h.getHoleVarName().replaceAll("put","PHI"));
+
                 HoleExpression fieldInput = new HoleExpression(VarUtil.nextInt(), h.getClassName(), h.getMethodName(),
                         HoleExpression.HoleType.FIELD_INPUT, null, h.getLocalStackSlot(), h.getGlobalStackSlot());
                 HoleExpression.FieldInfo f = h.getFieldInfo();
                 fieldInput.setFieldInfo(f.getFieldStaticClassName(), f.fieldName, f.methodName, null, f.isStaticField,
                         f.useHole);
                 fieldInput.getFieldInfo().writeValue = null;
-                fieldInput.setHoleVarName(h.getHoleVarName().replaceAll("FIELD_OUTPUT","FIELD_INPUT"));
+                fieldInput.setHoleVarName(h.getHoleVarName().replaceAll("put","PHI_INPUT"));
                 MapUtil.add(varUtil.holeHashMap, 0, fieldInput, fieldInput);
+                h1.getFieldInfo().setFieldInputHole(fieldInput);
+                extraHoles.add(h1);
+                extraHoles.add(fieldInput);
             }
         }
-        for(HoleExpression e: extraOutputs) {
+        for(HoleExpression e: extraHoles) {
             varUtil.varCache.put(e.getHoleVarName(), e);
         }
         Expression pathExpr1 =
@@ -365,7 +372,7 @@ public class VeritestingMain {
         veritestingRegion.setMethodSignature(methodSig);
         veritestingRegion.setStartBBNum(currUnit.getNumber());
         veritestingRegion.setEndBBNum(commonSucc.getNumber());
-        HashSet<Expression> hashSet = new HashSet<>();
+        LinkedHashSet<Expression> hashSet = new LinkedHashSet<>();
         hashSet.addAll(varUtil.defLocalVars);
         veritestingRegion.setOutputVars(hashSet);
         LinkedHashMap<Expression, Expression> hashMap = new LinkedHashMap<>();
@@ -390,7 +397,7 @@ public class VeritestingMain {
     // For one thing, we should simply construct a new varUtil each time this method is called; when
     // we recursively invoke it, we just save off the entire structure rather than do it piecemeal.
 
-    public void doAnalysis(ISSABasicBlock startingUnit, ISSABasicBlock endingUnit) throws InvalidClassFileException {
+    public void doAnalysis(ISSABasicBlock startingUnit, ISSABasicBlock endingUnit) throws InvalidClassFileException, WalaException {
         //System.out.println("Starting doAnalysis");
         boolean thenCreateThrow = false;
         boolean elseCreateThrow = false;
@@ -416,7 +423,9 @@ public class VeritestingMain {
                 I would have a co-recursive function that actually built the veritesting region
              */
             List<ISSABasicBlock> succs = new ArrayList<>(cfg.getNormalSuccessors(currUnit));
-            ISSABasicBlock commonSucc = cfg.getIPdom(currUnit.getNumber());
+            if(currentClassName.contains("VeritestingPerf") && currentMethodName.contains("nestedRegion1"))
+                System.out.println("");
+            ISSABasicBlock commonSucc = cfg.getIPdom(currUnit.getNumber(), true, ir, cha);
             if (succs.size() == 1) {
                 currUnit = succs.get(0);
                 continue;
@@ -468,10 +477,10 @@ public class VeritestingMain {
                         //instead of giving up, try to compute a summary of everything from thenUnit up to commonSucc
                         //to allow complex regions
 
-                        //save the 4 VarUtil data structures that will be cleared by varUtil.reset call inside the
+                        //save varUtil.holeHashMap because it contains ordering information for all the holes and varCache because restoring varCache will also restore defLocalVars
                         // recursive doAnalysis call
-                        HashMap<Expression, Expression> savedHoleHashMap = saveHoleHashMap();
-                        HashMap<String, Expression> savedVarCache = saveVarCache();
+                        LinkedHashMap<HoleExpression, HoleExpression> savedHoleHashMap = saveHoleHashMap();
+                        LinkedHashMap<String, Expression> savedVarCache = saveVarCache();
                         SPFCaseList savedCaseList = varUtil.getSpfCases();
 
                         // recursive call to doAnalysis to try to summarize the inner region
@@ -479,8 +488,9 @@ public class VeritestingMain {
 
                         varUtil.holeHashMap.clear();
                         varUtil.defLocalVars.clear();
-                        varUtil.holeHashMap.putAll(savedHoleHashMap); //restore holeHashMap
-                        varUtil.varCache.putAll(savedVarCache);
+                        varUtil.holeHashMap.putAll(savedHoleHashMap);
+                        varUtil.varCache.putAll(savedVarCache);//this will also populate varUtil.defLocalVars and
+                        // varUtil.holeHashmap because VarUtil.varCache.put and VarUtil.varCache.putAll method are overridden
                         varUtil.getSpfCases().addAll(savedCaseList);
 
                         int offset = ((IBytecodeMethod) (ir.getMethod())).getBytecodeIndex(thenUnit.getLastInstructionIndex());
@@ -499,7 +509,7 @@ public class VeritestingMain {
                             //cannot handle returns inside a if-then-else
                             if(blockSummary.getIsExitNode()) canVeritest = false;
                             if(!canVeritest) break;
-                            ISSABasicBlock commonSuccthenUnit = cfg.getIPdom(thenUnit.getNumber());
+                            ISSABasicBlock commonSuccthenUnit = cfg.getIPdom(thenUnit.getNumber(), true, ir, cha);
 
                             //invariant: outer region meetpoint postdominate inner region meet point
                             NumberedGraph<ISSABasicBlock> invertedCFG = GraphInverter.invert(cfg);
@@ -526,20 +536,14 @@ public class VeritestingMain {
                             // CONDITION, NEGCONDITION holes are skipped and
                             // every hole's PLAssign is conjuncted with thenPLAssign
                             LinkedHashMap<HoleExpression, HoleExpression> innerHolesCopyMap =
-                                    copyHoleHashMap(innerRegion.getHoleHashMap(), varUtil, thenPLAssign,
+                                    copyHoleHashMap(innerRegion.getHoleHashMap(), thenPLAssign,
                                             currentClassName, currentMethodName);
                             replaceHolesInPLAssign(innerHolesCopyMap);
                             thenExpr1 = replaceHolesInExpression(thenExpr1, innerHolesCopyMap);
                             insertIntoVarUtil(innerHolesCopyMap, varUtil);
 
                             thenExpr1 = replaceCondition(thenExpr1, conditionExpression);
-                            if (thenExpr1 != null) {
-                                if (thenExpr != null)
-                                    thenExpr =
-                                            new Operation(Operation.Operator.AND,
-                                                    thenExpr, thenExpr1);
-                                else thenExpr = thenExpr1;
-                            }
+                            thenExpr = ExpressionUtil.nonNullOp(Operation.Operator.AND, thenExpr, thenExpr1);
                             thenPred = null;
                             thenUnit = commonSuccthenUnit;
                             summarizedRegionStartBB.addAll(innerRegion.summarizedRegionStartBB);
@@ -556,11 +560,12 @@ public class VeritestingMain {
                     if(blockSummary.getIsExitNode()) canVeritest = false;
                     //SH: supporting new object or throw instructions
                     if (!canVeritest) break;
+                    /* Vaibhav: Please don't do this without recomputing the common successor that excludes incoming exceptional edges to the exit node
                     if (blockSummary.hasNewOrThrow){ //SH: skip to the end of the region when a new Object or throw instruction encountered
                         thenUnit = commonSucc;
                         thenPred = null;
                         break;
-                    }
+                    }*/
                     thenPred = thenUnit;
                     thenUnit = cfg.getNormalSuccessors(thenUnit).iterator().next();
                     if (thenUnit == endingUnit) break;
@@ -590,18 +595,20 @@ public class VeritestingMain {
                         //instead of giving up, try to compute a summary of everything from elseUnit up to commonSucc
                         //to allow complex regions
 
-                        //save the 4 VarUtil data structures that will be cleared by varUtil.reset call inside the
+                        //save varUtil.holeHashMap because it contains ordering information for all the holes and varCache because restoring varCache will also restore defLocalVars
                         // recursive doAnalysis call
-                        HashMap<Expression, Expression> savedHoleHashMap = saveHoleHashMap();
-                        HashMap<String, Expression> savedVarCache = saveVarCache();
+                        LinkedHashMap<HoleExpression, HoleExpression> savedHoleHashMap = saveHoleHashMap();
+                        LinkedHashMap<String, Expression> savedVarCache = saveVarCache();
                         SPFCaseList savedCaseList = varUtil.getSpfCases();
 
                         // recursive call to doAnalysis to try to summarize the inner region
-                        doAnalysis(elseUnit, commonSucc);
+                        doAnalysis(thenUnit, commonSucc);
+
                         varUtil.holeHashMap.clear();
                         varUtil.defLocalVars.clear();
-                        varUtil.holeHashMap.putAll(savedHoleHashMap); //restore holeHashMap
-                        varUtil.varCache.putAll(savedVarCache);
+                        varUtil.holeHashMap.putAll(savedHoleHashMap);
+                        varUtil.varCache.putAll(savedVarCache);//this will also populate varUtil.defLocalVars and
+                        // varUtil.holeHashmap because VarUtil.varCache.put and VarUtil.varCache.putAll method are overridden
                         varUtil.getSpfCases().addAll(savedCaseList);
                         int offset = ((IBytecodeMethod) (ir.getMethod())).getBytecodeIndex(elseUnit.getLastInstructionIndex());
                         String key = currentClassName + "." + currentMethodName + methodSig + "#" + offset;
@@ -616,7 +623,7 @@ public class VeritestingMain {
                             //cannot handle returns inside a if-else-else
                             if(blockSummary.getIsExitNode()) canVeritest = false;
                             if(!canVeritest) break;
-                            ISSABasicBlock commonSuccelseUnit = cfg.getIPdom(elseUnit.getNumber());
+                            ISSABasicBlock commonSuccelseUnit = cfg.getIPdom(elseUnit.getNumber(), true, ir, cha);
 
                             NumberedGraph<ISSABasicBlock> invertedCFG = GraphInverter.invert(cfg);
                             NumberedDominators<ISSABasicBlock> postDom = (NumberedDominators<ISSABasicBlock>)
@@ -644,22 +651,14 @@ public class VeritestingMain {
                             // CONDITION, NEGCONDITION holes are skipped and
                             // every hole's PLAssign is conjuncted with elsePLAssign
                             LinkedHashMap<HoleExpression, HoleExpression> innerHolesCopyMap =
-                                    copyHoleHashMap(innerRegion.getHoleHashMap(), varUtil, elsePLAssign,
+                                    copyHoleHashMap(innerRegion.getHoleHashMap(), elsePLAssign,
                                             currentClassName, currentMethodName);
                             replaceHolesInPLAssign(innerHolesCopyMap);
                             elseExpr1 = replaceHolesInExpression(elseExpr1, innerHolesCopyMap);
                             insertIntoVarUtil(innerHolesCopyMap, varUtil);
 
                             elseExpr1 = replaceCondition(elseExpr1, conditionExpression);
-
-                            // MWW: what is this business?
-                            if (elseExpr1 != null) {
-                                if (elseExpr != null)
-                                    elseExpr =
-                                            new Operation(Operation.Operator.AND,
-                                                    elseExpr, elseExpr1);
-                                else elseExpr = elseExpr1;
-                            }
+                            elseExpr = ExpressionUtil.nonNullOp(Operation.Operator.AND, elseExpr, elseExpr1);
                             elsePred = null;
                             elseUnit = commonSuccelseUnit;
                             summarizedRegionStartBB.addAll(innerRegion.summarizedRegionStartBB);
@@ -673,13 +672,14 @@ public class VeritestingMain {
                     //we should not encounter a BB with more than one successor at this point
                     assert(blockSummary.getIfExpression() == null);
                     //cannot handle returns inside a if-else-else
+                    /* Vaibhav: Please don't do this without recomputing the common successor that excludes incoming exceptional edges to the exit node
                     if(blockSummary.getIsExitNode()) canVeritest = false;
                     if (!canVeritest) break;
                     if (blockSummary.hasNewOrThrow){ //SH: skip to the end of the region when a new Object or throw instruction encountered
                         elseUnit = commonSucc;
                         elsePred = null;
                         break;
-                    }
+                    }*/
                     elsePred = elseUnit;
                     elseUnit = cfg.getNormalSuccessors(elseUnit).iterator().next();
                     if (elseUnit == endingUnit) break;
@@ -731,27 +731,29 @@ public class VeritestingMain {
             doAnalysis(currUnit, endingUnit);
     } // end doAnalysis
 
-    private HashMap<String, Expression> saveVarCache() {
-        HashMap<String, Expression> ret = new HashMap<>();
+    private LinkedHashMap<String, Expression> saveVarCache() {
+        LinkedHashMap<String, Expression> ret = new LinkedHashMap<>();
         for (Map.Entry<String, Expression> entry : varUtil.varCache.entrySet()) {
             ret.put(entry.getKey(), entry.getValue());
         }
         return ret;
     }
 
-    private HashMap<Expression,Expression> saveHoleHashMap() {
-        HashMap<Expression, Expression> ret = new HashMap<>();
+    private LinkedHashMap<HoleExpression,HoleExpression> saveHoleHashMap() {
+        LinkedHashMap<HoleExpression, HoleExpression> ret = new LinkedHashMap<>();
         for (Map.Entry<Expression, Expression> entry : varUtil.holeHashMap.entrySet()) {
-            ret.put(entry.getKey(), entry.getValue());
+            ret.put((HoleExpression)entry.getKey(), (HoleExpression)entry.getValue());
         }
         return ret;
     }
 
-    public void doMethodAnalysis(ISSABasicBlock startingUnit, ISSABasicBlock endingUnit) throws InvalidClassFileException {
+    public void doMethodAnalysis(ISSABasicBlock startingUnit, ISSABasicBlock endingUnit) throws InvalidClassFileException, WalaException {
         assert(methodAnalysis);
         if(VeritestingListener.veritestingMode < 3) {
             return;
         }
+        if(currentClassName.contains("VeritestingPerf") && currentMethodName.contains("nestedRegion1"))
+            System.out.println("");
         //System.out.println("Starting doMethodAnalysis");
         //currUnit represents the next BB to be summarized
         ISSABasicBlock currUnit = startingUnit;
@@ -763,7 +765,7 @@ public class VeritestingMain {
             if(((SSACFG.BasicBlock) currUnit).getAllInstructions().size() > 0)
                 endingBC = ((IBytecodeMethod) (ir.getMethod())).getBytecodeIndex(currUnit.getLastInstructionIndex());
             List<ISSABasicBlock> succs = new ArrayList<>(cfg.getNormalSuccessors(currUnit));
-            ISSABasicBlock commonSucc = cfg.getIPdom(currUnit.getNumber());
+            ISSABasicBlock commonSucc = cfg.getIPdom(currUnit.getNumber(), true, ir, cha);
             if (succs.size() == 1 || succs.size() == 0) {
                 //Assuming that it would be ok to visit a BB that starts with a phi expression
                 BlockSummary blockSummary = new BlockSummary(currUnit, methodExpression, canVeritestMethod, null).invoke();
@@ -813,13 +815,6 @@ public class VeritestingMain {
                 }
                 else methodExpression = summaryExpression;
                 methodSummarizedRegionStartBB.addAll(veritestingRegion.summarizedRegionStartBB);
-                varUtil.defLocalVars.addAll(veritestingRegion.getOutputVars());
-                for(Map.Entry<Expression, Expression> entry: veritestingRegion.getHoleHashMap().entrySet()) {
-                    if(((HoleExpression)entry.getKey()).getHoleType() == HoleExpression.HoleType.CONDITION ||
-                            ((HoleExpression)entry.getKey()).getHoleType() == HoleExpression.HoleType.NEGCONDITION)
-                        continue;
-                    varUtil.holeHashMap.put(entry.getKey(), entry.getValue());
-                }
                 for(HashMap.Entry<Expression, Expression> entry: veritestingRegion.getHoleHashMap().entrySet()) {
                     if(((HoleExpression)entry.getKey()).getHoleType() == HoleExpression.HoleType.CONDITION ||
                             ((HoleExpression)entry.getKey()).getHoleType() == HoleExpression.HoleType.NEGCONDITION)
@@ -917,6 +912,10 @@ public class VeritestingMain {
 
                 myIVisitor = new MyIVisitor(varUtil, -1, -1, false, PLAssign, pathLabelHole);
                 SSAInstruction instruction = ssaInstructionIterator.next();
+                // can this be a Potentially Exception-raising Instruction ?
+                if (instruction.isPEI()) {
+                    //TODO: add this instruction's potential exception as an SPFCase
+                }
                 instruction.visit(myIVisitor);
 
                 if (!myIVisitor.canVeritest()) {
@@ -926,16 +925,9 @@ public class VeritestingMain {
                 if(myIVisitor.isInvoke()) {
                     methodSummaryClassNames.add(myIVisitor.getInvokeClassName());
                 }
-                Expression expression1 = myIVisitor.getSPFExpr();
-                lastExpression = expression1;
+                lastExpression = myIVisitor.getSPFExpr();
                 ifExpression = myIVisitor.getIfExpr();
-                if (expression1 != null) {
-                    if (expression != null)
-                        expression =
-                                new Operation(Operation.Operator.AND,
-                                        expression, expression1);
-                    else expression = expression1;
-                }
+                expression = ExpressionUtil.nonNullOp(Operation.Operator.AND, expression, lastExpression);
                 if(myIVisitor.isExitNode()) {
                     isExitNode = true;
                     break;
