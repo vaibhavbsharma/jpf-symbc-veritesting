@@ -10,37 +10,36 @@ public class VeritestingPerf {
     public int count = 0;
 
     public static void main(String[] args) {
-        //(new VeritestingPerf()).cfgTest(1);
-        //(new VeritestingPerf()).countBitsSet(1);
+//        (new VeritestingPerf()).cfgTest(1);
+//        (new VeritestingPerf()).countBitsSet(1);
 
         //(new VeritestingPerf()).nestedRegion(1);
-        //(new VeritestingPerf()).testNestedMiddle(1);
-        //(new VeritestingPerf()).testNested(1);
-        //(new VeritestingPerf()).testSimple1(1);
+        (new VeritestingPerf()).nestedRegion1(true, true);
+//        (new VeritestingPerf()).testNestedMiddle(1);
+//        (new VeritestingPerf()).testNested(1);
         //(new VeritestingPerf()).testDynObject(false, 1);
-                //int x[] = {1, 2};
-                //(new VeritestingPerf()).inRangeloadArrayTC(22, 2);
-                //(new VeritestingPerf()).innerCatchOutRangeloadArrayTC(22, 2);
-                //(new VeritestingPerf()).outRangeloadArrayTC( 22, 2);
-                // (new VeritestingPerf()).catchOutRangeloadArrayTC(22, 2);
-                //(new VeritestingPerf()).boundedOutRangeloadArrayTC(22, 2);
-                //(new VeritestingPerf()).ifNull("Test");
-                //(new VeritestingPerf()).foo(true);
-                //(new VeritestingPerf()).segmantTest(22, 2);
+        //int x[] = {1, 2};
+        //(new VeritestingPerf()).inRangeloadArrayTC(22, 2);
+        //(new VeritestingPerf()).innerCatchOutRangeloadArrayTC(22, 2);
+        //(new VeritestingPerf()).outRangeloadArrayTC( 22, 2);
+        // (new VeritestingPerf()).catchOutRangeloadArrayTC(22, 2);
+        //(new VeritestingPerf()).boundedOutRangeloadArrayTC(22, 2);
+        //(new VeritestingPerf()).ifNull("Test");
+        //(new VeritestingPerf()).foo(true);
+        //(new VeritestingPerf()).segmantTest(22, 2);
 
-                // System.out.println("!!!!!!!!!!!!!!! Start Testing! ");
-                //  (new VeritestingPerf()).testMe2(0,true);
-        //(new VeritestingPerf()).readAfterWriteTest(1);
-        //(new VeritestingPerf()).testSimple(1);
+        // System.out.println("!!!!!!!!!!!!!!! Start Testing! ");
+        //  (new VeritestingPerf()).testMe2(0,true);
+//        (new VeritestingPerf()).readAfterWriteTest(1);
+//        (new VeritestingPerf()).testSimple(1);
 
         //(new VeritestingPerf()).testSimple1(1);
         //(new VeritestingPerf()).simpleRegion(1);
         //(new VeritestingPerf()).fieldWriteTestBranch2(1);
         //(new VeritestingPerf()).fieldWriteTestBranch1(1);
-        //(new VeritestingPerf()).testSimple2(1);
+//        (new VeritestingPerf()).testSimple2(1);
         //(new VeritestingPerf()).testSimpleFail(1);
-        //(new VeritestingPerf()).nestedRegion(1);
-        (new VeritestingPerf()).nestedRegion1(true, true);
+
         int x[] = {1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20};
 //        (new VeritestingPerf()).inRangeloadArrayTC( 22, 10);
 //        (new VeritestingPerf()).outRangeloadArrayTC( 2, 10);
@@ -91,40 +90,38 @@ public class VeritestingPerf {
         if (x != 0) {
             if (x > 0) { count = 3; } else { count = 4;  }
         } else { count = 5; }
-        assert(x != 0 && x > 0 ? count == 3 : true);
-        assert(x != 0 && x <= 0 ? count == 4 : true);
-        assert(x ==0 ? count == 5 : true);
+//        assert(x != 0 && x > 0 ? count == 3 : true);
+//        assert(x != 0 && x <= 0 ? count == 4 : true);
+//        assert(x ==0 ? count == 5 : true);
         return count;
     }
 
     public int nestedRegion1(boolean x, boolean y) {
         //int a = 0;
         if (y) {
-            a = 1;
+//            a = 1;
             if (x) {
                 a = 2;
             } else {
                 a = 3;
             }
-            //a = 4;
+//            a = 4;
         } else {
-            a = 5;
+//            a = 5;
             if (x) a = 6;
             else a = 7;
 //            a = 8;
         }
-        //assert (y ? a == 4 : true);
+//        assert (y ? a == 4 : true);
         assert (y && x ? a == 2 : true);
         assert (y && !x ? a == 3 : true);
-//        assert (!y && x ? a == 6 : true);
-//        assert (!y && !x ? a == 7 : true);
+//        assert (!y ? a == 8 : true);
+        assert (!y && x ? a == 6 : true);
+        assert (!y && !x ? a == 7 : true);
         return a;
     }
 
 
-    // MWW:
-    // Here is the problem.  If I uncomment 'count', then the program works correctly.
-    // There is a problem with nested fields and regions right now.
     public int simpleRegion(int x) {
         //count = 4;
         if (x > 0) { count = 1; count = 3; }
@@ -132,7 +129,6 @@ public class VeritestingPerf {
         return count;
     }
 
-    // this fails.
     public void testSimple(int x) {
         count = simpleRegion(x);
         assert(x > 0 ? count == 3 : true);
@@ -140,8 +136,6 @@ public class VeritestingPerf {
         System.out.println("x: " + x + "; count: " + count);
     }
 
-    // MWW fails incorrectly: 4/8/2018
-    // If I uncomment count, it works correctly.
     public void testSimple1(int x) {
         //int count;
         System.out.println("Executing success case!");
@@ -155,7 +149,6 @@ public class VeritestingPerf {
         assert(x == 0 ? count == 4 : true);
     }
 
-    // MWW checks correctly: 4/8/2018
     public void testSimpleFail(int x) {
         System.out.println("Executing fail case!");
         int count;
@@ -168,7 +161,6 @@ public class VeritestingPerf {
         assert(x == 0 ? count == 4 : true);
     }
 
-    // MWW checks correctly: 4/8/2018
     public void testSimple2(int x) {
         //int count;
         if (x != 0) {
@@ -299,7 +291,7 @@ public class VeritestingPerf {
         return y;
     }
 
-    /*public int catchOutRangeloadArrayTC(int index, int length) throws ArrayIndexOutOfBoundsException {
+    public int catchOutRangeloadArrayTC(int index, int length) throws ArrayIndexOutOfBoundsException {
         int[] x = {1, 2};
         int temp = 1;
         int y = 1;
@@ -351,7 +343,7 @@ public class VeritestingPerf {
         else
             y = 0;
         return y;
-    }*/
+    }
 
 
 
@@ -420,7 +412,7 @@ public class VeritestingPerf {
         return sum;
     }*/
 
-    static int a, b, c, d, e, f;
+    int a, b, c, d, e, f;
 
     public int checkOperator() {
         int ret = -1;
