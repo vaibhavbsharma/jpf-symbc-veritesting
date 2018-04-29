@@ -10,45 +10,66 @@ public class VeritestingPerf {
     public int count = 0;
 
     public static void main(String[] args) {
-//        (new VeritestingPerf()).cfgTest(1);
-//        (new VeritestingPerf()).countBitsSet(1);
 
-        //(new VeritestingPerf()).nestedRegion(1);
-        (new VeritestingPerf()).nestedRegion1(true, true);
-//        (new VeritestingPerf()).testNestedMiddle(1);
-//        (new VeritestingPerf()).testNested(1);
-        //(new VeritestingPerf()).testDynObject(false, 1);
-        //int x[] = {1, 2};
+        /**************** create New Object Tests************/
+        //(new VeritestingPerf()).createObjectTC1(true, true);
+        //(new VeritestingPerf()).createObjectTC2(true, true);
+        //(new VeritestingPerf()).createObjectTC3(true, true);
+        //(new VeritestingPerf()).createObjectTC4(true, true);
+        //(new VeritestingPerf()).createObjectTC5(true, true);
+        //(new VeritestingPerf()).createObjectTC6(true, true);
+        //(new VeritestingPerf()).createObjectTC7(true, true);
+        //(new VeritestingPerf()).createObjectTC8(true, true);
+        //(new VeritestingPerf()).assertRegions(true, true);
+        //(new VeritestingPerf()).createObjectComplexRegionTC1(true, true);
+        (new VeritestingPerf()).createObjectComplexRegionTC2(true, true);
+        //(new VeritestingPerf()).createObjectComplexRegionTC3(true, true);
+        //(new VeritestingPerf()).createObjectComplexRegionTC4(true, true);
+        //(new VeritestingPerf()).createObjectComplexRegionTC5(true, true);
+        //(new VeritestingPerf()).createObjectComplexRegionTC6(true, true);
+
+
+        /****************** ArrayLoad Tests ********************/
+        //(new VeritestingPerf()).testSegment1(true, true, 2);
+        //(new VeritestingPerf()).testSegment2(true, true, 2);
         //(new VeritestingPerf()).inRangeloadArrayTC(22, 2);
         //(new VeritestingPerf()).innerCatchOutRangeloadArrayTC(22, 2);
         //(new VeritestingPerf()).outRangeloadArrayTC( 22, 2);
         // (new VeritestingPerf()).catchOutRangeloadArrayTC(22, 2);
         //(new VeritestingPerf()).boundedOutRangeloadArrayTC(22, 2);
-        //(new VeritestingPerf()).ifNull("Test");
-        //(new VeritestingPerf()).foo(true);
         //(new VeritestingPerf()).segmantTest(22, 2);
+        //(new VeritestingPerf()).assertRegions(true,true);
 
-        // System.out.println("!!!!!!!!!!!!!!! Start Testing! ");
-        //  (new VeritestingPerf()).testMe2(0,true);
+
+//        (new VeritestingPerf()).cfgTest(1);
+//        (new VeritestingPerf()).countBitsSet(1);
+//        (new VeritestingPerf()).nestedRegion(1);
+//        (new VeritestingPerf()).nestedRegion1(true, true);
+//        (new VeritestingPerf()).testNestedMiddle(1);
+//        (new VeritestingPerf()).testNested(1);
+//        (new VeritestingPerf()).testDynObject(false, 1);
+//        int x[] = {1, 2};
+//        (new VeritestingPerf()).ifNull("Test");
+//        (new VeritestingPerf()).foo(true);
+//
+//        System.out.println("!!!!!!!!!!!!!!! Start Testing! ");
+//        (new VeritestingPerf()).testMe2(0,true);
 //        (new VeritestingPerf()).readAfterWriteTest(1);
 //        (new VeritestingPerf()).testSimple(1);
-
-        //(new VeritestingPerf()).testSimple1(1);
-        //(new VeritestingPerf()).simpleRegion(1);
-        //(new VeritestingPerf()).fieldWriteTestBranch2(1);
-        //(new VeritestingPerf()).fieldWriteTestBranch1(1);
+//
+//        (new VeritestingPerf()).testSimple1(1);
+//        (new VeritestingPerf()).simpleRegion(1);
+//        (new VeritestingPerf()).fieldWriteTestBranch2(1);
+//        (new VeritestingPerf()).fieldWriteTestBranch1(1);
 //        (new VeritestingPerf()).testSimple2(1);
-        //(new VeritestingPerf()).testSimpleFail(1);
-
-        int x[] = {1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20};
-//        (new VeritestingPerf()).inRangeloadArrayTC( 22, 10);
-//        (new VeritestingPerf()).outRangeloadArrayTC( 2, 10);
-        //       (new VeritestingPerf()).outRangeConcreteTC( 20, 10);
-        //(new VeritestingPerf()).testMe5(x, 1);
-        //(new VeritestingPerf()).testMe6(x, 12, -1, 1);
-        //(new VeritestingPerf()).testMe4(x, 12, -1, 1);
-        //       (new VeritestingPerf()).arrayTest(x, 6);
-        //(new VeritestingPerf()).checkOperator();
+//        (new VeritestingPerf()).testSimpleFail(1);
+//
+//        int x[] = {1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20};
+//        (new VeritestingPerf()).testMe5(x, 1);
+//        (new VeritestingPerf()).testMe6(x, 12, -1, 1);
+//        (new VeritestingPerf()).testMe4(x, 12, -1, 1);
+//        (new VeritestingPerf()).arrayTest(x, 6);
+//        (new VeritestingPerf()).checkOperator();
 //        ArrayList<Integer> list = new ArrayList<>();
 //        list.add(Debug.makeSymbolicInteger("a1"));
 //        list.add(Debug.makeSymbolicInteger("a2"));
@@ -71,9 +92,9 @@ public class VeritestingPerf {
 
     private void testNested(int x) {
         testNestedMiddle(x);
-        assert(x != 0 && x > 0 ? count == 3 : true);
-        assert(x != 0 && x <= 0 ? count == 4 : true);
-        assert(x ==0 ? count == 5 : true);
+        assert (x != 0 && x > 0 ? count == 3 : true);
+        assert (x != 0 && x <= 0 ? count == 4 : true);
+        assert (x == 0 ? count == 5 : true);
     }
 
     private int testNestedMiddle(int x) {
@@ -88,8 +109,14 @@ public class VeritestingPerf {
     public int nestedRegion(int x) {
         //int count = 0;
         if (x != 0) {
-            if (x > 0) { count = 3; } else { count = 4;  }
-        } else { count = 5; }
+            if (x > 0) {
+                count = 3;
+            } else {
+                count = 4;
+            }
+        } else {
+            count = 5;
+        }
 //        assert(x != 0 && x > 0 ? count == 3 : true);
 //        assert(x != 0 && x <= 0 ? count == 4 : true);
 //        assert(x ==0 ? count == 5 : true);
@@ -124,15 +151,20 @@ public class VeritestingPerf {
 
     public int simpleRegion(int x) {
         //count = 4;
-        if (x > 0) { count = 1; count = 3; }
-        else { count = 2; count = 4; }
+        if (x > 0) {
+            count = 1;
+            count = 3;
+        } else {
+            count = 2;
+            count = 4;
+        }
         return count;
     }
 
     public void testSimple(int x) {
         count = simpleRegion(x);
-        assert(x > 0 ? count == 3 : true);
-        assert(x <= 0 ? count == 4 : true);
+        assert (x > 0 ? count == 3 : true);
+        assert (x <= 0 ? count == 4 : true);
         System.out.println("x: " + x + "; count: " + count);
     }
 
@@ -145,8 +177,8 @@ public class VeritestingPerf {
             count = 4;
         }
 
-        assert(x != 0 ? count == 3 : true);
-        assert(x == 0 ? count == 4 : true);
+        assert (x != 0 ? count == 3 : true);
+        assert (x == 0 ? count == 4 : true);
     }
 
     public void testSimpleFail(int x) {
@@ -157,19 +189,25 @@ public class VeritestingPerf {
         } else {
             count = 4;
         }
-        assert(x != 0 ? count == 3 : true);
-        assert(x == 0 ? count == 4 : true);
+        assert (x != 0 ? count == 3 : true);
+        assert (x == 0 ? count == 4 : true);
     }
 
     public void testSimple2(int x) {
         //int count;
         if (x != 0) {
-            if (x > 0) { count = 3; } else { count = 4;  }
-        } else { count = 5; }
+            if (x > 0) {
+                count = 3;
+            } else {
+                count = 4;
+            }
+        } else {
+            count = 5;
+        }
 
-        assert(x > 0 ? count == 3 : true);
-        assert(x < 0 ? count == 4 : true);
-        assert(x == 0 ? count == 5 : true);
+        assert (x > 0 ? count == 3 : true);
+        assert (x < 0 ? count == 4 : true);
+        assert (x == 0 ? count == 5 : true);
     }
 
 
@@ -214,8 +252,8 @@ public class VeritestingPerf {
             }
             x = x >>> 1; // logical right shift
         }
-        assert(xOrig == 0 || TempClassDerived.tempInt == 6);
-        if(x >= -15 && x < 16) assert(Bits.populationCount(xOrig) == count);
+        assert (xOrig == 0 || TempClassDerived.tempInt == 6);
+        if (x >= -15 && x < 16) assert (Bits.populationCount(xOrig) == count);
         System.out.println("TempClassDerived.tempInt = " + TempClassDerived.tempInt);
         System.out.println("TempClass.tempInt = " + TempClass.tempInt);
         return count;
@@ -237,20 +275,20 @@ public class VeritestingPerf {
             }
             x = x >>> 1; // logical right shift
         }
-        assert(xOrig == 0 ? count == 0 : true);
-        assert(isPowerOf2(xOrig) ? count == 1 : true);
+        assert (xOrig == 0 ? count == 0 : true);
+        assert (isPowerOf2(xOrig) ? count == 1 : true);
         System.out.println("a = " + a);
         return count;
     }
 
     public int fieldWriteTestBranch2(int x) {
-        if(x != 0) count = 1;
+        if (x != 0) count = 1;
         else count = 2;
         return count;
     }
 
     public int fieldWriteTestBranch1(int x) {
-        if(x != 0) count = 1;
+        if (x != 0) count = 1;
         return count;
     }
 
@@ -345,15 +383,282 @@ public class VeritestingPerf {
         return y;
     }
 
+    //SH: Pass April 21.
+    public int createObjectTC1(boolean x, boolean y) {
+        int a = 3;
+        if (x) {
+            TempClass tempClass2 = new TempClass();
+            a = 4;
+        }
+//        assert(x ? a==0: true);
+//        assert(!x ? a==3: true);
+        return a;
+    }
 
+    //SH: Pass April 21.
+    public int createObjectTC2(boolean x, boolean y) {
+        int a = 0;
+        if (x) {
+            TempClass tempClass2 = new TempClass();
+        } else {
+            a = 3;
+        }
+//        assert(x ? a==0: true);
+//        assert(!x ? a==3: true);
+        return a;
+    }
+
+    //SH: Pass April 21.
+    public int createObjectTC3(boolean x, boolean y) {
+        int a = 0;
+        if (x) {
+            a = 3;
+        } else {
+            a = 2;
+            TempClass tempClass2 = new TempClass();
+        }
+//        assert(x ? a==2: true);
+//        assert(!x ? a==3: true);
+        return a;
+    }
+
+    public int createObjectTC4(boolean x, boolean y) {
+        int a = 0;
+        if (new TempClass3(x).valid) {
+            a = 3;
+        } else {
+            a = 2;
+        }
+//        assert(a==3);
+        return a;
+    }
+
+
+    //SH: Pass r April 21.
+    public int createObjectTC5(boolean x, boolean y) {
+        int a = 0;
+        if (x) {
+            TempClass tempClass2 = new TempClass();
+        } else {
+            a = 2;
+            TempClass tempClass2 = new TempClass();
+        }
+//        assert(x ? a==2: true);
+//        assert(!x ? a==3: true);
+        return a;
+    }
+
+    //SH: Pass April 21.
+    public int createObjectTC6(boolean x, boolean y) {
+        int a = 0;
+        if (x) {
+            a = 3+a;
+        } else {
+            a = 2;
+            TempClass tempClass2 = new TempClass();
+        }
+//        assert(x ? a==2: true);
+//        assert(!x ? a==3: true);
+        return a;
+    }
+
+    //SH: Pass regionSummary & instantiation , April 21.
+    public int createObjectTC7(boolean x, boolean y) {
+        int a = 3;
+        if (x) {
+            TempClass tempClass2 = new TempClass();
+            a = 4;
+        }
+        if (y) {
+            a = 4+a;
+        } else {
+            a = 2+a;
+        }
+//        assert(x ? a==2: true);
+//        assert(!x ? a==3: true);
+        return a;
+    }
+
+    //SH: Pass April 21.
+    public int createObjectTC8(boolean x, boolean y) {
+        int a = 0;
+        if (x) {
+            a = 3+a;
+        } else {
+            a = 2;
+            TempClass tempClass2 = new TempClass();
+        }
+
+        if (y) {
+            a = 4+a;
+            TempClass tempClass2 = new TempClass();
+            a = 6+a;
+        } else {
+            a = 2+a;
+        }
+//        assert(x ? a==2: true);
+//        assert(!x ? a==3: true);
+        return a;
+    }
+
+    //SH: Pass April 22nd
+    public int createObjectComplexRegionTC1(boolean x, boolean y) {
+        int a = 0;
+        if (y) {
+            if (x) {
+                a = 3;
+            } else {
+                a = 2;
+                TempClass tempClass2 = new TempClass();
+            }
+        }
+
+//        assert((y && x) ? a==3: true);
+//        assert((y && !x) ? a==2: true);
+//        assert(!y ? a==0: true);
+
+        return a;
+    }
+
+    //SH: Pass. April 23.
+    public int createObjectComplexRegionTC2(boolean x, boolean y) {
+        int a = 0;
+        if (y) {
+            if (x) {
+                a = 3;
+                TempClass tempClass2 = new TempClass();
+            } else {
+                a = 2;
+            }
+        }
+        else {
+            if (x) {
+                a = 3;
+            } else {
+                TempClass tempClass2 = new TempClass();
+                a = 2;
+            }
+        }
+//        assert((y && x) ? a==3: true);
+//        assert((y && !x) ? a==2: true);
+//        assert(!y ? a==0: true);
+
+        return a;
+    }
+
+    //SH:Passed April 23rd.
+    public int createObjectComplexRegionTC3(boolean x, boolean y) {
+        int a = 0;
+        if (y) {
+            if (new TempClass3(x).valid) {
+                a = 3;
+            } else {
+                a = 2;
+            }
+        }
+        return a;
+    }
+
+    //SH:Passed April 23rd.
+    public int createObjectComplexRegionTC4(boolean x, boolean y) {
+        int a = 0;
+        if (y) {
+            if (new TempClass3(false).valid) {
+                a = 3;
+            } else {
+                a = 2;
+            }
+        }
+//        assert(y ? a==2: true);
+//        assert(!y ? a==0: true);
+
+        return a;
+    }
+
+    //SH:Passed April 23rd.
+    public int createObjectComplexRegionTC5(boolean x, boolean y) {
+        int a = 0;
+        if (y) {
+            TempClass tempClass1 = new TempClass();
+            a = 1;
+            if (x) {
+                a = 3;
+            } else {
+                a = 2;
+            }
+        }
+//        assert((y && x) ? a==3: true);
+//        assert((y && !x) ? a==2: true);
+//        assert(!y ? a==0: true);
+
+        return a;
+    }
+
+
+    //SH: Pas. April 23.
+    public int createObjectComplexRegionTC6(boolean x, boolean y) {
+        int a = 0;
+        if (new TempClass3(x).valid) {
+            a = 1;
+            if (x) {
+                a = 3;
+            } else {
+                a = 2;
+            }
+        }
+        return a;
+    }
+
+    //SH: Pas. April 23.
+    public int createObjectComplexRegionTC7(boolean x, boolean y) {
+        int a = 0;
+        if (new TempClass3(true).valid) {
+            a = 1;
+            if (x) {
+                a = 3;
+            } else {
+                a = 2;
+            }
+        }
+        return a;
+    }
+
+
+    //SH: Pass. April 23.
+    public int branchOnConcrete(boolean x, boolean y) {
+        int a = 0;
+        if (new TempClass3(true).valid) {
+            a = 3;
+        } else {
+            a = 2;
+        }
+        return a;
+    }
+
+
+    public int assertRegions(boolean x, boolean y) {
+        int a = 0;
+        int b = a;
+        if (x) {
+            a = a+3;
+        } else {
+            a = a+2;
+        }
+        assert(x? a == 3 : a==2);
+        return a;
+    }
 
     int foo(boolean x) {
         int a;
         if (x) {
             if (x) {
                 a = 3;
-            } else { a = 4; }
-        } else { a = 5; }
+            } else {
+                a = 4;
+            }
+        } else {
+            a = 5;
+        }
         return a;
     }
 
@@ -372,12 +677,11 @@ public class VeritestingPerf {
     }*/
 
 
-    public int ifNull(String x){
-        if(x == null){
+    public int ifNull(String x) {
+        if (x == null) {
             System.out.println("x is null");
             return 0;
-        }
-        else{
+        } else {
             System.out.println("x is not null");
             return 1;
         }
@@ -386,10 +690,12 @@ public class VeritestingPerf {
 
     public class Silly {
         public int f = 10;
-    };
+    }
+
+    ;
 
     void testDynObject(boolean cond, int index) {
-        Silly [] arrayOfSilly = { new Silly(), new Silly() } ;
+        Silly[] arrayOfSilly = {new Silly(), new Silly()};
         int l;
         if (cond) {
             l = arrayOfSilly[index].f;
@@ -532,9 +838,9 @@ class TempClassDerived extends TempClass {
 
     public int getOne(int a) {
         //read-after-write test on tempInt field
-        tempInt = a +1; //LOCAL_INPUT,  FIELD_OUTPUT holes
+        tempInt = a + 1; //LOCAL_INPUT,  FIELD_OUTPUT holes
         a = tempInt + 2; //LOCAL_OUTPUT, FIELD_INPUT holes
-        tempInt = a+ 3; //LOCAL_INPUT,  FIELD_INPUT holes
+        tempInt = a + 3; //LOCAL_INPUT,  FIELD_INPUT holes
         //tempInt = 6 + a;
 
         //VeritestingPerf.count += 1;
@@ -546,8 +852,14 @@ class TempClassDerived extends TempClass {
 
     public int nestedRegion(int x) {
         if (x != 0) {
-            if (x != 0) { tempInt = 3; } else { tempInt = 4;  }
-        } else { tempInt = 5; }
+            if (x != 0) {
+                tempInt = 3;
+            } else {
+                tempInt = 4;
+            }
+        } else {
+            tempInt = 5;
+        }
         return tempInt + x;
     }
 
@@ -569,23 +881,35 @@ class TempClass {
 
     public int getOne(int a) {
         System.out.println("called TempClass.getOne");
-        tempInt = a; return tempInt;
+        tempInt = a;
+        return tempInt;
     }
 
     TempClass2 tempClass2;
 
-    public int nestedRegion(int a) { return 0; }
+    public int nestedRegion(int a) {
+        return 0;
+    }
 }
 
 class TempClass2 {
 
     public int tempInt2 = 1;
 
-    public int tempMethod() { return 0;}
+    public int tempMethod() {
+        return 0;
+    }
 }
 
 
+class TempClass3 {
 
+    public boolean valid;
+
+    public TempClass3(boolean valid) {
+        this.valid = valid;
+    }
+}
 
 /*
   public void collatz(int n) {
