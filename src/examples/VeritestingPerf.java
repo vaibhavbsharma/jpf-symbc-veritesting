@@ -1,5 +1,6 @@
 import com.ibm.wala.util.intset.Bits;
 import gov.nasa.jpf.symbc.Debug;
+import org.apache.commons.lang.ObjectUtils;
 
 import java.util.ArrayList;
 
@@ -22,7 +23,7 @@ public class VeritestingPerf {
         //(new VeritestingPerf()).createObjectTC8(true, true);
         //(new VeritestingPerf()).assertRegions(true, true);
         //(new VeritestingPerf()).createObjectComplexRegionTC1(true, true);
-        (new VeritestingPerf()).createObjectComplexRegionTC2(true, true);
+        //(new VeritestingPerf()).createObjectComplexRegionTC2(true, true);
         //(new VeritestingPerf()).createObjectComplexRegionTC3(true, true);
         //(new VeritestingPerf()).createObjectComplexRegionTC4(true, true);
         //(new VeritestingPerf()).createObjectComplexRegionTC5(true, true);
@@ -40,9 +41,11 @@ public class VeritestingPerf {
         //(new VeritestingPerf()).segmantTest(22, 2);
         //(new VeritestingPerf()).assertRegions(true,true);
 
+        (new VeritestingPerf()).regionWithThrowsException(0);
+
 
 //        (new VeritestingPerf()).cfgTest(1);
-//        (new VeritestingPerf()).countBitsSet(1);
+        (new VeritestingPerf()).countBitsSet(1);
 //        (new VeritestingPerf()).nestedRegion(1);
 //        (new VeritestingPerf()).nestedRegion1(true, true);
 //        (new VeritestingPerf()).testNestedMiddle(1);
@@ -74,6 +77,15 @@ public class VeritestingPerf {
 //        list.add(Debug.makeSymbolicInteger("a1"));
 //        list.add(Debug.makeSymbolicInteger("a2"));
 //        (new VeritestingPerf()).countArrayList(list);
+    }
+
+    private int regionWithThrowsException(int i) {
+        if ( i != 0) {
+            if (i < 0)
+            throw new NullPointerException("negative");
+            else i = 1;
+        } else i = 2;
+        return i;
     }
 
     public static void testMe2(int x, boolean b) {
