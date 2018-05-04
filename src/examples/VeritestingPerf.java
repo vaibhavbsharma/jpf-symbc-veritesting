@@ -45,7 +45,7 @@ public class VeritestingPerf {
 
 
 //        (new VeritestingPerf()).cfgTest(1);
-        (new VeritestingPerf()).countBitsSet(1);
+//        (new VeritestingPerf()).countBitsSet(1);
 //        (new VeritestingPerf()).nestedRegion(1);
 //        (new VeritestingPerf()).nestedRegion1(true, true);
 //        (new VeritestingPerf()).testNestedMiddle(1);

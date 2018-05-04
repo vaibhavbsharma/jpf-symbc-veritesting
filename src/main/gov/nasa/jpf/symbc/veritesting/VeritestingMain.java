@@ -266,6 +266,8 @@ public class VeritestingMain {
             e.printStackTrace();
         } catch (WalaException e) {
             e.printStackTrace();
+        } catch (StaticRegionException e) {
+            System.out.println(e.getMessage());
         }
     }
 
@@ -397,7 +399,7 @@ public class VeritestingMain {
     // For one thing, we should simply construct a new varUtil each time this method is called; when
     // we recursively invoke it, we just save off the entire structure rather than do it piecemeal.
 
-    public void doAnalysis(ISSABasicBlock startingUnit, ISSABasicBlock endingUnit) throws InvalidClassFileException, WalaException {
+    public void doAnalysis(ISSABasicBlock startingUnit, ISSABasicBlock endingUnit) throws InvalidClassFileException, WalaException, StaticRegionException {
         //System.out.println("Starting doAnalysis");
         boolean thenCreateThrow = false;
         boolean elseCreateThrow = false;
@@ -425,7 +427,8 @@ public class VeritestingMain {
             List<ISSABasicBlock> succs = new ArrayList<>(cfg.getNormalSuccessors(currUnit));
             if(currentClassName.contains("VeritestingPerf") && currentMethodName.contains("nestedRegion1"))
                 System.out.println("");
-            ISSABasicBlock commonSucc = cfg.getIPdom(currUnit.getNumber(), true, ir, cha);
+            ISSABasicBlock commonSucc = cfg.getIPdom(currUnit.getNumber(), true, true, ir, cha);
+            if (commonSucc == null) throw new StaticRegionException("failed to compute immediate post-dominator");
             if (succs.size() == 1) {
                 currUnit = succs.get(0);
                 continue;
@@ -509,8 +512,8 @@ public class VeritestingMain {
                             //cannot handle returns inside a if-then-else
                             if(blockSummary.getIsExitNode()) canVeritest = false;
                             if(!canVeritest) break;
-                            ISSABasicBlock commonSuccthenUnit = cfg.getIPdom(thenUnit.getNumber(), true, ir, cha);
-
+                            ISSABasicBlock commonSuccthenUnit = cfg.getIPdom(thenUnit.getNumber(), true, true, ir, cha);
+                            if (commonSuccthenUnit == null) throw new StaticRegionException("failed to compute immediate post-dominator");
                             //invariant: outer region meetpoint postdominate inner region meet point
                             NumberedGraph<ISSABasicBlock> invertedCFG = GraphInverter.invert(cfg);
                             NumberedDominators<ISSABasicBlock> postDom = (NumberedDominators<ISSABasicBlock>)
@@ -623,8 +626,8 @@ public class VeritestingMain {
                             //cannot handle returns inside a if-else-else
                             if(blockSummary.getIsExitNode()) canVeritest = false;
                             if(!canVeritest) break;
-                            ISSABasicBlock commonSuccelseUnit = cfg.getIPdom(elseUnit.getNumber(), true, ir, cha);
-
+                            ISSABasicBlock commonSuccelseUnit = cfg.getIPdom(elseUnit.getNumber(), true, true, ir, cha);
+                            if (commonSuccelseUnit == null) throw new StaticRegionException("failed to compute immediate post-dominator");
                             NumberedGraph<ISSABasicBlock> invertedCFG = GraphInverter.invert(cfg);
                             NumberedDominators<ISSABasicBlock> postDom = (NumberedDominators<ISSABasicBlock>)
                                     Dominators.make(invertedCFG, cfg.exit());
@@ -747,7 +750,7 @@ public class VeritestingMain {
         return ret;
     }
 
-    public void doMethodAnalysis(ISSABasicBlock startingUnit, ISSABasicBlock endingUnit) throws InvalidClassFileException, WalaException {
+    public void doMethodAnalysis(ISSABasicBlock startingUnit, ISSABasicBlock endingUnit) throws InvalidClassFileException, WalaException, StaticRegionException {
         assert(methodAnalysis);
         if(VeritestingListener.veritestingMode < 3) {
             return;
@@ -765,7 +768,8 @@ public class VeritestingMain {
             if(((SSACFG.BasicBlock) currUnit).getAllInstructions().size() > 0)
                 endingBC = ((IBytecodeMethod) (ir.getMethod())).getBytecodeIndex(currUnit.getLastInstructionIndex());
             List<ISSABasicBlock> succs = new ArrayList<>(cfg.getNormalSuccessors(currUnit));
-            ISSABasicBlock commonSucc = cfg.getIPdom(currUnit.getNumber(), true, ir, cha);
+            ISSABasicBlock commonSucc = cfg.getIPdom(currUnit.getNumber(), true, true, ir, cha);
+            if (commonSucc == null) throw new StaticRegionException("failed to compute immediate post-dominator");
             if (succs.size() == 1 || succs.size() == 0) {
                 //Assuming that it would be ok to visit a BB that starts with a phi expression
                 BlockSummary blockSummary = new BlockSummary(currUnit, methodExpression, canVeritestMethod, null).invoke();
