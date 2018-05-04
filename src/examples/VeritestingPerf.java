@@ -23,7 +23,7 @@ public class VeritestingPerf {
         //(new VeritestingPerf()).createObjectTC8(true, true);
         //(new VeritestingPerf()).assertRegions(true, true);
         //(new VeritestingPerf()).createObjectComplexRegionTC1(true, true);
-        //(new VeritestingPerf()).createObjectComplexRegionTC2(true, true);
+        (new VeritestingPerf()).createObjectComplexRegionTC2(true, true);
         //(new VeritestingPerf()).createObjectComplexRegionTC3(true, true);
         //(new VeritestingPerf()).createObjectComplexRegionTC4(true, true);
         //(new VeritestingPerf()).createObjectComplexRegionTC5(true, true);
@@ -41,7 +41,7 @@ public class VeritestingPerf {
         //(new VeritestingPerf()).segmantTest(22, 2);
         //(new VeritestingPerf()).assertRegions(true,true);
 
-        (new VeritestingPerf()).regionWithThrowsException(0);
+//        (new VeritestingPerf()).regionWithThrowsException(0);
 
 
 //        (new VeritestingPerf()).cfgTest(1);

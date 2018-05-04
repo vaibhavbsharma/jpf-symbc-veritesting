@@ -563,12 +563,11 @@ public class VeritestingMain {
                     if(blockSummary.getIsExitNode()) canVeritest = false;
                     //SH: supporting new object or throw instructions
                     if (!canVeritest) break;
-                    /* Vaibhav: Please don't do this without recomputing the common successor that excludes incoming exceptional edges to the exit node
-                    if (blockSummary.hasNewOrThrow){ //SH: skip to the end of the region when a new Object or throw instruction encountered
+                    if (blockSummary.isHasNewOrThrow()){ //SH: skip to the end of the region when a new Object or throw instruction encountered
                         thenUnit = commonSucc;
                         thenPred = null;
                         break;
-                    }*/
+                    }
                     thenPred = thenUnit;
                     thenUnit = cfg.getNormalSuccessors(thenUnit).iterator().next();
                     if (thenUnit == endingUnit) break;
@@ -675,14 +674,13 @@ public class VeritestingMain {
                     //we should not encounter a BB with more than one successor at this point
                     assert(blockSummary.getIfExpression() == null);
                     //cannot handle returns inside a if-else-else
-                    /* Vaibhav: Please don't do this without recomputing the common successor that excludes incoming exceptional edges to the exit node
                     if(blockSummary.getIsExitNode()) canVeritest = false;
                     if (!canVeritest) break;
-                    if (blockSummary.hasNewOrThrow){ //SH: skip to the end of the region when a new Object or throw instruction encountered
+                    if (blockSummary.isHasNewOrThrow()){ //SH: skip to the end of the region when a new Object or throw instruction encountered
                         elseUnit = commonSucc;
                         elsePred = null;
                         break;
-                    }*/
+                    }
                     elsePred = elseUnit;
                     elseUnit = cfg.getNormalSuccessors(elseUnit).iterator().next();
                     if (elseUnit == endingUnit) break;
