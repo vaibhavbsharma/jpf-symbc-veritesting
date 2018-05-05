@@ -1,0 +1,12 @@
+target=Schedule2
+classpath=/Users/sohanabel/git/veritesting/benchmarks/Schedule2_3/bin
+sourcepath=/Users/sohanabel/git/veritesting/benchmarks/Schedule2_3/src
+symbolic.method = Schedule2.mainProcess(sym#sym#sym)
+symbolic.minint=-100
+symbolic.maxint=100
+vm.storage.class=nil
+listener = .symbc.SymbolicListener
+symbolic.dp=z3bitvector
+#listener = .listener.ChoiceTracker
+#symbolic.debug=on
+

@@ -1,0 +1,349 @@
+symbolic.min_int=-2147483648
+symbolic.min_long=-9223372036854775808
+symbolic.min_short=-32768
+symbolic.min_byte=-128
+symbolic.min_char=0
+symbolic.max_int=2147483647
+symbolic.max_long=9223372036854775807
+symbolic.max_short=32767
+symbolic.max_byte=127
+symbolic.max_char=65535
+symbolic.min_double=4.9E-324
+symbolic.max_double=1.7976931348623157E308
+JavaPathfinder core system v8.0 (rev 32+) - (C) 2005-2014 United States Government. All rights reserved.
+
+
+====================================================== system under test
+tcas_singlereturn.main()
+
+====================================================== search started: 4/30/18 8:35 AM
+appJar = ../build/examples/
+Starting analysis for main(tcas_singlereturn.main([Ljava/lang/String;)V)
+Starting analysis for initialize(tcas_singlereturn.initialize()V)
+Starting analysis for ALIM(tcas_singlereturn.ALIM()I)
+SSAGetInstruction = 11 = getstatic < Application, Ltcas_singlereturn, Positive_RA_Alt_Thresh_3, <Primordial,I> >
+declaringClass = tcas_singlereturn, currentMethodName = Positive_RA_Alt_Thresh_3
+SSAGetInstruction = 10 = getstatic < Application, Ltcas_singlereturn, Positive_RA_Alt_Thresh_2, <Primordial,I> >
+declaringClass = tcas_singlereturn, currentMethodName = Positive_RA_Alt_Thresh_2
+SSAGotoInstruction = goto (from iindex= 17 to iindex = 20)
+SSAPhiInstruction = 12 = phi  4,7,10,11
+
+Veritested inner region with key = tcas_singlereturn.ALIM()I#31
+SSAGetInstruction = 8 = getstatic < Application, Ltcas_singlereturn, Alt_Layer_Value, <Primordial,I> >
+declaringClass = tcas_singlereturn, currentMethodName = Alt_Layer_Value
+SSAConditionalBranchInstruction = conditional branch(ne, to iindex=18) 8,9
+SSAGetInstruction = 7 = getstatic < Application, Ltcas_singlereturn, Positive_RA_Alt_Thresh_1, <Primordial,I> >
+declaringClass = tcas_singlereturn, currentMethodName = Positive_RA_Alt_Thresh_1
+SSAGotoInstruction = goto (from iindex= 11 to iindex = 20)
+SSAPhiInstruction = 12 = phi  4,7,10,11
+
+Veritested inner region with key = tcas_singlereturn.ALIM()I#17
+SSAGetInstruction = 5 = getstatic < Application, Ltcas_singlereturn, Alt_Layer_Value, <Primordial,I> >
+declaringClass = tcas_singlereturn, currentMethodName = Alt_Layer_Value
+SSAConditionalBranchInstruction = conditional branch(ne, to iindex=12) 5,6
+SSAGetInstruction = 4 = getstatic < Application, Ltcas_singlereturn, Positive_RA_Alt_Thresh_0, <Primordial,I> >
+declaringClass = tcas_singlereturn, currentMethodName = Positive_RA_Alt_Thresh_0
+SSAGotoInstruction = goto (from iindex= 5 to iindex = 20)
+SSAPhiInstruction = 12 = phi  4,7,10,11
+
+Starting analysis for Inhibit_Biased_Climb(tcas_singlereturn.Inhibit_Biased_Climb()I)
+SSAGetInstruction = 7 = getstatic < Application, Ltcas_singlereturn, Up_Separation, <Primordial,I> >
+declaringClass = tcas_singlereturn, currentMethodName = Up_Separation
+SSAGetInstruction = 4 = getstatic < Application, Ltcas_singlereturn, Up_Separation, <Primordial,I> >
+declaringClass = tcas_singlereturn, currentMethodName = Up_Separation
+SSAGetInstruction = 5 = getstatic < Application, Ltcas_singlereturn, NOZCROSS, <Primordial,I> >
+declaringClass = tcas_singlereturn, currentMethodName = NOZCROSS
+SSABinaryOpInstruction = 6 = binaryop(add) 4 , 5
+SSAGotoInstruction = goto (from iindex= 7 to iindex = 10)
+SSAPhiInstruction = 8 = phi  6,7
+
+Starting analysis for Non_Crossing_Biased_Climb(tcas_singlereturn.Non_Crossing_Biased_Climb()Z)
+SSAGotoInstruction = goto (from iindex= 7 to iindex = 10)
+SSAPhiInstruction = 7 = phi  5,6
+
+SSAInvokeInstruction = 15 = invokestatic < Application, Ltcas_singlereturn, ALIM()I > @57 exception:14
+SSAInvokeInstruction = 18 = invokestatic < Application, Ltcas_singlereturn, Own_Above_Threat()Z > @73 exception:17
+SSAGotoInstruction = goto (from iindex= 45 to iindex = 48)
+SSAPhiInstruction = 19 = phi  11,6,6,6,5
+
+Veritested inner region with key = tcas_singlereturn.Non_Crossing_Biased_Climb()Z#80
+SSAConditionalBranchInstruction = conditional branch(ne, to iindex=46) 18,6
+SSAGotoInstruction = goto (from iindex= 37 to iindex = 48)
+SSAPhiInstruction = 19 = phi  11,6,6,6,5
+
+Veritested inner region with key = tcas_singlereturn.Non_Crossing_Biased_Climb()Z#65
+SSAGetInstruction = 16 = getstatic < Application, Ltcas_singlereturn, Up_Separation, <Primordial,I> >
+declaringClass = tcas_singlereturn, currentMethodName = Up_Separation
+SSAConditionalBranchInstruction = conditional branch(ge, to iindex=38) 16,15
+SSAGotoInstruction = goto (from iindex= 29 to iindex = 48)
+SSAPhiInstruction = 19 = phi  11,6,6,6,5
+
+Veritested inner region with key = tcas_singlereturn.Non_Crossing_Biased_Climb()Z#49
+SSAGetInstruction = 12 = getstatic < Application, Ltcas_singlereturn, Cur_Vertical_Sep, <Primordial,I> >
+declaringClass = tcas_singlereturn, currentMethodName = Cur_Vertical_Sep
+SSAGetInstruction = 13 = getstatic < Application, Ltcas_singlereturn, MINSEP, <Primordial,I> >
+declaringClass = tcas_singlereturn, currentMethodName = MINSEP
+SSAConditionalBranchInstruction = conditional branch(ge, to iindex=30) 12,13
+SSAInvokeInstruction = 9 = invokestatic < Application, Ltcas_singlereturn, ALIM()I > @22 exception:8
+SSAGotoInstruction = goto (from iindex= 20 to iindex = 23)
+SSAPhiInstruction = 11 = phi  5,6
+
+
+Starting analysis for Non_Crossing_Biased_Descend(tcas_singlereturn.Non_Crossing_Biased_Descend()Z)
+SSAGotoInstruction = goto (from iindex= 7 to iindex = 10)
+SSAPhiInstruction = 7 = phi  5,6
+
+SSAInvokeInstruction = 17 = invokestatic < Application, Ltcas_singlereturn, ALIM()I > @72 exception:16
+SSAInvokeInstruction = 19 = invokestatic < Application, Ltcas_singlereturn, Own_Above_Threat()Z > @76 exception:18
+SSAGotoInstruction = goto (from iindex= 53 to iindex = 56)
+SSAPhiInstruction = 21 = phi  15,6,6,5
+
+Veritested inner region with key = tcas_singlereturn.Non_Crossing_Biased_Descend()Z#95
+SSAConditionalBranchInstruction = conditional branch(ne, to iindex=54) 19,6
+SSAGotoInstruction = goto (from iindex= 47 to iindex = 56)
+SSAPhiInstruction = 21 = phi  15,6,6,5
+
+Veritested inner region with key = tcas_singlereturn.Non_Crossing_Biased_Descend()Z#85
+SSAGetInstruction = 20 = getstatic < Application, Ltcas_singlereturn, Up_Separation, <Primordial,I> >
+declaringClass = tcas_singlereturn, currentMethodName = Up_Separation
+SSAConditionalBranchInstruction = conditional branch(ge, to iindex=48) 20,17
+SSAInvokeInstruction = 9 = invokestatic < Application, Ltcas_singlereturn, ALIM()I > @22 exception:8
+SSAInvokeInstruction = 11 = invokestatic < Application, Ltcas_singlereturn, Own_Below_Threat()Z > @26 exception:10
+SSAGotoInstruction = goto (from iindex= 34 to iindex = 37)
+SSAPhiInstruction = 15 = phi  6,6,6,5
+
+Veritested inner region with key = tcas_singlereturn.Non_Crossing_Biased_Descend()Z#59
+SSAConditionalBranchInstruction = conditional branch(ne, to iindex=35) 11,6
+SSAGotoInstruction = goto (from iindex= 28 to iindex = 37)
+SSAPhiInstruction = 15 = phi  6,6,6,5
+
+Veritested inner region with key = tcas_singlereturn.Non_Crossing_Biased_Descend()Z#49
+SSAGetInstruction = 14 = getstatic < Application, Ltcas_singlereturn, Down_Separation, <Primordial,I> >
+declaringClass = tcas_singlereturn, currentMethodName = Down_Separation
+SSAConditionalBranchInstruction = conditional branch(ge, to iindex=29) 14,9
+SSAGotoInstruction = goto (from iindex= 22 to iindex = 37)
+SSAPhiInstruction = 15 = phi  6,6,6,5
+
+
+Starting analysis for Own_Below_Threat(tcas_singlereturn.Own_Below_Threat()Z)
+SSAPhiInstruction = 6 = phi  2,5
+
+Starting analysis for Own_Above_Threat(tcas_singlereturn.Own_Above_Threat()Z)
+SSAPhiInstruction = 6 = phi  2,5
+
+Starting analysis for alt_assign(tcas_singlereturn.alt_assign()I)
+SSAInvokeInstruction = 7 = invokestatic < Application, Ltcas_singlereturn, Own_Below_Threat()Z > @14 exception:6
+SSAPhiInstruction = 9 = phi  3,3,8
+SSAInvokeInstruction = 11 = invokestatic < Application, Ltcas_singlereturn, Non_Crossing_Biased_Descend()Z > @26 exception:10
+
+
+SSAInvokeInstruction = 13 = invokestatic < Application, Ltcas_singlereturn, Own_Above_Threat()Z > @36 exception:12
+SSAPhiInstruction = 14 = phi  3,3,8
+
+
+SSAGetInstruction = 18 = getstatic < Application, Ltcas_singlereturn, UNRESOLVED, <Primordial,I> >
+declaringClass = tcas_singlereturn, currentMethodName = UNRESOLVED
+SSAGetInstruction = 17 = getstatic < Application, Ltcas_singlereturn, DOWNWARD_RA, <Primordial,I> >
+declaringClass = tcas_singlereturn, currentMethodName = DOWNWARD_RA
+SSAGotoInstruction = goto (from iindex= 47 to iindex = 50)
+SSAPhiInstruction = 19 = phi  15,16,17,18
+
+Veritested inner region with key = tcas_singlereturn.alt_assign()I#71
+SSAConditionalBranchInstruction = conditional branch(eq, to iindex=48) 14,3
+SSAGetInstruction = 16 = getstatic < Application, Ltcas_singlereturn, UPWARD_RA, <Primordial,I> >
+declaringClass = tcas_singlereturn, currentMethodName = UPWARD_RA
+SSAGotoInstruction = goto (from iindex= 41 to iindex = 50)
+SSAGetInstruction = 15 = getstatic < Application, Ltcas_singlereturn, UNRESOLVED, <Primordial,I> >
+declaringClass = tcas_singlereturn, currentMethodName = UNRESOLVED
+SSAGotoInstruction = goto (from iindex= 38 to iindex = 50)
+SSAPhiInstruction = 19 = phi  15,16,17,18
+
+
+Starting analysis for alt_sep_test(tcas_singlereturn.alt_sep_test()I)
+SSAPhiInstruction = 10 = phi  2,2,2,9
+
+
+
+SSAPhiInstruction = 13 = phi  2,9
+
+SSAInvokeInstruction = 21 = invokestatic < Application, Ltcas_singlereturn, alt_assign()I > @83 exception:20
+SSAPhiInstruction = 17 = phi  2,2,9
+
+
+SSAInvokeInstruction = 19 = invokestatic < Application, Ltcas_singlereturn, alt_assign()I > @76 exception:18
+SSAGotoInstruction = goto (from iindex= 43 to iindex = 46)
+SSAPhiInstruction = 24 = phi  3,3,19,21
+
+
+
+Starting analysis for mainProcess(tcas_singlereturn.mainProcess(IIIIIIIIIIII)V)
+SSAPutInstruction = putstatic < Application, Ltcas_singlereturn, High_Confidence, <Primordial,Z> > = 16
+SSAPutInstruction = putstatic < Application, Ltcas_singlereturn, High_Confidence, <Primordial,Z> > = 15
+SSAGotoInstruction = goto (from iindex= 8 to iindex = 11)
+
+SSAPutInstruction = putstatic < Application, Ltcas_singlereturn, Two_of_Three_Reports_Valid, <Primordial,Z> > = 16
+SSAPutInstruction = putstatic < Application, Ltcas_singlereturn, Two_of_Three_Reports_Valid, <Primordial,Z> > = 15
+SSAGotoInstruction = goto (from iindex= 16 to iindex = 19)
+
+Starting analysis for main(tcas_singlereturn.main([Ljava/lang/String;)V)
+Starting analysis for initialize(tcas_singlereturn.initialize()V)
+Starting analysis for ALIM(tcas_singlereturn.ALIM()I)
+Starting analysis for Inhibit_Biased_Climb(tcas_singlereturn.Inhibit_Biased_Climb()I)
+Starting analysis for Non_Crossing_Biased_Climb(tcas_singlereturn.Non_Crossing_Biased_Climb()Z)
+Starting analysis for Non_Crossing_Biased_Descend(tcas_singlereturn.Non_Crossing_Biased_Descend()Z)
+Starting analysis for Own_Below_Threat(tcas_singlereturn.Own_Below_Threat()Z)
+Starting analysis for Own_Above_Threat(tcas_singlereturn.Own_Above_Threat()Z)
+Starting analysis for alt_assign(tcas_singlereturn.alt_assign()I)
+Starting analysis for alt_sep_test(tcas_singlereturn.alt_sep_test()I)
+Starting analysis for mainProcess(tcas_singlereturn.mainProcess(IIIIIIIIIIII)V)
+Starting analysis for main(tcas_singlereturn.main([Ljava/lang/String;)V)
+SSAInvokeInstruction = invokestatic < Application, Ltcas_singlereturn, mainProcess(IIIIIIIIIIII)V > 3,4,5,4,5,5,5,6,7,5,5,8 @18 exception:9
+SSAReturnInstruction = return
+Starting analysis for initialize(tcas_singlereturn.initialize()V)
+SSAPutInstruction = putstatic < Application, Ltcas_singlereturn, Positive_RA_Alt_Thresh_0, <Primordial,I> > = 2
+SSAPutInstruction = putstatic < Application, Ltcas_singlereturn, Positive_RA_Alt_Thresh_1, <Primordial,I> > = 3
+SSAPutInstruction = putstatic < Application, Ltcas_singlereturn, Positive_RA_Alt_Thresh_2, <Primordial,I> > = 4
+SSAPutInstruction = putstatic < Application, Ltcas_singlereturn, Positive_RA_Alt_Thresh_3, <Primordial,I> > = 5
+SSAReturnInstruction = return
+Starting analysis for ALIM(tcas_singlereturn.ALIM()I)
+SSAGetInstruction = 2 = getstatic < Application, Ltcas_singlereturn, Alt_Layer_Value, <Primordial,I> >
+declaringClass = tcas_singlereturn, currentMethodName = Alt_Layer_Value
+SSAConditionalBranchInstruction = conditional branch(ne, to iindex=6) 2,3
+SSAReturnInstruction = return 12
+Starting analysis for Inhibit_Biased_Climb(tcas_singlereturn.Inhibit_Biased_Climb()I)
+SSAGetInstruction = 2 = getstatic < Application, Ltcas_singlereturn, Climb_Inhibit, <Primordial,I> >
+declaringClass = tcas_singlereturn, currentMethodName = Climb_Inhibit
+SSAConditionalBranchInstruction = conditional branch(le, to iindex=8) 2,3
+SSAReturnInstruction = return 8
+Starting analysis for Non_Crossing_Biased_Climb(tcas_singlereturn.Non_Crossing_Biased_Climb()Z)
+SSAInvokeInstruction = 3 = invokestatic < Application, Ltcas_singlereturn, Inhibit_Biased_Climb()I > @0 exception:2
+SSAGetInstruction = 4 = getstatic < Application, Ltcas_singlereturn, Down_Separation, <Primordial,I> >
+declaringClass = tcas_singlereturn, currentMethodName = Down_Separation
+SSAConditionalBranchInstruction = conditional branch(le, to iindex=8) 3,4
+SSAConditionalBranchInstruction = conditional branch(eq, to iindex=24) 7,6
+Starting analysis for Non_Crossing_Biased_Descend(tcas_singlereturn.Non_Crossing_Biased_Descend()Z)
+SSAInvokeInstruction = 3 = invokestatic < Application, Ltcas_singlereturn, Inhibit_Biased_Climb()I > @0 exception:2
+SSAGetInstruction = 4 = getstatic < Application, Ltcas_singlereturn, Down_Separation, <Primordial,I> >
+declaringClass = tcas_singlereturn, currentMethodName = Down_Separation
+SSAConditionalBranchInstruction = conditional branch(le, to iindex=8) 3,4
+SSAConditionalBranchInstruction = conditional branch(eq, to iindex=38) 7,6
+Starting analysis for Own_Below_Threat(tcas_singlereturn.Own_Below_Threat()Z)
+SSAGetInstruction = 3 = getstatic < Application, Ltcas_singlereturn, Own_Tracked_Alt, <Primordial,I> >
+declaringClass = tcas_singlereturn, currentMethodName = Own_Tracked_Alt
+SSAGetInstruction = 4 = getstatic < Application, Ltcas_singlereturn, Other_Tracked_Alt, <Primordial,I> >
+declaringClass = tcas_singlereturn, currentMethodName = Other_Tracked_Alt
+SSAConditionalBranchInstruction = conditional branch(ge, to iindex=7) 3,4
+SSAReturnInstruction = return 6
+Starting analysis for Own_Above_Threat(tcas_singlereturn.Own_Above_Threat()Z)
+SSAGetInstruction = 3 = getstatic < Application, Ltcas_singlereturn, Other_Tracked_Alt, <Primordial,I> >
+declaringClass = tcas_singlereturn, currentMethodName = Other_Tracked_Alt
+SSAGetInstruction = 4 = getstatic < Application, Ltcas_singlereturn, Own_Tracked_Alt, <Primordial,I> >
+declaringClass = tcas_singlereturn, currentMethodName = Own_Tracked_Alt
+SSAConditionalBranchInstruction = conditional branch(ge, to iindex=7) 3,4
+SSAReturnInstruction = return 6
+Starting analysis for alt_assign(tcas_singlereturn.alt_assign()I)
+SSAGetInstruction = 2 = getstatic < Application, Ltcas_singlereturn, UNRESOLVED, <Primordial,I> >
+declaringClass = tcas_singlereturn, currentMethodName = UNRESOLVED
+SSAInvokeInstruction = 5 = invokestatic < Application, Ltcas_singlereturn, Non_Crossing_Biased_Climb()Z > @6 exception:4
+SSAConditionalBranchInstruction = conditional branch(eq, to iindex=16) 5,3
+Starting analysis for alt_sep_test(tcas_singlereturn.alt_sep_test()I)
+SSAGetInstruction = 3 = getstatic < Application, Ltcas_singlereturn, UNRESOLVED, <Primordial,I> >
+declaringClass = tcas_singlereturn, currentMethodName = UNRESOLVED
+SSAGetInstruction = 4 = getstatic < Application, Ltcas_singlereturn, High_Confidence, <Primordial,Z> >
+declaringClass = tcas_singlereturn, currentMethodName = High_Confidence
+SSAConditionalBranchInstruction = conditional branch(eq, to iindex=19) 4,2
+Starting analysis for mainProcess(tcas_singlereturn.mainProcess(IIIIIIIIIIII)V)
+SSAInvokeInstruction = invokestatic < Application, Ltcas_singlereturn, initialize()V > @0 exception:14
+SSAPutInstruction = putstatic < Application, Ltcas_singlereturn, Cur_Vertical_Sep, <Primordial,I> > = 1
+SSAConditionalBranchInstruction = conditional branch(ne, to iindex=9) 2,15
+SSAConditionalBranchInstruction = conditional branch(ne, to iindex=17) 3,15
+SSAPutInstruction = putstatic < Application, Ltcas_singlereturn, Own_Tracked_Alt, <Primordial,I> > = 4
+SSAPutInstruction = putstatic < Application, Ltcas_singlereturn, Own_Tracked_Alt_Rate, <Primordial,I> > = 5
+SSAPutInstruction = putstatic < Application, Ltcas_singlereturn, Other_Tracked_Alt, <Primordial,I> > = 6
+SSAPutInstruction = putstatic < Application, Ltcas_singlereturn, Alt_Layer_Value, <Primordial,I> > = 7
+SSAPutInstruction = putstatic < Application, Ltcas_singlereturn, Up_Separation, <Primordial,I> > = 8
+SSAPutInstruction = putstatic < Application, Ltcas_singlereturn, Down_Separation, <Primordial,I> > = 9
+SSAPutInstruction = putstatic < Application, Ltcas_singlereturn, Other_RAC, <Primordial,I> > = 10
+SSAPutInstruction = putstatic < Application, Ltcas_singlereturn, Other_Capability, <Primordial,I> > = 11
+SSAPutInstruction = putstatic < Application, Ltcas_singlereturn, Climb_Inhibit, <Primordial,I> > = 12
+SSAInvokeInstruction = 18 = invokestatic < Application, Ltcas_singlereturn, alt_sep_test()I > @81 exception:17
+SSAReturnInstruction = return
+veritesting analysis took 401 milliseconds
+Number of veritesting regions = 31
+Could not find method summary for tcas_singlereturn.alt_assign()I#0
+Could not find method summary for tcas_singlereturn.alt_assign()I#0
+Could not find method summary for tcas_singlereturn.Non_Crossing_Biased_Descend()Z#0
+Could not find method summary for tcas_singlereturn.Non_Crossing_Biased_Descend()Z#0
+Could not find method summary for tcas_singlereturn.Non_Crossing_Biased_Descend()Z#0
+Could not find method summary for tcas_singlereturn.Non_Crossing_Biased_Descend()Z#0
+Could not find method summary for tcas_singlereturn.alt_assign()I#0
+Could not find method summary for tcas_singlereturn.Non_Crossing_Biased_Descend()Z#0
+Could not find method summary for tcas_singlereturn.Non_Crossing_Biased_Descend()Z#0
+Could not find method summary for tcas_singlereturn.Non_Crossing_Biased_Descend()Z#0
+Could not find method summary for tcas_singlereturn.Non_Crossing_Biased_Descend()Z#0
+
+====================================================== VeritestingListener report (boostPerf = false, veritestingMode = 3)
+static analysis time = 401
+totalSolverTime = 2711
+z3Time = 1801
+parsingTime = 611
+solverAllocTime = 129
+cleanupTime = 166
+solverCount = 266
+(fieldReadAfterWrite, fieldWriteAfterRead, fieldWriteAfterWrite = (0, 0, 0), (these are dynamic counts aka once per region instantiation attempt)
+methodSummaryRWInterference = 0
+# regions = 31
+# summarized branches: # regions (#run into, #used)
+1 branches: 23 (16, 13) 
+2 branches: 4 (1, 1) 
+3 branches: 4 (3, 3) 
+# summarized methods: # regions (#run into, #used)
+1 branches: 3 (3, 3) 
+3 branches: 1 (1, 1) 
+Sorted regions:
+tcas_singlereturn.ALIM()I#0
+tcas_singlereturn.ALIM()I#17
+tcas_singlereturn.ALIM()I#3
+tcas_singlereturn.ALIM()I#31
+tcas_singlereturn.Inhibit_Biased_Climb()I#0
+tcas_singlereturn.Inhibit_Biased_Climb()I#3
+tcas_singlereturn.Non_Crossing_Biased_Climb()Z#30
+tcas_singlereturn.Non_Crossing_Biased_Climb()Z#49
+tcas_singlereturn.Non_Crossing_Biased_Climb()Z#65
+tcas_singlereturn.Non_Crossing_Biased_Climb()Z#8
+tcas_singlereturn.Non_Crossing_Biased_Climb()Z#80
+tcas_singlereturn.Non_Crossing_Biased_Descend()Z#37
+tcas_singlereturn.Non_Crossing_Biased_Descend()Z#49
+tcas_singlereturn.Non_Crossing_Biased_Descend()Z#59
+tcas_singlereturn.Non_Crossing_Biased_Descend()Z#8
+tcas_singlereturn.Non_Crossing_Biased_Descend()Z#85
+tcas_singlereturn.Non_Crossing_Biased_Descend()Z#95
+tcas_singlereturn.Own_Above_Threat()Z#0
+tcas_singlereturn.Own_Above_Threat()Z#8
+tcas_singlereturn.Own_Below_Threat()Z#0
+tcas_singlereturn.Own_Below_Threat()Z#8
+tcas_singlereturn.alt_assign()I#19
+tcas_singlereturn.alt_assign()I#43
+tcas_singlereturn.alt_assign()I#53
+tcas_singlereturn.alt_assign()I#71
+tcas_singlereturn.alt_sep_test()I#31
+tcas_singlereturn.alt_sep_test()I#46
+tcas_singlereturn.alt_sep_test()I#67
+tcas_singlereturn.alt_sep_test()I#73
+tcas_singlereturn.mainProcess(IIIIIIIIIIII)V#23
+tcas_singlereturn.mainProcess(IIIIIIIIIIII)V#8
+
+====================================================== results
+no errors detected
+
+====================================================== statistics
+elapsed time:       00:00:04 (4891 msecs)
+states:             new=38,visited=0,backtracked=38,end=19
+search:             maxDepth=11,constraints=0
+choice generators:  thread=1 (signal=0,lock=1,sharedRef=0,threadApi=0,reschedule=0), data=19
+heap:               new=346,released=173,maxLive=344,gcCycles=20
+instructions:       3906
+max memory:         437MB
+loaded code:        classes=60,methods=1290
+
+====================================================== search finished: 4/30/18 8:35 AM

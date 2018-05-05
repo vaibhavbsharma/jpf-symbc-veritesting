@@ -425,7 +425,7 @@ public class VeritestingMain {
                 I would have a co-recursive function that actually built the veritesting region
              */
             List<ISSABasicBlock> succs = new ArrayList<>(cfg.getNormalSuccessors(currUnit));
-            if(currentClassName.contains("VeritestingPerf") && currentMethodName.contains("nestedRegion1"))
+            if(currentClassName.contains("VeritestingPerf") && currentMethodName.contains("simpleRegionThrowsException"))
                 System.out.println("");
             ISSABasicBlock commonSucc = cfg.getIPdom(currUnit.getNumber(), true, true, ir, cha);
             if (commonSucc == null) throw new StaticRegionException("failed to compute immediate post-dominator");
@@ -753,7 +753,7 @@ public class VeritestingMain {
         if(VeritestingListener.veritestingMode < 3) {
             return;
         }
-        if(currentClassName.contains("VeritestingPerf") && currentMethodName.contains("nestedRegion1"))
+        if(currentClassName.contains("VeritestingPerf") && currentMethodName.contains("simpleRegionThrowsException"))
             System.out.println("");
         //System.out.println("Starting doMethodAnalysis");
         //currUnit represents the next BB to be summarized

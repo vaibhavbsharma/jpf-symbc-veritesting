@@ -1,0 +1,118 @@
+while (canVeritest && thenUnit != commonSucc) {
+                    while(cfg.getNormalSuccessors(thenUnit).size() > 1 && thenUnit != commonSucc && canVeritest) {
+                        if (VeritestingListener.veritestingMode < 2) {
+                            canVeritest = false;
+                            break;
+                        }
+                        //instead of giving up, try to compute a summary of everything from thenUnit up to commonSucc
+                        //to allow complex regions
+                        HashMap<Expression, Expression> savedHoleHashMap = saveHoleHashMap();
+                        HashMap<String, Expression> savedVarCache = saveVarCache();
+                        SPFCaseList savedCaseList = varUtil.getSpfCases();
+
+                        doAnalysis(thenUnit, commonSucc);
+                        // MWW: Note: you can merge maps in one go with putAll as in e.g., the following:
+                        // varUtil.holeHashMap.putAll(savedHoleHashMap);
+                        // so these loops are not necessary.
+
+                        // Also: doesn't this information get added *again* when we take it from the
+                        // inner veritestingRegion?
+                        for(Map.Entry<Expression, Expression> entry: savedHoleHashMap.entrySet()) {
+                            varUtil.holeHashMap.put(entry.getKey(), entry.getValue());
+                        }
+                        for(Map.Entry<String, Expression> entry: savedVarCache.entrySet()) {
+                            varUtil.varCache.put(entry.getKey(), entry.getValue());
+                        }
+
+                        int offset = ((IBytecodeMethod) (ir.getMethod())).getBytecodeIndex(thenUnit.getLastInstructionIndex());
+                        String key = currentClassName + "." + currentMethodName + methodSig + "#" + offset;
+                        if(VeritestingListener.veritestingRegions.containsKey(key)) {
+                            System.out.println("Veritested inner region with key = " + key);
+                            //visit all instructions up to and including the condition
+                            BlockSummary blockSummary = new BlockSummary(thenUnit, thenExpr, canVeritest).invoke();
+                            canVeritest = blockSummary.isCanVeritest();
+                            thenExpr = blockSummary.getExpression();
+                            Expression conditionExpression = blockSummary.getIfExpression();
+                            //cannot handle returns inside a if-then-then
+                            if(blockSummary.getIsExitNode()) canVeritest = false;
+                            if(!canVeritest) break;
+                            ISSABasicBlock commonSuccthenUnit = cfg.getIPdom(thenUnit.getNumber());
+
+                            if(!VeritestingListener.boostPerf) {
+                                NumberedGraph<ISSABasicBlock> invertedCFG = GraphInverter.invert(cfg);
+                                NumberedDominators<ISSABasicBlock> postDom = (NumberedDominators<ISSABasicBlock>)
+                                        Dominators.make(invertedCFG, cfg.exit());
+                                boolean bPostDom = (postDom.isDominatedBy(commonSuccthenUnit, commonSucc));
+                                assert (bPostDom);
+                            }
+
+
+                            VeritestingRegion innerRegion = VeritestingListener.veritestingRegions.get(key);
+                            // MWW: new code.  Note: really exception should never occur, so perhaps this is *too*
+                            // defensive.
+                            try {
+                                // need the negation of the condition expression here.
+                                Expression negIfExpr = new Operation(Operation.Operator.EQ, conditionExpression, Operation.FALSE);
+                                SPFCaseList innerCases = innerRegion.getSpfCases().cloneEmbedPathConstraint(
+                                        negIfExpr);
+                                varUtil.getSpfCases().addAll(innerCases);
+                            } catch (StaticRegionException sre) {
+                                System.out.println("Unable to instantiate spfCases: " + sre.toString());
+                                canVeritest = false;
+                                break;
+                            }
+                            // MWW: end of new code
+
+                            for(Expression e: innerRegion.getOutputVars()) {
+                                varUtil.defLocalVars.add(e);
+                            }
+                            for(Map.Entry<Expression, Expression> entry: innerRegion.getHoleHashMap().entrySet()) {
+                                varUtil.holeHashMap.put(entry.getKey(), entry.getValue());
+                                if(((HoleExpression)entry.getKey()).getHoleType() == HoleExpression.HoleType.CONDITION ||
+                                        ((HoleExpression)entry.getKey()).getHoleType() == HoleExpression.HoleType.NEGCONDITION)
+                                    varUtil.holeHashMap.remove(entry.getKey());
+                            }
+                            Expression thenExpr1 = innerRegion.getSummaryExpression();
+                            thenExpr1 = replaceCondition(thenExpr1, conditionExpression);
+
+                            // MWW: what is this business?
+                            if (thenExpr1 != null) {
+                                if (thenExpr != null)
+                                    thenExpr =
+                                            new Operation(Operation.Operator.AND,
+                                                    thenExpr, thenExpr1);
+                                then thenExpr = thenExpr1;
+                            }
+                            thenPred = null;
+                            thenUnit = commonSuccthenUnit;
+                            summarizedRegionStartBB.addAll(innerRegion.summarizedRegionStartBB);
+                        } then canVeritest = false;
+                    }
+                    if (!canVeritest || thenUnit == commonSucc) break;
+                    BlockSummary blockSummary = new BlockSummary(thenUnit, thenExpr, canVeritest, thenPLAssignSPF).invoke();
+                    canVeritest = blockSummary.isCanVeritest();
+                    thenExpr = blockSummary.getExpression();
+                    //we should not encounter a BB with more than one successor at this point
+                    assert(blockSummary.getIfExpression() == null);
+                    //cannot handle returns inside a if-then-then
+                    if(blockSummary.getIsExitNode()) canVeritest = false;
+                    if (!canVeritest) break;
+                    thenPred = thenUnit;
+                    thenUnit = cfg.getNormalSuccessors(thenUnit).iterator().next();
+                    if (thenUnit == endingUnit) break;
+                }
+                // if there is no "then" side, then set then's predecessor to currUnit
+                if (canVeritest && (thenPred == commonSucc)) thenPred = currUnit;
+
+                //move static analysis deeper into the then-side searching for veritesting regions
+                if (!canVeritest) {
+                    while(thenUnit != commonSucc) {
+                        if(cfg.getNormalSuccessors(thenUnit).size() > 1) {
+                            doAnalysis(thenUnit, commonSucc);
+                            break;
+                        }
+                        if(cfg.getNormalSuccessors(thenUnit).size() == 0) break;
+                        thenUnit = cfg.getNormalSuccessors(thenUnit).iterator().next();
+                    }
+                }
+
