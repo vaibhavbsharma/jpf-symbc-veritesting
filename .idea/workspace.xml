@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
   <component name="ChangeListManager">
-    <list default="true" id="f59dc3fa-1cb0-4618-b453-3e616da35df5" name="Default" comment="Adding an example of a nested region that throws exceptions">
+    <list default="true" id="f59dc3fa-1cb0-4618-b453-3e616da35df5" name="Default" comment="">
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/.idea/workspace.xml" afterPath="$PROJECT_DIR$/.idea/workspace.xml" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/examples/VeritestingPerf.java" afterPath="$PROJECT_DIR$/src/examples/VeritestingPerf.java" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/examples/VeritestingPerf.jpf" afterPath="$PROJECT_DIR$/src/examples/VeritestingPerf.jpf" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/main/gov/nasa/jpf/symbc/veritesting/VeritestingMain.java" afterPath="$PROJECT_DIR$/src/main/gov/nasa/jpf/symbc/veritesting/VeritestingMain.java" />
     </list>
     <ignored path="$PROJECT_DIR$/out/" />
@@ -16,11 +16,11 @@
   </component>
   <component name="FileEditorManager">
     <leaf SIDE_TABS_SIZE_LIMIT_KEY="300">
-      <file leaf-file-name="VeritestingPerf.java" pinned="false" current-in-tab="true">
+      <file leaf-file-name="VeritestingPerf.java" pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/src/examples/VeritestingPerf.java">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="179">
-              <caret line="83" column="23" lean-forward="true" selection-start-line="83" selection-start-column="23" selection-end-line="83" selection-end-column="23" />
+            <state relative-caret-position="26">
+              <caret line="74" column="52" lean-forward="false" selection-start-line="74" selection-start-column="52" selection-end-line="74" selection-end-column="52" />
               <folding />
             </state>
           </provider>
@@ -36,11 +36,21 @@
           </provider>
         </entry>
       </file>
-      <file leaf-file-name="VeritestingMain.java" pinned="false" current-in-tab="false">
+      <file leaf-file-name="SSACFG.class" pinned="false" current-in-tab="false">
+        <entry file="jar://$PROJECT_DIR$/lib/com.ibm.wala.core-1.4.4-SNAPSHOT.jar!/com/ibm/wala/ssa/SSACFG.class">
+          <provider selected="true" editor-type-id="text-editor">
+            <state relative-caret-position="48">
+              <caret line="356" column="86" lean-forward="false" selection-start-line="356" selection-start-column="86" selection-end-line="356" selection-end-column="86" />
+              <folding />
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file leaf-file-name="VeritestingMain.java" pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/src/main/gov/nasa/jpf/symbc/veritesting/VeritestingMain.java">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="177">
-              <caret line="207" column="0" lean-forward="false" selection-start-line="207" selection-start-column="0" selection-end-line="207" selection-end-column="0" />
+            <state relative-caret-position="178">
+              <caret line="428" column="39" lean-forward="true" selection-start-line="428" selection-start-column="39" selection-end-line="428" selection-end-column="39" />
               <folding />
             </state>
           </provider>
@@ -55,13 +65,13 @@
       <find>create</find>
       <find>getIPDom</find>
       <find>regionThrowsException</find>
-      <find>getIPdom</find>
       <find>VeritestingPerf</find>
       <find>cfg</find>
       <find>toString</find>
       <find>method</find>
       <find>nestedRegion</find>
       <find>fillHoles</find>
+      <find>getIPdom</find>
     </findStrings>
   </component>
   <component name="Git.Settings">
@@ -76,8 +86,8 @@
     <option name="CHANGED_PATHS">
       <list>
         <option value="$PROJECT_DIR$/src/examples/VeritestingPerf.jpf" />
-        <option value="$PROJECT_DIR$/src/main/gov/nasa/jpf/symbc/veritesting/VeritestingMain.java" />
         <option value="$PROJECT_DIR$/src/examples/VeritestingPerf.java" />
+        <option value="$PROJECT_DIR$/src/main/gov/nasa/jpf/symbc/veritesting/VeritestingMain.java" />
       </list>
     </option>
   </component>
@@ -484,14 +494,6 @@
         </state>
       </provider>
     </entry>
-    <entry file="jar://$PROJECT_DIR$/lib/com.ibm.wala.core-1.4.4-SNAPSHOT.jar!/com/ibm/wala/ssa/SSACFG.class">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="67">
-          <caret line="58" column="80" lean-forward="false" selection-start-line="58" selection-start-column="68" selection-end-line="58" selection-end-column="80" />
-          <folding />
-        </state>
-      </provider>
-    </entry>
     <entry file="jar://$PROJECT_DIR$/lib/com.ibm.wala.core-1.4.4-SNAPSHOT-sources.jar!/com/ibm/wala/cfg/ShrikeCFG.java">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="326">
@@ -618,14 +620,6 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/src/main/gov/nasa/jpf/symbc/veritesting/VeritestingMain.java">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="177">
-          <caret line="207" column="0" lean-forward="false" selection-start-line="207" selection-start-column="0" selection-end-line="207" selection-end-column="0" />
-          <folding />
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/src/main/gov/nasa/jpf/symbc/VeritestingListener.java">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="424">
@@ -634,10 +628,26 @@
         </state>
       </provider>
     </entry>
+    <entry file="jar://$PROJECT_DIR$/lib/com.ibm.wala.core-1.4.4-SNAPSHOT.jar!/com/ibm/wala/ssa/SSACFG.class">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="48">
+          <caret line="356" column="86" lean-forward="false" selection-start-line="356" selection-start-column="86" selection-end-line="356" selection-end-column="86" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
     <entry file="file://$PROJECT_DIR$/src/examples/VeritestingPerf.java">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="179">
-          <caret line="83" column="23" lean-forward="true" selection-start-line="83" selection-start-column="23" selection-end-line="83" selection-end-column="23" />
+        <state relative-caret-position="26">
+          <caret line="74" column="52" lean-forward="false" selection-start-line="74" selection-start-column="52" selection-end-line="74" selection-end-column="52" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/src/main/gov/nasa/jpf/symbc/veritesting/VeritestingMain.java">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="178">
+          <caret line="428" column="39" lean-forward="true" selection-start-line="428" selection-start-column="39" selection-end-line="428" selection-end-column="39" />
           <folding />
         </state>
       </provider>

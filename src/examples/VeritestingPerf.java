@@ -90,11 +90,11 @@ public class VeritestingPerf {
         int ret = -1;
         TempClass tempClass = new TempClass();
         if (i < 0) {
-            ret = ret + tempClass.getTempInt();
+            throw new NullPointerException("negative");
 //            new NullPointerException("negative");
 //            assert true;
         }
-        else throw new NullPointerException("negative");
+        else ret = ret + tempClass.getTempInt();
         ret += 1;
         return ret;
     }
