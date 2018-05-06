@@ -13,9 +13,11 @@ public class TestVeritestingPerf extends InvokeTest {
     private static final String MAX_INT = "+symbolic.max_int=2147483647";
     private static final String LISTENER = "+listener=gov.nasa.jpf.symbc.VeritestingListener";
     private static final String VERITESTING_MODE = "+veritestingMode=1";
+    private static final String CLASSPATH = "+classpath=/Users/vaibhav/git_repos/jpf-symbc-veritesting/build/tests";
 
 
-    private static final String[] JPF_ARGS = {INSN_FACTORY, SYM_METHOD, VM_STORAGE, DEBUG, SOLVER,
+    private static final String[] JPF_ARGS = {INSN_FACTORY, CLASSPATH,
+            SYM_METHOD, VM_STORAGE, DEBUG, SOLVER,
         MIN_INT, MAX_INT, LISTENER, VERITESTING_MODE}; /* LISTENER, VERITESTING_MODE}; */
 
     public static void main(String[] args) {

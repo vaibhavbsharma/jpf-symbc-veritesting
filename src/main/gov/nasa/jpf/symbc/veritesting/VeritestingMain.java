@@ -80,7 +80,7 @@ public class VeritestingMain {
             appJar = System.getenv("TARGET_CLASSPATH_WALA");// + appJar;
             System.out.println("appJar = " + appJar);
             AnalysisScope scope = AnalysisScopeReader.makeJavaBinaryAnalysisScope(appJar,
-                    (new FileProvider()).getFile(CallGraphTestUtil.REGRESSION_EXCLUSIONS));
+                    (new FileProvider()).getFile("../MyJava60RegressionExclusions.txt"));
             cha = ClassHierarchyFactory.make(scope);
             methodSummaryClassNames = new HashSet<String>();
             VeritestingListener.veritestingRegions = new HashMap<String, VeritestingRegion>();

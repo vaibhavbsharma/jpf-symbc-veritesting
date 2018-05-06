@@ -7,3 +7,5 @@ dist/*
 *.DS_Store
 .idea/workspace.xml
 .idea/misc.xml
+.idea/jpf-symbc-veritesting.iml
+out/
