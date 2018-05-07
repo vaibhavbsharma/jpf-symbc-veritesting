@@ -35,6 +35,7 @@ import gov.nasa.jpf.PropertyListenerAdapter;
 import gov.nasa.jpf.report.ConsolePublisher;
 import gov.nasa.jpf.report.Publisher;
 import gov.nasa.jpf.report.PublisherExtension;
+import gov.nasa.jpf.report.Statistics;
 import gov.nasa.jpf.symbc.numeric.*;
 import gov.nasa.jpf.symbc.veritesting.*;
 import gov.nasa.jpf.symbc.veritesting.ChoiceGenerators.StaticBranchChoiceGenerator;
@@ -135,6 +136,8 @@ public class VeritestingListener extends PropertyListenerAdapter implements Publ
 
         // Here is the real code
         String key = generateRegionKey(ti, instructionToExecute);
+        if (key.contains("VeritestingPerf"))
+            System.out.print("");
 
         if (veritestingRegions.containsKey(key)) {
             VeritestingRegion region = veritestingRegions.get(key);
@@ -206,9 +209,10 @@ public class VeritestingListener extends PropertyListenerAdapter implements Publ
     */
 
     private String generateRegionKey(ThreadInfo ti, Instruction instructionToExecute) {
-        return ti.getTopFrame().getClassInfo().getName() + "." + ti.getTopFrame().getMethodInfo().getName() +
-                ti.getTopFrame().getMethodInfo().getSignature() +
-                "#" + instructionToExecute.getPosition();
+        return ti.getTopFrame().getClassInfo().getName()
+                + "." + ti.getTopFrame().getMethodInfo().getName()
+                + ti.getTopFrame().getMethodInfo().getSignature()
+                + "#" + instructionToExecute.getPosition();
     }
 
     private Expression instantiateRegion(ThreadInfo ti, VeritestingRegion region) throws StaticRegionException {
@@ -1264,7 +1268,7 @@ public class VeritestingListener extends PropertyListenerAdapter implements Publ
                         // if ci failure null, that means either MyIVisitor.visitInvoke has a bug or we failed to load the class
                         assert(ci != null);
                         //Change the class name based on the call site object reference
-                        callSiteInfo.className = ci.getName();
+                        callSiteInfo.className = ci.getPackageName() + "." + ci.getName();
                         //If there exists a invokeVirtual for a method that we weren't able to summarize, skip veritesting
                         String key1 = callSiteInfo.className + "." + callSiteInfo.methodName + callSiteInfo.methodSignature + "#0";
                         FNV1 fnv = new FNV1a64();

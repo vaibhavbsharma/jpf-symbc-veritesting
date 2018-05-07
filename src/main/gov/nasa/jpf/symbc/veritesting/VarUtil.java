@@ -395,14 +395,12 @@ public class VarUtil {
         else return -1;
     }
 
-    public Expression addDefVal(int def) {
+    public Expression addDefVal(int def) throws StaticRegionException {
         //this assumes that we dont need to do anything special for lhsExpr vars defined in a region
         if(isLocalVariable(def)) {
             return makeLocalOutputVar(def, null);
         }
-        System.out.println("non-local value cannot be defined (" + def + ")");
-        assert(false);
-        return null;
+        throw new StaticRegionException("we failed to map region output (" + def + ") to a local stack slot");
     }
 
     /*private Expression addDefLocalVar(int def) {

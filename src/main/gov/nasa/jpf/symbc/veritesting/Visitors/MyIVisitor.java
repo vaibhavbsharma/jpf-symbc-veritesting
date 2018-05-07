@@ -147,7 +147,10 @@ public class MyIVisitor implements SSAInstruction.IVisitor {
         System.out.println("SSABinaryOpInstruction = " + instruction);
         assert(instruction.getNumberOfUses()==2);
         assert(instruction.getNumberOfDefs()==1);
-        assert(instruction.mayBeIntegerOp()==true);
+        if (instruction.mayBeIntegerOp() != true) {
+            setCanVeritest(false, instruction);
+            return;
+        }
         int lhs = instruction.getDef();
         int operand1 = instruction.getUse(0);
         int operand2 = instruction.getUse(1);
@@ -358,9 +361,9 @@ public class MyIVisitor implements SSAInstruction.IVisitor {
         }
         assert(instruction.getNumberOfUses() == instruction.getNumberOfParameters());
         String declaringClass = methodReference.getDeclaringClass().getName().getClassName().toString();
-        //String packageName = methodReference.getDeclaringClass().getName().getPackage().toString();
-        //packageName = packageName.replace("/",".");
-        //declaringClass = packageName + declaringClass;
+        String packageName = methodReference.getDeclaringClass().getName().getPackage().toString();
+        packageName = packageName.replace("/",".");
+        declaringClass = packageName + "." + declaringClass;
         Atom methodName = methodReference.getName();
         String methodSig = methodReference.getSignature();
         methodSig = methodSig.substring(methodSig.indexOf('('));
@@ -374,12 +377,12 @@ public class MyIVisitor implements SSAInstruction.IVisitor {
         callSiteInfo.isVirtualInvoke = (site.getInvocationCode() == IInvokeInstruction.Dispatch.VIRTUAL);
         callSiteInfo.isStaticInvoke = (site.getInvocationCode() == IInvokeInstruction.Dispatch.STATIC);
         callSiteInfo.setDefVal(defVal);
-        callSiteInfo.setClassName(declaringClass.toString());
+        callSiteInfo.setClassName(declaringClass);
         callSiteInfo.setMethodName(methodName.toString());
         callSiteInfo.setMethodSignature(methodSig);
         callSiteInfo.setParamList(paramList);
         varUtil.addInvokeHole(callSiteInfo, PLAssign);
-        invokeClassName = declaringClass.toString();
+        invokeClassName = declaringClass;
         isInvoke = true;
         setCanVeritest(true, instruction);
     }
@@ -447,7 +450,13 @@ public class MyIVisitor implements SSAInstruction.IVisitor {
         if (thenUseNum != -1) phiExprThen = varUtil.addVal(instruction.getUse(thenUseNum), PLAssign);
         if (elseUseNum != -1) phiExprElse = varUtil.addVal(instruction.getUse(elseUseNum), PLAssign);
         if (thenUseNum != -1 || elseUseNum != -1) {
-            phiExprLHS = varUtil.addDefVal(instruction.getDef(0));
+            try {
+                phiExprLHS = varUtil.addDefVal(instruction.getDef(0));
+            } catch (StaticRegionException e) {
+                System.out.println(e.getMessage());
+                setCanVeritest(false, instruction);
+                return;
+            }
             assert ((phiExprLHS instanceof HoleExpression));
             assert (varUtil.getIR().getSymbolTable().isConstant(instruction.getDef(0)) == false);
         }

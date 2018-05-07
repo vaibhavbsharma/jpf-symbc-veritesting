@@ -37,6 +37,7 @@ public class VeritestingRegion {
     public int startBBNum;
 
     private SPFCaseList spfCases = new SPFCaseList();
+    private String currentPackageName;
 
     // Should not be necessary, if we have a good interface!
     public SPFCaseList getSpfCases() { return spfCases; }
@@ -183,5 +184,8 @@ public class VeritestingRegion {
         this.startBBNum = startBBNum;
     }
 
+    public void setPackageName(String currentPackageName) {
+        this.currentPackageName = currentPackageName;
+    }
 }
 
