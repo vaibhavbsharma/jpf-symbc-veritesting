@@ -104,7 +104,6 @@ public class VeritestingMain {
     public void analyzeForVeritesting(String classPath, String _className) {
         // causes java.lang.IllegalArgumentException: ill-formed sig testMe4(int[],int)
         endingInsnsHash = new HashSet();
-        methodAnalysis = false;
         findClasses(classPath, _className);
         startingPointsHistory = new HashSet();
 
@@ -138,8 +137,10 @@ public class VeritestingMain {
                     IClass iClass = iMethod.getDeclaringClass();
                     for(IClass subClass: cha.computeSubClasses(iClass.getReference())) {
                         if(iClass.equals(subClass)) continue;
-                        String subClassName = subClass.getReference().getName().getPackage().toString() + "." +
-                                subClass.getReference().getName().getClass().toString();
+                        String packageName = subClass.getReference().getName().getPackage().toString();
+                        packageName = packageName.replaceAll("/",".");
+                        String subClassName = packageName + "." +
+                                subClass.getReference().getName().getClassName().toString();
                         methodSummarySubClassNames.add(subClassName);
                     }
                     //Only need to add subclass once for all the methods in the class
@@ -257,7 +258,7 @@ public class VeritestingMain {
             currentClassName = className;
             currentMethodName = m.getName().toString();
             this.methodSig = methodSig.substring(methodSig.indexOf('('));
-            System.out.println("Starting analysis for " + currentMethodName + "(" + currentClassName + "." + methodSig + ")");
+            System.out.println("Starting " + (methodAnalysis ? "method " : "region ") + "analysis for " + currentMethodName + "(" + currentClassName + "." + methodSig + ")");
             varUtil = new VarUtil(ir, currentClassName, currentMethodName);
             NumberedDominators<ISSABasicBlock> uninverteddom =
                     (NumberedDominators<ISSABasicBlock>) Dominators.make(cfg, cfg.entry());
@@ -270,8 +271,6 @@ public class VeritestingMain {
             }
             else doMethodAnalysis(cfg.entry(), cfg.exit());
         } catch (InvalidClassFileException e) {
-            e.printStackTrace();
-        } catch (WalaException e) {
             e.printStackTrace();
         } catch (StaticRegionException e) {
             System.out.println(e.getMessage());
@@ -419,7 +418,7 @@ public class VeritestingMain {
     // For one thing, we should simply construct a new varUtil each time this method is called; when
     // we recursively invoke it, we just save off the entire structure rather than do it piecemeal.
 
-    public void doAnalysis(ISSABasicBlock startingUnit, ISSABasicBlock endingUnit) throws InvalidClassFileException, WalaException, StaticRegionException {
+    public void doAnalysis(ISSABasicBlock startingUnit, ISSABasicBlock endingUnit) throws StaticRegionException {
         //System.out.println("Starting doAnalysis");
         boolean thenCreateThrow = false;
         boolean elseCreateThrow = false;
@@ -445,11 +444,17 @@ public class VeritestingMain {
                 I would have a co-recursive function that actually built the veritesting region
              */
             List<ISSABasicBlock> succs = new ArrayList<>(cfg.getNormalSuccessors(currUnit));
-            if(currentClassName.contains("BufferedInputStream") && currentMethodName.contains("available"))
+            if(currentClassName.contains("TempClassDerived") && currentMethodName.contains("nestedRegion"))
                 System.out.println("");
-            ISSABasicBlock commonSucc = cfg.getIPdom(currUnit.getNumber(), true, false, ir, cha);
+            ISSABasicBlock commonSucc = null;
+            try {
+                commonSucc = cfg.getIPdom(currUnit.getNumber(), true, false, ir, cha);
+            } catch (WalaException e) {
+                System.out.println(e.getMessage() + "\nran into WalaException in cfg.getIPdom(currUnit = " + currUnit.toString() + ")");
+                return;
+            }
             if (commonSucc == null)
-                throw new StaticRegionException("failed to compute immediate post-dominator of "
+                throw new StaticRegionException("`compute immediate post-dominator of "
                         + currUnit.toString() + ", isExit = " + currUnit.isExitBlock());
             if (succs.size() == 1) {
                 currUnit = succs.get(0);
@@ -535,7 +540,13 @@ public class VeritestingMain {
                         // varUtil.holeHashmap because VarUtil.varCache.put and VarUtil.varCache.putAll method are overridden
                         varUtil.getSpfCases().addAll(savedCaseList);
 
-                        int offset = ((IBytecodeMethod) (ir.getMethod())).getBytecodeIndex(thenUnit.getLastInstructionIndex());
+                        int offset;
+                        try {
+                            offset = ((IBytecodeMethod) (ir.getMethod())).getBytecodeIndex(thenUnit.getLastInstructionIndex());
+                        } catch (InvalidClassFileException e) {
+                            System.out.println(e.getMessage() + "\nran into InvalidClassFileException on getByteCodeIndex(thenUnit = " + thenUnit.toString() + ")");
+                            return;
+                        }
                         String key = getCurrentKey(offset);
 
                         // working with inner region here
@@ -551,7 +562,13 @@ public class VeritestingMain {
                             //cannot handle returns inside a if-then-else
                             if(blockSummary.getIsExitNode()) canVeritest = false;
                             if(!canVeritest) break;
-                            ISSABasicBlock commonSuccthenUnit = cfg.getIPdom(thenUnit.getNumber(), true, false, ir, cha);
+                            ISSABasicBlock commonSuccthenUnit;
+                            try {
+                                commonSuccthenUnit = cfg.getIPdom(thenUnit.getNumber(), true, false, ir, cha);
+                            } catch (WalaException e) {
+                                System.out.println(e.getMessage() + "\nran into WalaException on cfg.getIPdom(thenUnit = " + thenUnit.toString() + ")");
+                                return;
+                            }
                             if (commonSuccthenUnit == null)
                                 throw new StaticRegionException("failed to compute immediate post-dominator of "
                                         + thenUnit.toString() + ", isExit = " + thenUnit.isExitBlock());
@@ -663,7 +680,13 @@ public class VeritestingMain {
                         varUtil.varCache.putAll(savedVarCache);//this will also populate varUtil.defLocalVars and
                         // varUtil.holeHashmap because VarUtil.varCache.put and VarUtil.varCache.putAll method are overridden
                         varUtil.getSpfCases().addAll(savedCaseList);
-                        int offset = ((IBytecodeMethod) (ir.getMethod())).getBytecodeIndex(elseUnit.getLastInstructionIndex());
+                        int offset;
+                        try {
+                            offset = ((IBytecodeMethod) (ir.getMethod())).getBytecodeIndex(elseUnit.getLastInstructionIndex());
+                        } catch (InvalidClassFileException e) {
+                            System.out.println(e.getMessage() + "\nran into InvalidClassFileException on getByteCodeIndex(elseUnit = " + elseUnit.toString() + ")");
+                            return;
+                        }
                         String key = getCurrentKey(offset);
                         if(VeritestingListener.veritestingRegions.containsKey(key)) {
                             System.out.println("Veritested inner region with key = " + key);
@@ -676,7 +699,13 @@ public class VeritestingMain {
                             //cannot handle returns inside a if-else-else
                             if(blockSummary.getIsExitNode()) canVeritest = false;
                             if(!canVeritest) break;
-                            ISSABasicBlock commonSuccelseUnit = cfg.getIPdom(elseUnit.getNumber(), true, false, ir, cha);
+                            ISSABasicBlock commonSuccelseUnit ;
+                            try {
+                                commonSuccelseUnit = cfg.getIPdom(elseUnit.getNumber(), true, false, ir, cha);
+                            } catch (WalaException e) {
+                                System.out.println(e.getMessage() + "\nran into WalaException on cfg.getIPdom(elseUnit = " + elseUnit.toString() + ")");
+                                return;
+                            }
                             if (commonSuccelseUnit == null)
                                 throw new StaticRegionException("failed to compute immediate post-dominator of "
                                         + elseUnit.toString() + ", isExit = " + elseUnit.isExitBlock());
@@ -748,7 +777,7 @@ public class VeritestingMain {
                             try {
                                 doAnalysis(elseUnit, commonSucc);
                             } catch (StaticRegionException s) {
-                                System.out.println(s.getMessage() + "\nfailed to summarize inner region in then-side");
+                                System.out.println(s.getMessage() + "\nfailed to summarize inner region in else-side");
                                 return;
                             }
                             break;
@@ -764,10 +793,16 @@ public class VeritestingMain {
                         thenUseNum = Util.whichPred(cfg, thenPred, commonSucc);
                     if(elsePred != null)
                         elseUseNum = Util.whichPred(cfg, elsePred, commonSucc);
-                    VeritestingRegion veritestingRegion = constructVeritestingRegion(thenExpr, elseExpr,
-                            thenPLAssign, elsePLAssign,
-                            currUnit, commonSucc,
-                            thenUseNum, elseUseNum, summarizedRegionStartBB);
+                    VeritestingRegion veritestingRegion = null;
+                    try {
+                        veritestingRegion = constructVeritestingRegion(thenExpr, elseExpr,
+                                thenPLAssign, elsePLAssign,
+                                currUnit, commonSucc,
+                                thenUseNum, elseUseNum, summarizedRegionStartBB);
+                    } catch (InvalidClassFileException e) {
+                        System.out.println(e.getMessage() + "\nran into InvalidClassFileException in constructVeritestingRegion(commonSucc = " + commonSucc.toString() + ")");
+                        return;
+                    }
                     if (veritestingRegion != null) {
                         String key = getKey(veritestingRegion);
                         //FNV1 fnv = new FNV1a64();
@@ -816,12 +851,12 @@ public class VeritestingMain {
         return ret;
     }
 
-    public void doMethodAnalysis(ISSABasicBlock startingUnit, ISSABasicBlock endingUnit) throws InvalidClassFileException, WalaException, StaticRegionException {
+    public void doMethodAnalysis(ISSABasicBlock startingUnit, ISSABasicBlock endingUnit) throws InvalidClassFileException, StaticRegionException {
         assert(methodAnalysis);
         if(VeritestingListener.veritestingMode < 3) {
             return;
         }
-        if(currentClassName.contains("VeritestingPerf") && currentMethodName.contains("simpleRegionThrowsException"))
+        if(currentClassName.contains("TempClassDerived") && currentMethodName.contains("nestedRegion"))
             System.out.println("");
         //System.out.println("Starting doMethodAnalysis");
         //currUnit represents the next BB to be summarized
@@ -834,7 +869,12 @@ public class VeritestingMain {
             if(((SSACFG.BasicBlock) currUnit).getAllInstructions().size() > 0)
                 endingBC = ((IBytecodeMethod) (ir.getMethod())).getBytecodeIndex(currUnit.getLastInstructionIndex());
             List<ISSABasicBlock> succs = new ArrayList<>(cfg.getNormalSuccessors(currUnit));
-            ISSABasicBlock commonSucc = cfg.getIPdom(currUnit.getNumber(), true, false, ir, cha);
+            ISSABasicBlock commonSucc = null;
+            try {
+                if(currUnit.isExitBlock()) commonSucc = currUnit;
+                else commonSucc = cfg.getIPdom(currUnit.getNumber(), true, false, ir, cha);
+            } catch (WalaException e) {
+            }
             if (commonSucc == null)
                 throw new StaticRegionException("failed to compute immediate post-dominator of "
                         + currUnit.toString() + ", isExit = " + currUnit.isExitBlock());
@@ -901,7 +941,7 @@ public class VeritestingMain {
     } // end doMethodAnalysis
 
     private String getCurrentKey(int startingBC) {
-        return currentPackageName + "." + currentClassName + "." + currentMethodName + methodSig + "#" + startingBC;
+        return currentClassName + "." + currentMethodName + methodSig + "#" + startingBC;
     }
 
     public VeritestingRegion constructMethodRegion(

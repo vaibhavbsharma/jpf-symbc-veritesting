@@ -11,6 +11,7 @@ import com.ibm.wala.types.FieldReference;
 import com.ibm.wala.types.MethodReference;
 import com.ibm.wala.types.TypeReference;
 import com.ibm.wala.util.strings.Atom;
+import gov.nasa.jpf.symbc.VeritestingListener;
 import gov.nasa.jpf.symbc.veritesting.HoleExpression;
 import gov.nasa.jpf.symbc.veritesting.InvokeInfo;
 import gov.nasa.jpf.symbc.veritesting.SPFCase.ArrayBoundsReason;
@@ -305,12 +306,16 @@ public class MyIVisitor implements SSAInstruction.IVisitor {
             assert (instruction.getNumberOfUses() == 1);
             objRef = instruction.getUse(0);
         }
+
         FieldReference fieldReference = instruction.getDeclaredField();
-        Atom declaringClass = fieldReference.getDeclaringClass().getName().getClassName();
-        Atom fieldName = fieldReference.getName();
+        String declaringClass = fieldReference.getDeclaringClass().getName().getClassName().toString();
+        String packageName = fieldReference.getDeclaringClass().getName().getPackage().toString();
+        packageName = packageName.replace("/",".");
+        declaringClass = packageName + "." + declaringClass;
+        String fieldName = fieldReference.getName().toString();
         System.out.println("declaringClass = " + declaringClass + ", currentMethodName = " + fieldName);
         int def = instruction.getDef(0);
-        if(varUtil.addFieldInputVal(def, objRef, declaringClass.toString(), fieldName.toString(),
+        if(varUtil.addFieldInputVal(def, objRef, declaringClass, fieldName,
                 instruction.isStatic(), this.PLAssign) == null) {
                 setCanVeritest(false, instruction);
         } else {
@@ -334,7 +339,10 @@ public class MyIVisitor implements SSAInstruction.IVisitor {
         }
         FieldReference fieldReference = instruction.getDeclaredField();
         int objRef = instruction.getRef();
+        String packageName = fieldReference.getDeclaringClass().getName().getPackage().toString();
+        packageName = packageName.replace("/",".");
         String className = fieldReference.getDeclaringClass().getName().getClassName().toString();
+        className = packageName + "." + className;
         String fieldName = fieldReference.getName().toString();
         holeName += objRef + ".";
         holeName += className + "." + fieldName + VarUtil.nextInt();
@@ -391,6 +399,10 @@ public class MyIVisitor implements SSAInstruction.IVisitor {
     public void visitNew(SSANewInstruction instruction) {
         if(isMeetVisitor) return;
         System.out.println("SSANewInstruction = " + instruction);
+        if (VeritestingListener.veritestingMode < 4) {
+            setCanVeritest(false, instruction);
+            return;
+        }
         TrueReason reason = new TrueReason(TrueReason.Cause.OBJECT_CREATION);
         SPFCase c = new SPFCase(pathLabelHole, reason);
         varUtil.addSpfCase(c);
