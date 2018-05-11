@@ -157,6 +157,24 @@ public class VeritestingPerf {
         return count;
     }
 
+    // from ProbExample1
+    public int test(int x, int y, int z) {
+        if (x > z) {
+            //calcProb();
+        }
+        if (z > 0) {
+            //calcProb();
+        }
+        System.out.println("now");
+        if (y > 0) {
+            System.out.println("now1");
+
+            //calcProb();
+        }
+        return 0;
+
+    }
+
     public int nestedRegion1(boolean x, boolean y) {
         //int a = 0;
         if (y) {

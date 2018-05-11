@@ -8,7 +8,7 @@
     </extension>
     <module name="jpf-symbc-veritesting" />
     <option name="ALTERNATIVE_JRE_PATH_ENABLED" value="true" />
-    <option name="ALTERNATIVE_JRE_PATH" value="1.8" />
+    <option name="ALTERNATIVE_JRE_PATH" value="1.8.0_144" />
     <option name="PACKAGE_NAME" value="gov.nasa.jpf.symbc" />
     <option name="MAIN_CLASS_NAME" value="gov.nasa.jpf.symbc.TestVeritestingPerf" />
     <option name="METHOD_NAME" value="mainTest" />

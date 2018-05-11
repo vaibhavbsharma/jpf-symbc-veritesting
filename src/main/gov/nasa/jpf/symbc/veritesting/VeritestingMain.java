@@ -114,7 +114,14 @@ public class VeritestingMain {
             URL[] cp = new URL[]{f.toURI().toURL()};
             URLClassLoader urlcl = new URLClassLoader(cp);
             Class c = urlcl.loadClass(_className);
-            Method[] allMethods = c.getDeclaredMethods();
+            Method[] allMethods;
+            try {
+                allMethods = c.getDeclaredMethods();
+            } catch (NoClassDefFoundError n) {
+                System.out.println("NoClassDefFoundError for className = " + _className + "\n " +
+                    n.getMessage());
+                return;
+            }
             for (Method m : allMethods) {
                 String signature = getSignature(m);
                 startAnalysis(getPackageName(_className),_className,signature);
@@ -125,7 +132,14 @@ public class VeritestingMain {
                 Class cAdditional;
                 try { cAdditional = urlcl.loadClass(methodSummaryClassName); }
                 catch (ClassNotFoundException e) { continue; }
-                Method[] allMethodsAdditional = cAdditional.getDeclaredMethods();
+                Method[] allMethodsAdditional;
+                try {
+                    allMethodsAdditional = cAdditional.getDeclaredMethods();
+                } catch (NoClassDefFoundError n) {
+                    System.out.println("NoClassDefFoundError for className = " + methodSummaryClassName + "\n " +
+                            n.getMessage());
+                    continue;
+                }
                 for (Method m : allMethodsAdditional) {
                     String signature = getSignature(m);
                     startAnalysis(getPackageName(methodSummaryClassName), methodSummaryClassName, signature);
@@ -138,7 +152,14 @@ public class VeritestingMain {
                 Class cAdditional;
                 try { cAdditional = urlcl.loadClass(methodSummaryClassName); }
                 catch (ClassNotFoundException e) { continue; }
-                Method[] allMethodsAdditional = cAdditional.getDeclaredMethods();
+                Method[] allMethodsAdditional;
+                try {
+                    allMethodsAdditional = cAdditional.getDeclaredMethods();
+                } catch (NoClassDefFoundError n) {
+                    System.out.println("NoClassDefFoundError for className = " + methodSummaryClassName + "\n " +
+                            n.getMessage());
+                    continue;
+                }
                 for (Method m : allMethodsAdditional) {
                     String signature = getSignature(m);
                     startAnalysis(getPackageName(methodSummaryClassName), methodSummaryClassName, signature);
@@ -365,13 +386,14 @@ public class VeritestingMain {
                 I would have a co-recursive function that actually built the veritesting region
              */
             List<ISSABasicBlock> succs = new ArrayList<>(cfg.getNormalSuccessors(currUnit));
-            if(currentClassName.contains("VeritestingPerf") && currentMethodName.contains("nestedRegion"))
+//            if(currentClassName.contains("VeritestingPerf") && currentMethodName.contains("nestedRegion"))
+            if(currentClassName.contains("java.lang.CharacterDataLatin1") && currentMethodName.contains("toLowerCase"))
                 System.out.println("");
             ISSABasicBlock commonSucc = null;
             try {
                 commonSucc = cfg.getIPdom(currUnit.getNumber(), true, false, ir, cha);
-            } catch (WalaException e) {
-                System.out.println(e.getMessage() + "\nran into WalaException in cfg.getIPdom(currUnit = " + currUnit.toString() + ")");
+            } catch (WalaException|IllegalArgumentException e) {
+                System.out.println(e.getMessage() + "\nran into WalaException|IllegalArgumentException in cfg.getIPdom(currUnit = " + currUnit.toString() + ")");
                 return;
             }
             if (commonSucc == null)
@@ -456,6 +478,7 @@ public class VeritestingMain {
 
                         varUtil.holeHashMap.clear();
                         varUtil.defLocalVars.clear();
+                        varUtil.varCache.clear();
                         varUtil.holeHashMap.putAll(savedHoleHashMap);
                         varUtil.varCache.putAll(savedVarCache);//this will also populate varUtil.defLocalVars and
                         // varUtil.holeHashmap because VarUtil.varCache.put and VarUtil.varCache.putAll method are overridden
@@ -486,8 +509,8 @@ public class VeritestingMain {
                             ISSABasicBlock commonSuccthenUnit;
                             try {
                                 commonSuccthenUnit = cfg.getIPdom(thenUnit.getNumber(), true, false, ir, cha);
-                            } catch (WalaException e) {
-                                System.out.println(e.getMessage() + "\nran into WalaException on cfg.getIPdom(thenUnit = " + thenUnit.toString() + ")");
+                            } catch (WalaException|IllegalArgumentException  e) {
+                                System.out.println(e.getMessage() + "\nran into WalaException|IllegalArgumentException  on cfg.getIPdom(thenUnit = " + thenUnit.toString() + ")");
                                 return;
                             }
                             if (commonSuccthenUnit == null)
@@ -599,6 +622,7 @@ public class VeritestingMain {
 
                         varUtil.holeHashMap.clear();
                         varUtil.defLocalVars.clear();
+                        varUtil.varCache.clear();
                         varUtil.holeHashMap.putAll(savedHoleHashMap);
                         varUtil.varCache.putAll(savedVarCache);//this will also populate varUtil.defLocalVars and
                         // varUtil.holeHashmap because VarUtil.varCache.put and VarUtil.varCache.putAll method are overridden
@@ -625,8 +649,8 @@ public class VeritestingMain {
                             ISSABasicBlock commonSuccelseUnit ;
                             try {
                                 commonSuccelseUnit = cfg.getIPdom(elseUnit.getNumber(), true, false, ir, cha);
-                            } catch (WalaException e) {
-                                System.out.println(e.getMessage() + "\nran into WalaException on cfg.getIPdom(elseUnit = " + elseUnit.toString() + ")");
+                            } catch (WalaException|IllegalArgumentException  e) {
+                                System.out.println(e.getMessage() + "\nran into WalaException|IllegalArgumentException  on cfg.getIPdom(elseUnit = " + elseUnit.toString() + ")");
                                 return;
                             }
                             if (commonSuccelseUnit == null)
@@ -798,7 +822,7 @@ public class VeritestingMain {
             try {
                 if(currUnit.isExitBlock()) commonSucc = currUnit;
                 else commonSucc = cfg.getIPdom(currUnit.getNumber(), true, false, ir, cha);
-            } catch (WalaException e) {
+            } catch (WalaException|IllegalArgumentException  e) {
             }
             if (commonSucc == null)
                 throw new StaticRegionException("failed to compute immediate post-dominator of "
@@ -808,7 +832,9 @@ public class VeritestingMain {
                 BlockSummary blockSummary = new BlockSummary(currUnit, methodExpression, canVeritestMethod, null).invoke();
                 canVeritestMethod = blockSummary.isCanVeritest();
                 methodExpression = blockSummary.getExpression();
-                assert(blockSummary.getIfExpression() == null);
+                if(blockSummary.getIfExpression() != null) {
+                    System.out.println("doMethodAnalysis encountered BB (" + currUnit + ") with 1 successor ending with if");
+                }
                 if(!canVeritestMethod) return;
                 if(blockSummary.getIsExitNode() || succs.size() == 0) {
                     VeritestingRegion veritestingRegion =

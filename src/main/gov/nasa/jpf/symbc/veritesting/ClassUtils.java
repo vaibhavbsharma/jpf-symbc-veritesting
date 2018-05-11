@@ -85,8 +85,7 @@ public class ClassUtils {
         do {
             newClassNames = new HashSet<>();
             for (String className : methodSummaryClassNames) {
-                if(className.contains("jpf"))
-                    continue;
+
                 File f = new File(classPath);
                 URL[] cp = new URL[0];
                 try {
