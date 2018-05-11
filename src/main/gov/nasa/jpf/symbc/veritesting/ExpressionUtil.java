@@ -24,7 +24,7 @@ public class ExpressionUtil {
 
     // Replace all holes of type CONDITION with conditionExpression
     // Replace all holes of type NEGCONDITION with !(conditionExpression)
-    public static Expression replaceCondition(Expression summaryExpression, Expression conditionExpression) {
+    static Expression replaceCondition(Expression summaryExpression, Expression conditionExpression) {
         if(summaryExpression instanceof HoleExpression) {
             Expression ret = summaryExpression;
             if(((HoleExpression)summaryExpression).getHoleType() == HoleExpression.HoleType.CONDITION)
@@ -38,16 +38,15 @@ public class ExpressionUtil {
         }
         if(summaryExpression instanceof Operation) {
             Operation oldOperation = (Operation) summaryExpression;
-            Operation newOperation = new Operation(oldOperation.getOperator(),
+            return new Operation(oldOperation.getOperator(),
                     replaceCondition(oldOperation.getOperand(0), conditionExpression),
                     replaceCondition(oldOperation.getOperand(1), conditionExpression));
-            return newOperation;
         }
         return summaryExpression;
     }
 
     // Replaces all instances of hole1 by hole2 in summaryExpression
-    public static Expression replaceOneHoleInExp(Expression summaryExpression, HoleExpression hole1, HoleExpression hole2) {
+    private static Expression replaceOneHoleInExp(Expression summaryExpression, HoleExpression hole1, HoleExpression hole2) {
         if(summaryExpression instanceof HoleExpression) {
             Expression ret = summaryExpression;
             if((summaryExpression) == hole1)
@@ -56,15 +55,14 @@ public class ExpressionUtil {
         }
         if(summaryExpression instanceof Operation) {
             Operation oldOperation = (Operation) summaryExpression;
-            Operation newOperation = new Operation(oldOperation.getOperator(),
+            return new Operation(oldOperation.getOperator(),
                     replaceOneHoleInExp(oldOperation.getOperand(0), hole1, hole2),
                     replaceOneHoleInExp(oldOperation.getOperand(1), hole1, hole2));
-            return newOperation;
         }
         return summaryExpression;
     }
 
-    public static Operation.Operator negateOperator(Operation.Operator operator) {
+    private static Operation.Operator negateOperator(Operation.Operator operator) {
         switch(operator) {
             case NE: return Operation.Operator.EQ;
             case EQ: return Operation.Operator.NE;
@@ -84,9 +82,9 @@ public class ExpressionUtil {
     Every copy of a hole is inserted into varUtil.varCache which internally causes holes to be inserted into
     varUtil.holeHashMap and varUtil.defLocalVars
      */
-    public static LinkedHashMap<HoleExpression, HoleExpression> copyHoleHashMap(LinkedHashMap<Expression, Expression> holeHashMap,
-                                                                        Expression thisPLAssign,
-                                                                        String currentClassName, String currentMethodName) {
+    static LinkedHashMap<HoleExpression, HoleExpression> copyHoleHashMap(LinkedHashMap<Expression, Expression> holeHashMap,
+                                                                         Expression thisPLAssign,
+                                                                         String currentClassName, String currentMethodName) {
         LinkedHashMap<HoleExpression, HoleExpression> retHoleHashMap = new LinkedHashMap<>();
         for (Map.Entry<Expression, Expression> entry : holeHashMap.entrySet()) {
             HoleExpression innerHole = (HoleExpression) entry.getKey();
@@ -104,22 +102,29 @@ public class ExpressionUtil {
             if(innerHoleCopy.getHoleType() == HoleExpression.HoleType.FIELD_PHI) {
                 innerHoleCopy.getFieldInfo().fieldInputHole = retHoleHashMap.get(innerHole.getFieldInfo().fieldInputHole);
             }
-            if(FieldUtil.isField(innerHoleCopy) && innerHoleCopy.getFieldInfo().useHole != null) {
-                innerHoleCopy.getFieldInfo().useHole = retHoleHashMap.get(innerHole.getFieldInfo().useHole);
+            if(FieldUtil.isField(innerHoleCopy)) {
+                if (innerHoleCopy.getFieldInfo().useHole != null) {
+                    innerHoleCopy.getFieldInfo().useHole = retHoleHashMap.get(innerHole.getFieldInfo().useHole);
+                }
+                assert(innerHoleCopy.getFieldInfo().writeValue == innerHole.getFieldInfo().writeValue);
+                if (innerHoleCopy.getFieldInfo().writeValue != null &&
+                        (innerHole.getFieldInfo().writeValue instanceof HoleExpression)) {
+                    innerHoleCopy.getFieldInfo().writeValue = retHoleHashMap.get(innerHole.getFieldInfo().writeValue);
+                }
             }
             retHoleHashMap.put(innerHole, innerHoleCopy);
         }
         return retHoleHashMap;
     }
 
-    public static Expression replaceHolesInExpression(Expression expression, LinkedHashMap<HoleExpression, HoleExpression> innerHolesCopy) {
+    static Expression replaceHolesInExpression(Expression expression, LinkedHashMap<HoleExpression, HoleExpression> innerHolesCopy) {
         for (Map.Entry<HoleExpression, HoleExpression> entry : innerHolesCopy.entrySet()) {
             expression = replaceOneHoleInExp(expression, entry.getKey(), entry.getValue());
         }
         return expression;
     }
 
-    public static void replaceHolesInPLAssign(LinkedHashMap<HoleExpression, HoleExpression> innerHolesCopyMap) {
+    static void replaceHolesInPLAssign(LinkedHashMap<HoleExpression, HoleExpression> innerHolesCopyMap) {
         for (Map.Entry<HoleExpression, HoleExpression> entry : innerHolesCopyMap.entrySet()) {
             Expression PLAssign = entry.getValue().PLAssign;
             PLAssign = replaceHolesInExpression(PLAssign, innerHolesCopyMap);
@@ -127,7 +132,7 @@ public class ExpressionUtil {
         }
     }
 
-    public static void insertIntoVarUtil(LinkedHashMap<HoleExpression, HoleExpression> innerHolesCopyMap, VarUtil varUtil) {
+    static void insertIntoVarUtil(LinkedHashMap<HoleExpression, HoleExpression> innerHolesCopyMap, VarUtil varUtil) {
         for (Map.Entry<HoleExpression, HoleExpression> entry : innerHolesCopyMap.entrySet()) {
             varUtil.varCache.put(entry.getValue().getHoleVarName(), entry.getValue());
         }
@@ -138,5 +143,19 @@ public class ExpressionUtil {
             if (b != null) return new Operation(op, a, b);
             else return a;
         } else return b;
+    }
+
+    static boolean isNoHoleLeftBehind(Expression expression, LinkedHashMap<Expression, Expression> holeHashMap) {
+        if (expression instanceof HoleExpression && !holeHashMap.containsKey(expression)) {
+            return false;
+        }
+        if (expression instanceof Operation) {
+            Operation op = (Operation) expression;
+            if (!isNoHoleLeftBehind(op.getOperand(0), holeHashMap))
+                return false;
+            if (!isNoHoleLeftBehind(op.getOperand(1), holeHashMap))
+                return false;
+        }
+        return true;
     }
 }

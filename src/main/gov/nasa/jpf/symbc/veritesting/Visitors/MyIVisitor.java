@@ -309,9 +309,11 @@ public class MyIVisitor implements SSAInstruction.IVisitor {
 
         FieldReference fieldReference = instruction.getDeclaredField();
         String declaringClass = fieldReference.getDeclaringClass().getName().getClassName().toString();
-        String packageName = fieldReference.getDeclaringClass().getName().getPackage().toString();
-        packageName = packageName.replace("/",".");
-        declaringClass = packageName + "." + declaringClass;
+        if (fieldReference.getDeclaringClass().getName().getPackage() != null) {
+            String packageName = fieldReference.getDeclaringClass().getName().getPackage().toString();
+            packageName = packageName.replace("/", ".");
+            declaringClass = packageName + "." + declaringClass;
+        }
         String fieldName = fieldReference.getName().toString();
         System.out.println("declaringClass = " + declaringClass + ", currentMethodName = " + fieldName);
         int def = instruction.getDef(0);
@@ -337,17 +339,19 @@ public class MyIVisitor implements SSAInstruction.IVisitor {
             assert (instruction.getNumberOfDefs() == 0);
             holeName = "putField.";
         }
-        FieldReference fieldReference = instruction.getDeclaredField();
         int objRef = instruction.getRef();
-        String packageName = fieldReference.getDeclaringClass().getName().getPackage().toString();
-        packageName = packageName.replace("/",".");
-        String className = fieldReference.getDeclaringClass().getName().getClassName().toString();
-        className = packageName + "." + className;
+        FieldReference fieldReference = instruction.getDeclaredField();
+        String declaringClass = fieldReference.getDeclaringClass().getName().getClassName().toString();
+        if (fieldReference.getDeclaringClass().getName().getPackage() != null) {
+            String packageName = fieldReference.getDeclaringClass().getName().getPackage().toString();
+            packageName = packageName.replace("/", ".");
+            declaringClass = packageName + "." + declaringClass;
+        }
         String fieldName = fieldReference.getName().toString();
         holeName += objRef + ".";
-        holeName += className + "." + fieldName + VarUtil.nextInt();
+        holeName += declaringClass + "." + fieldName + VarUtil.nextInt();
         Expression writeVal = varUtil.addVal(instruction.getVal(), PLAssign);
-        if(varUtil.addFieldOutputVal(writeVal, objRef, className, fieldName.toString(),
+        if(varUtil.addFieldOutputVal(writeVal, objRef, declaringClass, fieldName.toString(),
                 instruction.isStatic(), PLAssign, holeName) == null) {
             setCanVeritest(false, instruction);
         } else {
@@ -369,9 +373,11 @@ public class MyIVisitor implements SSAInstruction.IVisitor {
         }
         assert(instruction.getNumberOfUses() == instruction.getNumberOfParameters());
         String declaringClass = methodReference.getDeclaringClass().getName().getClassName().toString();
-        String packageName = methodReference.getDeclaringClass().getName().getPackage().toString();
-        packageName = packageName.replace("/",".");
-        declaringClass = packageName + "." + declaringClass;
+        if (methodReference.getDeclaringClass().getName().getPackage() != null) {
+            String packageName = methodReference.getDeclaringClass().getName().getPackage().toString();
+            packageName = packageName.replace("/", ".");
+            declaringClass = packageName + "." + declaringClass;
+        }
         Atom methodName = methodReference.getName();
         String methodSig = methodReference.getSignature();
         methodSig = methodSig.substring(methodSig.indexOf('('));

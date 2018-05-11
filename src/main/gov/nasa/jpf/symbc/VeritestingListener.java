@@ -97,6 +97,7 @@ public class VeritestingListener extends PropertyListenerAdapter implements Publ
     public static final boolean allowFieldReadAfterWrite = true;
     public static final boolean allowFieldWriteAfterRead = true;
     public static final boolean allowFieldWriteAfterWrite = true;
+    public static final int maxStaticExplorationDepth = 10;
     private static int methodSummaryRWInterference = 0;
     private static int phiCount;
 
@@ -312,7 +313,7 @@ public class VeritestingListener extends PropertyListenerAdapter implements Publ
         // should be like VeritestingPerf.testMe4([II)V aka jvm internal format
         VeritestingMain veritestingMain = new VeritestingMain(className + ".class");
         long startTime = System.nanoTime();
-        veritestingMain.analyzeForVeritesting(classPath, className);
+        veritestingMain.analyzeForVeritesting(ti, classPath, className);
         long endTime = System.nanoTime();
         long duration = (endTime - startTime) / 1000000; //milliseconds
         staticAnalysisTime = (endTime - startTime);

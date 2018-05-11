@@ -39,12 +39,12 @@ public class VeritestingPerf {
         //(new VeritestingPerf()).assertRegions(true,true);
 
         //(new VeritestingPerf()).nestedRegionThrowsException(0);
-        (new VeritestingPerf()).simpleRegionThrowsException(0);
+//        (new VeritestingPerf()).simpleRegionThrowsException(0);
 
 
 //        (new VeritestingPerf()).cfgTest(1);
 //        (new VeritestingPerf()).countBitsSet(1);
-//        (new VeritestingPerf()).nestedRegion(1);
+        (new VeritestingPerf()).nestedRegion(1);
 //        (new VeritestingPerf()).nestedRegion1(true, true);
 //        (new VeritestingPerf()).testNestedMiddle(1);
 //        (new VeritestingPerf()).testNested(1);
@@ -141,18 +141,19 @@ public class VeritestingPerf {
 
     public int nestedRegion(int x) {
         //int count = 0;
+        int a=8;
         if (x != 0) {
             if (x > 0) {
-                count = 3;
+                count = a/8;
             } else {
-                count = 4;
+                count = a/4;
             }
         } else {
-            count = 5;
+            count = a/2;
         }
-//        assert(x != 0 && x > 0 ? count == 3 : true);
-//        assert(x != 0 && x <= 0 ? count == 4 : true);
-//        assert(x ==0 ? count == 5 : true);
+        assert(x != 0 && x > 0 ? count == (a/8) : true);
+        assert(x != 0 && x <= 0 ? count == (a/4) : true);
+        assert(x ==0 ? count == (a/2) : true);
         return count;
     }
 
@@ -753,10 +754,8 @@ public class VeritestingPerf {
 
     int a, b, c, d, e, f;
 
-    public int checkOperator() {
+    public int checkOperator(int a, int b) {
         int ret = -1;
-        a = Debug.makeSymbolicInteger("a");
-        b = Debug.makeSymbolicInteger("b");
         if (a < b) ret = 1;
         else ret = 0;
         return ret;

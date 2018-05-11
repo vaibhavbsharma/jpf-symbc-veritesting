@@ -54,10 +54,29 @@ public class TestVeritestingPerf extends InvokeTest {
 //        countBitsSet5(x);
 //        countBitsSet6(x);
 //        countBitsSet7(x);
-        countBitsSet8(x);
+//        countBitsSet8(x);
+        nestedRegion(x);
     }
 
     int count;
+
+    public int nestedRegion(int x) {
+        //int count = 0;
+        int a=8;
+        if (x != 0) {
+            if (x > 0) {
+                count = a/8;
+            } else {
+                count = a/4;
+            }
+        } else {
+            count = a/2;
+        }
+        assert(x != 0 && x > 0 ? count == (a/8) : true);
+        assert(x != 0 && x <= 0 ? count == (a/4) : true);
+        assert(x == 0 ? count == (a/2) : true);
+        return count;
+    }
 
     public void testSimple1(int x) {
         // int count;
@@ -221,6 +240,36 @@ public class TestVeritestingPerf extends InvokeTest {
         }
         assert (Bits.populationCount(xOrig)*3 == count-1);
         return count;
+    }
+
+    public int nestedRegionThrowsException(int x) {
+        int count = -1;
+        if (x < 0) {
+            count = 0;
+//            throw new NullPointerException("negative");
+        } else {
+            if (x == 0) throw new NullPointerException("zero");
+            else {
+                if (x == 1) throw new NullPointerException("one");
+                else if (x == 2) throw new NullPointerException("two");
+                else count = 1;
+            }
+        }
+        count += 1000;
+        return count;
+    }
+
+    public int simpleRegionThrowsException(int i) {
+        int ret = -1;
+        TempClass tempClass = new TempClass();
+        if (i < 0) {
+            throw new NullPointerException("negative");
+        } else {
+            ret = ret + tempClass.getTempInt();
+
+        }
+        ret += 1;
+        return ret;
     }
 }
 

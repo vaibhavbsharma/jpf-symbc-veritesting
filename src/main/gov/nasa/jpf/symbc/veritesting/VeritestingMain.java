@@ -45,9 +45,11 @@ import com.ibm.wala.util.strings.StringStuff;
 import gov.nasa.jpf.symbc.VeritestingListener;
 import gov.nasa.jpf.symbc.veritesting.SPFCase.SPFCaseList;
 import gov.nasa.jpf.symbc.veritesting.Visitors.MyIVisitor;
+import gov.nasa.jpf.vm.ThreadInfo;
 import x10.wala.util.NatLoop;
 import x10.wala.util.NatLoopSolver;
 
+import static gov.nasa.jpf.symbc.veritesting.ClassUtils.findClasses;
 import static gov.nasa.jpf.symbc.veritesting.ExpressionUtil.*;
 import static gov.nasa.jpf.symbc.veritesting.HoleExpression.HoleType.FIELD_OUTPUT;
 import static gov.nasa.jpf.symbc.veritesting.ReflectUtil.getSignature;
@@ -62,7 +64,7 @@ public class VeritestingMain {
     public int pathLabelVarNum = 0;
     public HashSet endingInsnsHash;
     ClassHierarchy cha;
-    HashSet<String> methodSummaryClassNames, methodSummarySubClassNames;
+    HashSet<String> methodSummaryClassNames;
     private boolean methodAnalysis = false;
 
     // Relevant only if this region is a method summary
@@ -101,10 +103,10 @@ public class VeritestingMain {
         this.objectReference = objectReference;
     }
 
-    public void analyzeForVeritesting(String classPath, String _className) {
+    public void analyzeForVeritesting(ThreadInfo ti, String classPath, String _className) {
         // causes java.lang.IllegalArgumentException: ill-formed sig testMe4(int[],int)
         endingInsnsHash = new HashSet();
-        findClasses(classPath, _className);
+        findClasses(ti, cha, classPath, _className, methodSummaryClassNames);
         startingPointsHistory = new HashSet();
 
         try {
@@ -115,40 +117,9 @@ public class VeritestingMain {
             Method[] allMethods = c.getDeclaredMethods();
             for (Method m : allMethods) {
                 String signature = getSignature(m);
-                startAnalysis(_className.substring(0, _className.lastIndexOf(".")),_className,signature);
+                startAnalysis(getPackageName(_className),_className,signature);
             }
             if(VeritestingListener.veritestingMode <= 2) return;
-            methodSummarySubClassNames = new HashSet<String>();
-            for(Iterator it = methodSummaryClassNames.iterator(); it.hasNext();) {
-                String methodSummaryClassName = (String) it.next();
-                Class cAdditional;
-                try {
-                    cAdditional = urlcl.loadClass(methodSummaryClassName);
-                } catch (ClassNotFoundException e) { continue; }
-                Method[] allMethodsAdditional = cAdditional.getDeclaredMethods();
-                for (Method m: allMethodsAdditional) {
-                    String signature = getSignature(m);
-                    MethodReference mr = StringStuff.makeMethodReference(methodSummaryClassName + "." + signature);
-                    IMethod iMethod = cha.resolveMethod(mr);
-                    if (iMethod == null) {
-                        System.out.println("could not resolve " + mr);
-                        continue;
-                    }
-                    IClass iClass = iMethod.getDeclaringClass();
-                    for(IClass subClass: cha.computeSubClasses(iClass.getReference())) {
-                        if(iClass.equals(subClass)) continue;
-                        String packageName = subClass.getReference().getName().getPackage().toString();
-                        packageName = packageName.replaceAll("/",".");
-                        String subClassName = packageName + "." +
-                                subClass.getReference().getName().getClassName().toString();
-                        methodSummarySubClassNames.add(subClassName);
-                    }
-                    //Only need to add subclass once for all the methods in the class
-                    break;
-                }
-            }
-            //find veritesting regions inside all the methods discovered so far
-            methodSummaryClassNames.addAll(methodSummarySubClassNames);
             for(Iterator it = methodSummaryClassNames.iterator(); it.hasNext();) {
                 String methodSummaryClassName = (String) it.next();
                 Class cAdditional;
@@ -157,8 +128,7 @@ public class VeritestingMain {
                 Method[] allMethodsAdditional = cAdditional.getDeclaredMethods();
                 for (Method m : allMethodsAdditional) {
                     String signature = getSignature(m);
-                    startAnalysis(methodSummaryClassName.substring(0, methodSummaryClassName.lastIndexOf(".")),
-                            methodSummaryClassName, signature);
+                    startAnalysis(getPackageName(methodSummaryClassName), methodSummaryClassName, signature);
                 }
             }
             //summarize methods inside all methods discovered so far
@@ -171,8 +141,7 @@ public class VeritestingMain {
                 Method[] allMethodsAdditional = cAdditional.getDeclaredMethods();
                 for (Method m : allMethodsAdditional) {
                     String signature = getSignature(m);
-                    startAnalysis(methodSummaryClassName.substring(0, methodSummaryClassName.lastIndexOf(".")),
-                            methodSummaryClassName, signature);
+                    startAnalysis(getPackageName(methodSummaryClassName), methodSummaryClassName, signature);
                 }
             }
         } catch (MalformedURLException | ClassNotFoundException e) {
@@ -180,59 +149,9 @@ public class VeritestingMain {
         }
     }
 
-    private void findClasses(String classPath, String startingClassName) {
-
-        methodSummaryClassNames.add(startingClassName);
-        HashSet<String> newClassNames;
-        do {
-            newClassNames = new HashSet<>();
-            for (String className : methodSummaryClassNames) {
-                File f = new File(classPath);
-                URL[] cp = new URL[0];
-                try {
-                    cp = new URL[]{f.toURI().toURL()};
-                } catch (MalformedURLException e) {
-                    e.printStackTrace();
-                }
-                URLClassLoader urlcl = new URLClassLoader(cp);
-                Class c = null;
-                try {
-                    c = urlcl.loadClass(className);
-                } catch (ClassNotFoundException e) {
-                    continue;
-                }
-                if(c == null) continue;
-                Method[] allMethods = c.getDeclaredMethods();
-                for (Method method : allMethods) {
-                    String signature = getSignature(method);
-                    MethodReference mr = StringStuff.makeMethodReference(className + "." + signature);
-                    IMethod iMethod = cha.resolveMethod(mr);
-                    if(iMethod == null)
-                        continue;
-                    AnalysisOptions options = new AnalysisOptions();
-                    options.getSSAOptions().setPiNodePolicy(SSAOptions.getAllBuiltInPiNodes());
-                    IAnalysisCacheView cache = new AnalysisCacheImpl(options.getSSAOptions());
-                    ir = cache.getIR(iMethod, Everywhere.EVERYWHERE);
-                    if(ir == null) {
-                        System.out.println("failed to get WALA IR for method: " + className +"." + signature);
-                        continue;
-                    }
-                    Iterator<CallSiteReference> iterator = ir.iterateCallSites();
-                    while (iterator.hasNext()) {
-                        CallSiteReference reference = iterator.next();
-                        MethodReference methodReference = reference.getDeclaredTarget();
-                        String declaringClass = methodReference.getDeclaringClass().getName().getClassName().toString();
-                        String packageName = methodReference.getDeclaringClass().getName().getPackage().toString();
-                        packageName = packageName.replace("/",".");
-                        String newClassName = packageName + "." + declaringClass;
-                        if (!methodSummaryClassNames.contains(newClassName)) {
-                            newClassNames.add(newClassName);
-                        }
-                    }
-                }
-            }
-            methodSummaryClassNames.addAll(newClassNames);
-        } while(newClassNames.size() != 0);
+    private String getPackageName(String c) {
+        if (c.contains(".")) return c.substring(0, c.lastIndexOf("."));
+        else return null;
     }
 
     public void startAnalysis(String packageName, String className, String methodSig) {
@@ -308,6 +227,8 @@ public class VeritestingMain {
         if (elseExpr != null)
             elseExpr = new Operation(Operation.Operator.AND, elseExpr, elsePLAssignSPF);
         else elseExpr = elsePLAssignSPF;
+        assert(ExpressionUtil.isNoHoleLeftBehind(thenExpr, varUtil.holeHashMap));
+        assert(ExpressionUtil.isNoHoleLeftBehind(elseExpr, varUtil.holeHashMap));
 
         // (If && thenExpr) || (ifNot && elseExpr)
         HoleExpression condition = new HoleExpression(VarUtil.nextInt(), currentClassName, currentMethodName,
@@ -444,7 +365,7 @@ public class VeritestingMain {
                 I would have a co-recursive function that actually built the veritesting region
              */
             List<ISSABasicBlock> succs = new ArrayList<>(cfg.getNormalSuccessors(currUnit));
-            if(currentClassName.contains("TempClassDerived") && currentMethodName.contains("nestedRegion"))
+            if(currentClassName.contains("VeritestingPerf") && currentMethodName.contains("nestedRegion"))
                 System.out.println("");
             ISSABasicBlock commonSucc = null;
             try {
@@ -593,6 +514,8 @@ public class VeritestingMain {
                             }
                             // MWW: end of new code
                             Expression thenExpr1 = innerRegion.getSummaryExpression();
+                            // this needs to happen before replaceHolesInExpression(thenExpr1,...)
+                            thenExpr1 = replaceCondition(thenExpr1, conditionExpression);
                             // maps each inner region hole to its copy to be used here but
                             // CONDITION, NEGCONDITION holes are skipped and
                             // every hole's PLAssign is conjuncted with thenPLAssign
@@ -602,8 +525,8 @@ public class VeritestingMain {
                             replaceHolesInPLAssign(innerHolesCopyMap);
                             thenExpr1 = replaceHolesInExpression(thenExpr1, innerHolesCopyMap);
                             insertIntoVarUtil(innerHolesCopyMap, varUtil);
+                            assert(ExpressionUtil.isNoHoleLeftBehind(thenExpr1, varUtil.holeHashMap));
 
-                            thenExpr1 = replaceCondition(thenExpr1, conditionExpression);
                             thenExpr = ExpressionUtil.nonNullOp(Operation.Operator.AND, thenExpr, thenExpr1);
                             thenPred = null;
                             thenUnit = commonSuccthenUnit;
@@ -731,6 +654,8 @@ public class VeritestingMain {
                             }
                             // MWW: end of new code
                             Expression elseExpr1 = innerRegion.getSummaryExpression();
+                            // this needs to happen before replaceHolesInExpression(thenExpr1,...)
+                            elseExpr1 = replaceCondition(elseExpr1, conditionExpression);
                             // maps each inner region hole to its copy to be used here but
                             // CONDITION, NEGCONDITION holes are skipped and
                             // every hole's PLAssign is conjuncted with elsePLAssign
@@ -740,8 +665,8 @@ public class VeritestingMain {
                             replaceHolesInPLAssign(innerHolesCopyMap);
                             elseExpr1 = replaceHolesInExpression(elseExpr1, innerHolesCopyMap);
                             insertIntoVarUtil(innerHolesCopyMap, varUtil);
+                            assert(ExpressionUtil.isNoHoleLeftBehind(elseExpr1, varUtil.holeHashMap));
 
-                            elseExpr1 = replaceCondition(elseExpr1, conditionExpression);
                             elseExpr = ExpressionUtil.nonNullOp(Operation.Operator.AND, elseExpr, elseExpr1);
                             elsePred = null;
                             elseUnit = commonSuccelseUnit;
@@ -916,14 +841,7 @@ public class VeritestingMain {
                 VeritestingRegion veritestingRegion = VeritestingListener.veritestingRegions.get(key);
                 Expression summaryExpression = veritestingRegion.getSummaryExpression();
                 summaryExpression = replaceCondition(summaryExpression, conditionExpression);
-                assert(veritestingRegion != null);
-                if(methodExpression != null) {
-                    if(veritestingRegion.getSummaryExpression() != null) {
-                        methodExpression = new Operation(Operation.Operator.AND, methodExpression,
-                                summaryExpression);
-                    }
-                }
-                else methodExpression = summaryExpression;
+                methodExpression = ExpressionUtil.nonNullOp(Operation.Operator.AND, methodExpression, summaryExpression);
                 methodSummarizedRegionStartBB.addAll(veritestingRegion.summarizedRegionStartBB);
                 for(HashMap.Entry<Expression, Expression> entry: veritestingRegion.getHoleHashMap().entrySet()) {
                     if(((HoleExpression)entry.getKey()).getHoleType() == HoleExpression.HoleType.CONDITION ||
@@ -1038,7 +956,12 @@ public class VeritestingMain {
                     break;
                 }
                 if(myIVisitor.isInvoke()) {
-                    methodSummaryClassNames.add(myIVisitor.getInvokeClassName());
+                    if(!methodSummaryClassNames.contains(myIVisitor.getInvokeClassName())) {
+                        // we wont be able to summarize the method invocation later
+                        System.out.println("methodSummaryClassNames does not contain " + myIVisitor.getInvokeClassName());
+                        canVeritest = false;
+                        break;
+                    }
                 }
                 lastExpression = myIVisitor.getSPFExpr();
                 ifExpression = myIVisitor.getIfExpr();
