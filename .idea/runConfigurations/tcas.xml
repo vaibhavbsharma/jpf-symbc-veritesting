@@ -11,6 +11,9 @@
     <envs>
       <env name="TARGET_CLASSPATH_WALA" value="../build/examples/" />
     </envs>
-    <method />
+    <method>
+      <option name="AntTarget" enabled="true" antfile="file://$PROJECT_DIR$/build.xml" target="build" />
+      <option name="ToolBeforeRunTask" enabled="true" actionId="Tool_External Tools_tcas-last-10-logs" />
+    </method>
   </configuration>
 </component>

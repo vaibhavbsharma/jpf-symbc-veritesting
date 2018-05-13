@@ -112,10 +112,13 @@ public class VeritestingListener extends PropertyListenerAdapter implements Publ
                 System.out.println("Warning: resetting veritestingMode to 0 (aka use vanilla SPF)");
                 veritestingMode = 0;
             } else {
-                filterUnsat = conf.getBoolean("filterUnsat");
+                if (conf.hasValue("filterUnsat"))
+                    filterUnsat = conf.getBoolean("filterUnsat");
                 if(filterUnsat) {
-                    filterUnsatTimeout = conf.getInt("filterUnsatTimeout");
-                    pathToZ3Binary = conf.getString("pathToZ3Binary");
+                    if (conf.hasValue("filterUnsatTimeout"))
+                        filterUnsatTimeout = conf.getInt("filterUnsatTimeout");
+                    if (conf.hasValue("pathToZ3Binary"))
+                        pathToZ3Binary = conf.getString("pathToZ3Binary");
                 }
             }
         } else {

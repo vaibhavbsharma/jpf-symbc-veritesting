@@ -10,6 +10,8 @@
     <envs>
       <env name="TARGET_CLASSPATH_WALA" value="../build/examples/" />
     </envs>
-    <method />
+    <method>
+      <option name="AntTarget" enabled="true" antfile="file://$PROJECT_DIR$/build.xml" target="build" />
+    </method>
   </configuration>
 </component>

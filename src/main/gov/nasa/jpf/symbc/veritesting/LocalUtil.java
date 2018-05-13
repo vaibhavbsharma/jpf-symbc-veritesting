@@ -34,7 +34,7 @@ public class LocalUtil {
         HoleExpression prevWrite = null;
         for (Map.Entry<Expression, Expression> entry : holeHashMap.entrySet()) {
             HoleExpression h1 = (HoleExpression) entry.getKey();
-            if(h == h1) {
+            if ((h == h1) && (prevWrite == null)) {
                 throw new StaticRegionException("LocalUtil.findPreviousWrite failed to find a previous write but hasWriteBefore was satisfied on hole: " + h.toString());
             }
             if(h1.getHoleType() != HoleExpression.HoleType.LOCAL_OUTPUT)
