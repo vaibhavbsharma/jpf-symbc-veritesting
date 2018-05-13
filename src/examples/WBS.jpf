@@ -1,13 +1,22 @@
 target=WBS
 classpath=${jpf-symbc}/build/examples
 sourcepath=${jpf-symbc}/src/examples
-symbolic.method = WBS.launch(sym#sym#sym#sym#sym#sym#sym#sym#sym)
-symbolic.minint=-100
-symbolic.maxint=100
 vm.storage.class=nil
-veritestingMode=3
 symbolic.debug=false
+
+symbolic.method = WBS.launch(sym#sym#sym#sym#sym#sym#sym#sym#sym)
+
+symbolic.dp=z3bitvector
+
+#symbolic.min_int=-100
+#symbolic.max_int=100
+
+#symbolic.min_int=-2147483648
+#symbolic.max_int=2147483647
+
 listener = .symbc.VeritestingListener
 #listener = .symbc.SymbolicListener
-#listener = .listener.ChoiceTracker
-symbolic.dp=z3bitvector
+veritestingMode = 3
+filterUnsat=true
+filterUnsatTimeout=2
+pathToZ3Binary=/usr/local/bin/z3

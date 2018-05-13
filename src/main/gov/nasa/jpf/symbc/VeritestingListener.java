@@ -65,7 +65,7 @@ public class VeritestingListener extends PropertyListenerAdapter implements Publ
 
 
     //TODO: make these into configuration options
-    public static boolean boostPerf = false;
+    public static boolean boostPerf = true;
     /* In the jpf file, if
     veritestingMode = 1, then only regions that don't contain other regions are summarized and instantiated,
     veritestingMode = 2, then regions that contain other regions will also be summarized if they don't contain method calls
@@ -100,6 +100,9 @@ public class VeritestingListener extends PropertyListenerAdapter implements Publ
     public static final int maxStaticExplorationDepth = 10;
     private static int methodSummaryRWInterference = 0;
     private static int phiCount;
+    public static boolean filterUnsat = false;
+    public static int filterUnsatTimeout = 2;
+    public static String pathToZ3Binary = "z3";
 
     public VeritestingListener(Config conf, JPF jpf) {
         if (conf.hasValue("veritestingMode")) {
@@ -108,6 +111,12 @@ public class VeritestingListener extends PropertyListenerAdapter implements Publ
                 System.out.println("Warning: veritestingMode should be between 0 and 4 (both 0 and 4 included)");
                 System.out.println("Warning: resetting veritestingMode to 0 (aka use vanilla SPF)");
                 veritestingMode = 0;
+            } else {
+                filterUnsat = conf.getBoolean("filterUnsat");
+                if(filterUnsat) {
+                    filterUnsatTimeout = conf.getInt("filterUnsatTimeout");
+                    pathToZ3Binary = conf.getString("pathToZ3Binary");
+                }
             }
         } else {
             System.out.println("* Warning: no veritestingMode specified");

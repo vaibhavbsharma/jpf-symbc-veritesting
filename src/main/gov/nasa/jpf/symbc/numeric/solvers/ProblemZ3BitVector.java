@@ -46,6 +46,7 @@ import com.microsoft.z3.*;
 import gov.nasa.jpf.symbc.SymbolicInstructionFactory;
 import gov.nasa.jpf.symbc.VeritestingListener;
 import gov.nasa.jpf.symbc.string.translate.BVExpr;
+import gov.nasa.jpf.symbc.veritesting.QueryWithZ3Binary;
 
 public class ProblemZ3BitVector extends ProblemGeneral {
 
@@ -173,14 +174,22 @@ public class ProblemZ3BitVector extends ProblemGeneral {
         		System.out.println(solver.toString());
         		long z3time = 0;
                 long t1 = System.nanoTime();
-                result = solver.check() == Status.SATISFIABLE ? true : false;
+                if (VeritestingListener.filterUnsat &&
+                        QueryWithZ3Binary.runQuery(solver.toString()+"\n(check-sat)\n(exit)").contains("unsat"))
+                    result = false;
+                else result = solver.check() == Status.SATISFIABLE ? true : false;
                 z3time += System.nanoTime()-t1;
                 System.out.println("\nSolving time of z3 bitvector is " + TimeUnit.NANOSECONDS.toMillis(z3time) + " ms");
                 System.out.println(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>\n\n");
         	}
         	else{
         	    long t1 = System.nanoTime();
-        		result = solver.check() == Status.SATISFIABLE ? true : false;
+//                System.out.println("solver string = " + printSMTLibv2String());
+                if (VeritestingListener.filterUnsat &&
+                        QueryWithZ3Binary.runQuery(solver.toString()+"\n(check-sat)\n(exit)").contains("unsat"))
+                    result = false;
+        		else
+        		    result = solver.check() == Status.SATISFIABLE ? true : false;
                 VeritestingListener.z3Time += (System.nanoTime() - t1);
                 VeritestingListener.solverCount++;
         	}
