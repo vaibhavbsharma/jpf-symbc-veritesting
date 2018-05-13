@@ -257,9 +257,10 @@ public class WBS {
 	   
 	   // This assertion should fail:
 //	   assert((PedalPos > 0 && PedalPos <= 4 && !Skid) ? (Alt_Pressure > 0) : true);
-	   
-	   // This assertion may fail (depending on encoding):
-//	   assert((PedalPos > 0 && PedalPos <= 4 && !Skid) ? (Nor_Pressure > 0) : true);
+
+		// This assertion may fail (depending on encoding):
+		// Vaibhav: passes with both SPF, and SPF-veritesting
+//		assert((PedalPos > 0 && PedalPos <= 4 && !Skid) ? (Nor_Pressure > 0) : true);
 
 	   // This assertion should fail:
 //	   assert((PedalPos > 0 && PedalPos <= 4) ? (Alt_Pressure > 0 || Nor_Pressure > 0) : true);

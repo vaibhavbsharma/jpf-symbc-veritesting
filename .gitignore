@@ -9,3 +9,4 @@ dist/*
 .idea/misc.xml
 .idea/jpf-symbc-veritesting.iml
 out/
+logs/
