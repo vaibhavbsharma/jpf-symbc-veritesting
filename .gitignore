@@ -10,3 +10,5 @@ dist/*
 .idea/jpf-symbc-veritesting.iml
 out/
 logs/
+logs/tcas.log
+logs/wbs.log

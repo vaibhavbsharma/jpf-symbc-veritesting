@@ -73,7 +73,7 @@ public class ProblemZ3BitVector extends ProblemGeneral {
             HashMap<String, String> cfg = new HashMap<String, String>();
             cfg.put("model", "true");
             ctx = new Context(cfg);
-            solver = ctx.mkSolver();
+            solver = ctx.mkSolver("QF_BV");
         }
 
         public Solver getSolver() {
@@ -104,7 +104,7 @@ public class ProblemZ3BitVector extends ProblemGeneral {
         
         // load bitvector length (default = 32 bit), then calculate allowed min-max values
         bitVectorLength = SymbolicInstructionFactory.bvlength;
-        minAllowed = (long) -(Math.pow(2, bitVectorLength - 1));
+        minAllowed = (long) - (Math.pow(2, bitVectorLength - 1));
         maxAllowed = (long) (Math.pow(2, bitVectorLength - 1) - 1);
         useFpForReals = SymbolicInstructionFactory.fp;
         if (SymbolicInstructionFactory.debugMode) {

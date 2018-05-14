@@ -46,6 +46,9 @@ import gov.nasa.jpf.vm.StackFrame;
 import gov.nasa.jpf.vm.ThreadInfo;
 import za.ac.sun.cs.green.expr.Expression;
 
+import static gov.nasa.jpf.symbc.VeritestingListener.DEBUG_LIGHT;
+import static gov.nasa.jpf.symbc.VeritestingListener.debug;
+
 // MWW: general comment: many uses of nulls as 'signal' values.
 // This usually leads to brittle and hard to debug code with lots
 // of null pointer exceptions.  Be explicit!  Use exceptions
@@ -126,7 +129,10 @@ public abstract class StaticPCChoiceGenerator extends PCChoiceGenerator {
         ti.setNextPC(insn);
 
         region.usedCount++;
+        if (debug == DEBUG_LIGHT)
+            System.out.println("used region: " + region.toString() +", topStackFrame = " + ti.getTopFrame().toString());
         return insn;
+
     }
 
     public abstract void makeVeritestingCG(Expression regionSummary, ThreadInfo ti) throws StaticRegionException;

@@ -6,14 +6,22 @@ die "Usage: save-previous-logs.pl <directory> <log-file-name> <number-of-latest-
     unless @ARGV == 3;
 my($logs_dir, $log_file_name, $num_to_keep) = @ARGV;
 
-# remove any files older than the last $num_to_keep files in the $logs_dir directory
-my $cmd = "ls -t " . $logs_dir . "/*" . $log_file_name . "*  | sed -e '1," . $num_to_keep . "d' | tr '\\n' '\\0' | xargs -0 rm";
-#ls -t | sed -e '1,10d' | xargs -d '\n' rm
-print "cmd = $cmd\n";
-`$cmd`;
-
 opendir my $dir, $logs_dir or die "Cannot open logs directory $logs_dir";
 my @files = readdir $dir;
+closedir $dir;
+
+my %files_map = map { $_ => 1} @files;
+if (exists($files_map{$log_file_name})) {
+    # remove any files older than the last $num_to_keep files in the $logs_dir directory
+    my $cmd = "ls -t " . $logs_dir . "/*" . $log_file_name . "*  | sed -e '1," . $num_to_keep . "d' | tr '\\n' '\\0' | xargs -0 rm";
+    #ls -t | sed -e '1,10d' | xargs -d '\n' rm
+    print "cmd = $cmd\n";
+    `$cmd`;
+}
+
+
+opendir $dir, $logs_dir or die "Cannot open logs directory $logs_dir";
+@files = readdir $dir;
 closedir $dir;
 
 my $count = 0;
@@ -27,9 +35,9 @@ foreach my $file (@files) {
         $count++;
         # assuming that log files will be named like a.log.1, a.log.2, and the log file being created on each run is a.log,
         # try to extract the largest number that appears as a suffix to the log file name
-        if (length($file) > length($log_file_name)) {
-            my $c = substr($file, length($log_file_name) + 1);
-            if ($c > $latest_count) {
+        if (index($file, ".") != -1) {
+            my $c = substr($file, rindex($file, ".") + 1);
+            if ($c =~ /^\d+?$/ && $c > $latest_count) {
                 $latest_count = $c;
             }
         }
