@@ -114,7 +114,7 @@ public class MyIVisitor implements SSAInstruction.IVisitor {
         if(isMeetVisitor) return;
         System.out.println("SSAArrayLoadInstruction = " + instruction);
         int lhs = instruction.getDef();
-        Expression lhsExpr = varUtil.makeIntermediateVar(lhs, true, PLAssign);
+        HoleExpression lhsExpr = (HoleExpression) varUtil.makeIntermediateVar(lhs, true, PLAssign);
         // Expression arrayLoadResult = new IntVariable("arrayLoadResult", Integer.MIN_VALUE, Integer.MAX_VALUE);
         int arrayRef = instruction.getUse(0);
         int arrayIndex = instruction.getUse(1);
@@ -122,7 +122,7 @@ public class MyIVisitor implements SSAInstruction.IVisitor {
         Expression arrayRefHole = varUtil.addVal(arrayRef, PLAssign);
         Expression arrayIndexHole = varUtil.addVal(arrayIndex, PLAssign);
         Expression arrayLoadHole = varUtil.addArrayLoadVal(arrayRefHole, arrayIndexHole, lhsExpr, arrayType,
-                HoleExpression.HoleType.ARRAYLOAD, instruction, pathLabelHole, PLAssign);
+                instruction, pathLabelHole, PLAssign);
 
         // MWW: new code!  TODO: get rid of arrayRefHole and arrayIndexHole: they are discoverable.
         ArrayBoundsReason reason = new ArrayBoundsReason(arrayRefHole, arrayIndexHole, arrayLoadHole);

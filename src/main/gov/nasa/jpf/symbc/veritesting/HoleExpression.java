@@ -8,12 +8,12 @@ import za.ac.sun.cs.green.expr.VisitorException;
 import java.util.List;
 import static gov.nasa.jpf.symbc.veritesting.FieldUtil.isField;
 
-// MWW - arrayInfoHole is only used for one kind of hole.
+// MWW - arrayInfo is only used for one kind of hole.
 // Why are we not subclassing here for the extra information?
 
 public class HoleExpression extends za.ac.sun.cs.green.expr.Expression{
     FieldInfo fieldInfo = null;
-    ArrayInfoHole arrayInfoHole = null;
+    ArrayInfo arrayInfo = null;
 
     protected int localStackSlot = -1;
 
@@ -133,7 +133,7 @@ public class HoleExpression extends za.ac.sun.cs.green.expr.Expression{
                 ret += ", invokeInfo = " + invokeInfo.toString();
                 break;
             case ARRAYLOAD:
-                ret += ", arrayInfo = " + arrayInfoHole.toString();
+                ret += ", arrayInfo = " + arrayInfo.toString();
                 break;
             default:
                 System.out.println("undefined toString for holeType (" + holeType + ")");
@@ -282,7 +282,8 @@ public class HoleExpression extends za.ac.sun.cs.green.expr.Expression{
         if(holeType == HoleType.FIELD_INPUT) assert(f.writeValue == null);
         fieldInfo = new FieldInfo(f.fieldStaticClassName, f.fieldName, f.methodName, f.writeValue,
                 f.isStaticField, f.useHole, f.fieldInputHole);
-        if(isLocal(this)) // this needs to be done after setting the fieldInfo so that isLocal can use this fieldInfo as part of its check
+        // this needs to be done after setting the fieldInfo so that isLocal can use this fieldInfo as part of its check
+        if(isLocal(this))
             assert(this.getLocalStackSlot() != -1 || this.getGlobalStackSlot() != -1);
     }
 
@@ -298,7 +299,8 @@ public class HoleExpression extends za.ac.sun.cs.green.expr.Expression{
         if(holeType == HoleType.FIELD_INPUT) assert(writeExpr == null);
         fieldInfo = new FieldInfo(staticFieldClassName, fieldName, methodName, writeExpr,
                 isStaticField, useHole, null);
-        if(isLocal(this))// this needs to be done after setting the fieldInfo so that isLocal can use this fieldInfo as part of its check
+        // this needs to be done after setting the fieldInfo so that isLocal can use this fieldInfo as part of its check
+        if(isLocal(this))
             assert(this.getLocalStackSlot() != -1 || this.getGlobalStackSlot() != -1);
     }
 
@@ -306,19 +308,21 @@ public class HoleExpression extends za.ac.sun.cs.green.expr.Expression{
         return fieldInfo;
     }
 
-    public ArrayInfoHole getArrayInfo() {return  arrayInfoHole;}
-    public void setArrayInfo(Expression arrayRef, Expression arrayIndex, Expression lhsExpr,  TypeReference arrayType, Expression pathLabelHole){
+    public ArrayInfo getArrayInfo() {return arrayInfo;}
+    public void setArrayInfo(Expression arrayRef, Expression arrayIndex, HoleExpression lhsExpr,
+                             TypeReference arrayType, Expression pathLabelHole){
         assert(this.holeType== HoleType.ARRAYLOAD);
-        arrayInfoHole = new ArrayInfoHole(arrayRef, arrayIndex, lhsExpr, arrayType, pathLabelHole);
+        arrayInfo = new ArrayInfo(arrayRef, arrayIndex, lhsExpr, arrayType, pathLabelHole);
     }
 
-    public class ArrayInfoHole{
+    public class ArrayInfo {
         public Expression arrayRefHole, arrayIndexHole, lhsExpr;
         public TypeReference arrayType;
         Expression pathLabelHole;
         int length;
 
-        public ArrayInfoHole(Expression arrayRef, Expression arrayIndex, Expression lhsExpr, TypeReference arrayType, Expression pathLabelHole){
+        public ArrayInfo(Expression arrayRef, Expression arrayIndex, Expression lhsExpr, TypeReference arrayType,
+                         Expression pathLabelHole){
             this.arrayRefHole = arrayRef;
             this.lhsExpr = lhsExpr;
             this.arrayIndexHole = arrayIndex;
@@ -340,11 +344,11 @@ public class HoleExpression extends za.ac.sun.cs.green.expr.Expression{
         }
 
         public boolean equals(Object o) {
-            if(!(o instanceof ArrayInfoHole)) return false;
-            ArrayInfoHole arrayInfoHole = (ArrayInfoHole) o;
-            if(arrayInfoHole.arrayIndexHole != (this.arrayIndexHole) ||
-                    arrayInfoHole.arrayType != (this.arrayType) ||
-                    arrayInfoHole.arrayRefHole != (this.arrayRefHole) )
+            if(!(o instanceof ArrayInfo)) return false;
+            ArrayInfo arrayInfo = (ArrayInfo) o;
+            if(arrayInfo.arrayIndexHole != (this.arrayIndexHole) ||
+                    arrayInfo.arrayType != (this.arrayType) ||
+                    arrayInfo.arrayRefHole != (this.arrayRefHole) )
                 return false;
             else return true;
         }

@@ -35,7 +35,6 @@ import gov.nasa.jpf.PropertyListenerAdapter;
 import gov.nasa.jpf.report.ConsolePublisher;
 import gov.nasa.jpf.report.Publisher;
 import gov.nasa.jpf.report.PublisherExtension;
-import gov.nasa.jpf.report.Statistics;
 import gov.nasa.jpf.symbc.numeric.*;
 import gov.nasa.jpf.symbc.veritesting.*;
 import gov.nasa.jpf.symbc.veritesting.ChoiceGenerators.StaticBranchChoiceGenerator;
@@ -97,7 +96,7 @@ public class VeritestingListener extends PropertyListenerAdapter implements Publ
     public static final boolean allowFieldReadAfterWrite = true;
     public static final boolean allowFieldWriteAfterRead = true;
     public static final boolean allowFieldWriteAfterWrite = true;
-    public static final int maxStaticExplorationDepth = 10;
+    public static final int maxStaticExplorationDepth = 2;
     private static int methodSummaryRWInterference = 0;
     private static int phiCount;
     public static boolean filterUnsat = false;
@@ -564,11 +563,11 @@ public class VeritestingListener extends PropertyListenerAdapter implements Publ
             HoleExpression keyHoleExpression = (HoleExpression) key;
             switch (keyHoleExpression.getHoleType()) {
                 case ARRAYLOAD:
-                    HoleExpression.ArrayInfoHole arrayInfoHole = keyHoleExpression.getArrayInfo();
+                    HoleExpression.ArrayInfo arrayInfo = keyHoleExpression.getArrayInfo();
                     indexAttr =
-                            (gov.nasa.jpf.symbc.numeric.Expression) stackFrame.getLocalAttr(((HoleExpression) (arrayInfoHole.arrayIndexHole)).getLocalStackSlot());
-                    HoleExpression indexHole = (HoleExpression) arrayInfoHole.arrayIndexHole;
-                    HoleExpression arrayRefHole = ((HoleExpression) arrayInfoHole.arrayRefHole);
+                            (gov.nasa.jpf.symbc.numeric.Expression) stackFrame.getLocalAttr(((HoleExpression) (arrayInfo.arrayIndexHole)).getLocalStackSlot());
+                    HoleExpression indexHole = (HoleExpression) arrayInfo.arrayIndexHole;
+                    HoleExpression arrayRefHole = ((HoleExpression) arrayInfo.arrayRefHole);
 
                     switch (indexHole.getHoleType()) {
                         // what happens for field inputs?
@@ -579,22 +578,22 @@ public class VeritestingListener extends PropertyListenerAdapter implements Publ
                             int arrayLength = ((ArrayFields) ei.getFields()).arrayLength();
 
                             // MWW: modified to be able to extract array length from spfCase.
-                            arrayInfoHole.setLength(arrayLength);
+                            arrayInfo.setLength(arrayLength);
                             // MWW: end of modification.
 
-                            TypeReference arrayType = arrayInfoHole.arrayType;
-                            Expression pathLabelConstraint = arrayInfoHole.getPathLabelHole();
+                            TypeReference arrayType = arrayInfo.arrayType;
+                            Expression pathLabelConstraint = arrayInfo.getPathLabelHole();
                             Expression arrayConstraint;
                             if (indexAttr == null) //attribute is null so index is concrete
                             {
-                                int indexVal = stackFrame.getLocalVariable(((HoleExpression) arrayInfoHole.arrayIndexHole).getLocalStackSlot());
+                                int indexVal = stackFrame.getLocalVariable(((HoleExpression) arrayInfo.arrayIndexHole).getLocalStackSlot());
                                 if (indexVal < 0 || indexVal >= arrayLength) //checking concrete index is out of bound
                                     return true;
                                 int value = ei.getIntElement(indexVal);
                                 finalValueGreen = SPFToGreenExpr(new IntegerConstant(value));
                             } else { //index is symbolic - fun starts here :)
                                 finalValueGreen = SPFToGreenExpr(indexAttr);
-                                Expression lhsExpr = retHoleHashMap.get(arrayInfoHole.lhsExpr);
+                                Expression lhsExpr = retHoleHashMap.get(arrayInfo.lhsExpr);
                                 Expression[] arraySymbConstraint = new Expression[arrayLength];
                                 //Expression arrayLoadResult = new IntVariable("arrayLoadResult", Integer.MIN_VALUE, Integer.MAX_VALUE);
                                 for (int i = 0; i < arrayLength; i++) {//constructing the symbolic index constraint

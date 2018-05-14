@@ -277,8 +277,8 @@ public class tcas {
 
 		alt_sep_test();
 
-		int result = alt_sep_test();
-		int alim = ALIM();
+//		int result = alt_sep_test();
+//		int alim = ALIM();
 
 		// MWW assertions.  These come from ACSL safety property paper: http://people.rennes.inria.fr/Arnaud.Gotlieb/CT_ATM_gotlieb.pdf
 		// fails

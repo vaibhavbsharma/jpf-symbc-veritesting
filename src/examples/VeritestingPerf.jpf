@@ -9,14 +9,14 @@ symbolic.debug=false
 #symbolic.method=VeritestingPerf.countBitsSet(sym),VeritestingPerf.testDynObject(sym#sym),VeritestingPerf.testSimple1(sym)
 #symbolic.method=VeritestingPerf.checkOperator()
 
-symbolic.method=VeritestingPerf.testSimple(sym),VeritestingPerf.simpleRegion(sym),VeritestingPerf.fieldWriteTestBranch2(sym),VeritestingPerf.fieldWriteTestBranch1(sym),VeritestingPerf.testSimple1(sym),VeritestingPerf.testSimple2(sym),VeritestingPerf.testSimpleFail(sym),VeritestingPerf.countBitsSet(sym),VeritestingPerf.readAfterWriteTest(sym),VeritestingPerf.nestedRegion(sym),VeritestingPerf.testNested(sym),VeritestingPerf.testNestedMiddle(sym),VeritestingPerf.nestedRegion1(sym#sym),VeritestingPerf.testDynObject(sym#sym),VeritestingPerf.nestedRegionThrowsException(sym),VeritestingPerf.simpleRegionThrowsException(sym)
+#symbolic.method=VeritestingPerf.testSimple(sym),VeritestingPerf.simpleRegion(sym),VeritestingPerf.fieldWriteTestBranch2(sym),VeritestingPerf.fieldWriteTestBranch1(sym),VeritestingPerf.testSimple1(sym),VeritestingPerf.testSimple2(sym),VeritestingPerf.testSimpleFail(sym),VeritestingPerf.countBitsSet(sym),VeritestingPerf.readAfterWriteTest(sym),VeritestingPerf.nestedRegion(sym),VeritestingPerf.testNested(sym),VeritestingPerf.testNestedMiddle(sym),VeritestingPerf.nestedRegion1(sym#sym),VeritestingPerf.testDynObject(sym#sym),VeritestingPerf.nestedRegionThrowsException(sym),VeritestingPerf.simpleRegionThrowsException(sym)
 #symbolic.method=VeritestingPerf.cfgTest(sym)
 #symbolic.method=VeritestingPerf.testMe5(sym#sym)
 #symbolic.method=VeritestingPerf.testMe6(sym#sym#sym#sym)
 #symbolic.method=VeritestingPerf.arrayTest(con#sym)
 
 ######## testing ArrrayLoad  ######
-#symbolic.method=VeritestingPerf.inRangeloadArrayTC(sym#sym)
+symbolic.method=VeritestingPerf.inRangeloadArrayTC(sym#sym)
 #symbolic.method=VeritestingPerf.innerCatchOutRangeloadArrayTC(sym#sym)
 #symbolic.method=VeritestingPerf.catchOutRangeloadArrayTC(sym#sym)
 #symbolic.method=VeritestingPerf.outRangeloadArrayTC(sym#sym)
@@ -59,6 +59,6 @@ symbolic.max_int=16
 
 #symbolic.min_int=-2147483648
 #symbolic.max_int=2147483647
-#listener = .symbc.VeritestingListener
+listener = .symbc.VeritestingListener
 #listener = .symbc.SymbolicListener
 veritestingMode = 3

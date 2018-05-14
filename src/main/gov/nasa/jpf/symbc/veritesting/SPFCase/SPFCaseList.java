@@ -43,7 +43,7 @@ public class SPFCaseList {
         return result;
     }
 
-    // MWW: Negation is flakey in Green for some reason, so I am simulating it with
+    // MWW: Negation is flaky in Green for some reason, so I am simulating it with
     // <pred> == false.
     public Expression staticNominalPredicate() throws StaticRegionException {
         Expression result = new Operation(Operation.Operator.EQ, spfPredicate(), Operation.FALSE);

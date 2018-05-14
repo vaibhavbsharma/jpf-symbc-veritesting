@@ -56,6 +56,6 @@ public class StaticSummaryChoiceGenerator extends StaticPCChoiceGenerator {
 
         setPC(createPC(pc, regionSummary, getRegion().staticNominalPredicate()), STATIC_CHOICE);
         setPC(createPC(pc, regionSummary, getRegion().spfPathPredicate()), SPF_CHOICE);
-        // TODO: create the path preicate for the 'return' case.
+        // TODO: create the path predicate for the 'return' case.
     }
 }

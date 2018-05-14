@@ -409,17 +409,16 @@ public class VarUtil {
         return ret;
     }*/
 
-    public Expression addArrayLoadVal(Expression arrayRef, Expression arrayIndex, Expression lhsSide,
-                                      TypeReference arrayType, HoleExpression.HoleType holeType,
+    public Expression addArrayLoadVal(Expression arrayRef, Expression arrayIndex, HoleExpression lhsHole,
+                                      TypeReference arrayType,
                                       SSAArrayLoadInstruction instructionName, Expression pathLabelHole,
                                       Expression PLAssign) {
-        assert(holeType == HoleExpression.HoleType.ARRAYLOAD);
-        HoleExpression holeExpression = new HoleExpression(nextInt(), className, methodName, holeType, PLAssign, -1, -1);
+        HoleExpression holeExpression = new HoleExpression(nextInt(), className, methodName,
+                HoleExpression.HoleType.ARRAYLOAD, PLAssign, -1, -1);
         holeExpression.setHoleVarName(instructionName.toString());
-        holeExpression.setArrayInfo(arrayRef, arrayIndex, lhsSide, arrayType, pathLabelHole);
+        holeExpression.setArrayInfo(arrayRef, arrayIndex, lhsHole, arrayType, pathLabelHole);
 
         varCache.put(holeExpression.getHoleVarName(), holeExpression);
-        holeExpression.toString();
         return holeExpression;
     }
 

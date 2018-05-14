@@ -30,7 +30,7 @@ public class VeritestingPerf {
         /****************** ArrayLoad Tests ********************/
         //(new VeritestingPerf()).testSegment1(true, true, 2);
         //(new VeritestingPerf()).testSegment2(true, true, 2);
-        //(new VeritestingPerf()).inRangeloadArrayTC(22, 2);
+        (new VeritestingPerf()).inRangeloadArrayTC(22, 2);
         //(new VeritestingPerf()).innerCatchOutRangeloadArrayTC(22, 2);
         //(new VeritestingPerf()).outRangeloadArrayTC( 22, 2);
         // (new VeritestingPerf()).catchOutRangeloadArrayTC(22, 2);
@@ -44,7 +44,7 @@ public class VeritestingPerf {
 
 //        (new VeritestingPerf()).cfgTest(1);
 //        (new VeritestingPerf()).countBitsSet(1);
-        (new VeritestingPerf()).nestedRegion(1);
+//        (new VeritestingPerf()).nestedRegion(1);
 //        (new VeritestingPerf()).nestedRegion1(true, true);
 //        (new VeritestingPerf()).testNestedMiddle(1);
 //        (new VeritestingPerf()).testNested(1);

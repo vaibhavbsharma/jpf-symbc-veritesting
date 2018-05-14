@@ -386,18 +386,22 @@ public class VeritestingMain {
                 I would have a co-recursive function that actually built the veritesting region
              */
             List<ISSABasicBlock> succs = new ArrayList<>(cfg.getNormalSuccessors(currUnit));
-//            if(currentClassName.contains("VeritestingPerf") && currentMethodName.contains("nestedRegion"))
-            if(currentClassName.contains("java.lang.CharacterDataLatin1") && currentMethodName.contains("toLowerCase"))
+            if(currentClassName.contains("VeritestingPerf") && currentMethodName.contains("inRangeloadArrayTC"))
+//            if(currentClassName.contains("java.lang.CharacterDataLatin1") && currentMethodName.contains("toLowerCase"))
                 System.out.println("");
             ISSABasicBlock commonSucc = null;
             try {
                 commonSucc = cfg.getIPdom(currUnit.getNumber(), true, false, ir, cha);
             } catch (WalaException|IllegalArgumentException e) {
+                //The IllegalArgumentException happens when we try to find the immediate post-dominator of basic blocks
+                // that are inside an infinite loop. An infinite loop body does not have a path to the exit node.
+                // This exception is raised by WALA in such cases. One example of this issue is when we try to summarize
+                // java.lang.Finalizer$FinalizerThread.run()
                 System.out.println(e.getMessage() + "\nran into WalaException|IllegalArgumentException in cfg.getIPdom(currUnit = " + currUnit.toString() + ")");
                 return;
             }
             if (commonSucc == null)
-                throw new StaticRegionException("`compute immediate post-dominator of "
+                throw new StaticRegionException("compute immediate post-dominator of "
                         + currUnit.toString() + ", isExit = " + currUnit.isExitBlock());
             if (succs.size() == 1) {
                 currUnit = succs.get(0);

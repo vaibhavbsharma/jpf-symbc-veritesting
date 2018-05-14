@@ -135,7 +135,6 @@ public class StaticBranchChoiceGenerator extends StaticPCChoiceGenerator {
             //System.out.println("Execute IF_ICMPEQ: The conditions are concrete");
             return instruction.execute(ti);
         } else {
-            assert(choice == 1 || choice == 2);
             int	v2 = sf.pop();
             int	v1 = sf.pop();
             PathCondition pc;
@@ -261,7 +260,7 @@ public class StaticBranchChoiceGenerator extends StaticPCChoiceGenerator {
         setPC(createPC(pc, regionSummary, getRegion().staticNominalPredicate()), STATIC_CHOICE);
         setPC(createPC(pc, regionSummary, getRegion().spfPathPredicate()), THEN_CHOICE);
         setPC(createPC(pc, regionSummary, getRegion().spfPathPredicate()), ELSE_CHOICE);
-        // TODO: create the path preicate for the 'return' case.
+        // TODO: create the path predicate for the 'return' case.
     }
 
 }
