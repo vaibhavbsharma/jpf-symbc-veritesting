@@ -236,7 +236,8 @@ public class VeritestingMain {
             final Expression elsePLAssignSPF,
             ISSABasicBlock currUnit, ISSABasicBlock commonSucc,
             int thenUseNum, int elseUseNum,
-            HashSet<Integer> summarizedRegionStartBB) throws InvalidClassFileException, StaticRegionException {
+            HashSet<Integer> summarizedRegionStartBB,
+            HoleExpression condition, HoleExpression negCondition) throws InvalidClassFileException, StaticRegionException {
         /****SH: Begin of handling skipping of both branches, thus we create no region*****/
 //        if((thenUseNum == -1)&&(elseUseNum == -1))
 //            return null;
@@ -252,10 +253,7 @@ public class VeritestingMain {
         assert(ExpressionUtil.isNoHoleLeftBehind(elseExpr, varUtil.holeHashMap));
 
         // (If && thenExpr) || (ifNot && elseExpr)
-        HoleExpression condition = new HoleExpression(VarUtil.nextInt(), currentClassName, currentMethodName,
-                HoleExpression.HoleType.CONDITION, thenPLAssignSPF, -1, -1);
-        HoleExpression negCondition = new HoleExpression(VarUtil.nextInt(), currentClassName, currentMethodName,
-                HoleExpression.HoleType.NEGCONDITION, elsePLAssignSPF, -1, -1);
+
         varUtil.holeHashMap.put(condition, condition);
         varUtil.holeHashMap.put(negCondition, negCondition);
         // make a FIELD_PHI hole for every FIELD_OUTPUT hole so that common fields will get phi'd in
@@ -301,7 +299,7 @@ public class VeritestingMain {
             // the condition and ends at the meet point. The meet point ends at the first non-phi statement. Any outer
             // region that encapsulates this inner region will have to summarize statements that appear after the first
             // non-phi statement in this basic block.
-            myIVisitor = new MyIVisitor(varUtil, thenUseNum, elseUseNum, true, null);
+            myIVisitor = new MyIVisitor(varUtil, thenUseNum, elseUseNum, true, null, null);
             iterator.next().visit(myIVisitor);
             if (myIVisitor.hasPhiExpr()) {
                 phiExprSPF = myIVisitor.getPhiExprSPF(thenPLAssignSPF, elsePLAssignSPF);
@@ -446,12 +444,17 @@ public class VeritestingMain {
                 ISSABasicBlock thenPred = thenUnit, elsePred = elseUnit;
                 int thenUseNum = -1, elseUseNum = -1;
                 Expression pathLabel = varUtil.makeIntermediateVar(pathLabelString, true, null);
+
                 final Expression thenPLAssign =
                         new Operation(Operation.Operator.EQ, pathLabel,
                                 new IntConstant(thenPathLabel));
                 final Expression elsePLAssign =
                         new Operation(Operation.Operator.EQ, pathLabel,
                                 new IntConstant(elsePathLabel));
+                HoleExpression outerRegionConditionHole = new HoleExpression(VarUtil.nextInt(), currentClassName, currentMethodName,
+                        HoleExpression.HoleType.CONDITION, thenPLAssign, -1, -1);
+                HoleExpression outerRegionNegConditionHole = new HoleExpression(VarUtil.nextInt(), currentClassName, currentMethodName,
+                        HoleExpression.HoleType.NEGCONDITION, elsePLAssign, -1, -1);
                 boolean canVeritest = true;
                 HashSet<Integer> summarizedRegionStartBB = new HashSet<>();
                 summarizedRegionStartBB.add(currUnit.getNumber());
@@ -503,7 +506,7 @@ public class VeritestingMain {
                             System.out.println("Veritested inner region with key = " + key);
                             //visit all instructions up to and including the condition
                             BlockSummary blockSummary = new BlockSummary(thenUnit, thenExpr, canVeritest,
-                                    thenPLAssign).invoke();
+                                    thenPLAssign, outerRegionConditionHole).invoke();
                             canVeritest = blockSummary.isCanVeritest();
                             thenExpr = blockSummary.getExpression(); // outer region thenExpr
                             Expression conditionExpression = blockSummary.getIfExpression();
@@ -532,7 +535,7 @@ public class VeritestingMain {
                             // defensive.
                             try {
                                 assert(conditionExpression != null);
-                                SPFCaseList innerCases = innerRegion.getSpfCases().cloneEmbedPathConstraint(conditionExpression);
+                                SPFCaseList innerCases = innerRegion.getSpfCases().cloneEmbedPathConstraint(outerRegionConditionHole);
                                 varUtil.getSpfCases().addAll(innerCases);
                             } catch (StaticRegionException sre) {
                                 System.out.println("Unable to instantiate spfCases: " + sre.toString());
@@ -562,7 +565,7 @@ public class VeritestingMain {
                     }
                     if (!canVeritest || thenUnit == commonSucc) break;
                     BlockSummary blockSummary = new BlockSummary(thenUnit, thenExpr, canVeritest,
-                            thenPLAssign).invoke();
+                            thenPLAssign, outerRegionConditionHole).invoke();
                     canVeritest = blockSummary.isCanVeritest();
                     thenExpr = blockSummary.getExpression();
                     //we should not encounter a BB with more than one successor at this point
@@ -643,7 +646,7 @@ public class VeritestingMain {
                             System.out.println("Veritested inner region with key = " + key);
                             //visit all instructions up to and including the condition
                             BlockSummary blockSummary = new BlockSummary(elseUnit, elseExpr, canVeritest,
-                                    elsePLAssign).invoke();
+                                    elsePLAssign, outerRegionNegConditionHole).invoke();
                             canVeritest = blockSummary.isCanVeritest();
                             elseExpr = blockSummary.getExpression();
                             Expression conditionExpression = blockSummary.getIfExpression();
@@ -654,7 +657,9 @@ public class VeritestingMain {
                             try {
                                 commonSuccelseUnit = cfg.getIPdom(elseUnit.getNumber(), true, false, ir, cha);
                             } catch (WalaException|IllegalArgumentException  e) {
-                                System.out.println(e.getMessage() + "\nran into WalaException|IllegalArgumentException  on cfg.getIPdom(elseUnit = " + elseUnit.toString() + ")");
+                                System.out.println(e.getMessage() +
+                                        "\nran into WalaException|IllegalArgumentException  on cfg.getIPdom(elseUnit = "
+                                        + elseUnit.toString() + ")");
                                 return;
                             }
                             if (commonSuccelseUnit == null)
@@ -671,9 +676,7 @@ public class VeritestingMain {
                             // defensive.
                             try {
                                 // need the negation of the condition expression here.
-                                Expression negIfExpr = new Operation(Operation.Operator.EQ, conditionExpression, Operation.FALSE);
-                                SPFCaseList innerCases = innerRegion.getSpfCases().cloneEmbedPathConstraint(
-                                        negIfExpr);
+                                SPFCaseList innerCases = innerRegion.getSpfCases().cloneEmbedPathConstraint(outerRegionNegConditionHole);
                                 varUtil.getSpfCases().addAll(innerCases);
                             } catch (StaticRegionException sre) {
                                 System.out.println("Unable to instantiate spfCases: " + sre.toString());
@@ -703,7 +706,7 @@ public class VeritestingMain {
                     }
                     if (!canVeritest || elseUnit == commonSucc) break;
                     BlockSummary blockSummary = new BlockSummary(elseUnit, elseExpr, canVeritest,
-                            elsePLAssign).invoke();
+                            elsePLAssign, outerRegionNegConditionHole).invoke();
                     canVeritest = blockSummary.isCanVeritest();
                     elseExpr = blockSummary.getExpression();
                     //we should not encounter a BB with more than one successor at this point
@@ -751,7 +754,7 @@ public class VeritestingMain {
                         veritestingRegion = constructVeritestingRegion(thenExpr, elseExpr,
                                 thenPLAssign, elsePLAssign,
                                 currUnit, commonSucc,
-                                thenUseNum, elseUseNum, summarizedRegionStartBB);
+                                thenUseNum, elseUseNum, summarizedRegionStartBB, outerRegionConditionHole, outerRegionNegConditionHole);
                     } catch (InvalidClassFileException e) {
                         System.out.println(e.getMessage() + "\nran into InvalidClassFileException in constructVeritestingRegion(commonSucc = " + commonSucc.toString() + ")");
                         return;
@@ -833,7 +836,7 @@ public class VeritestingMain {
                         + currUnit.toString() + ", isExit = " + currUnit.isExitBlock());
             if (succs.size() == 1 || succs.size() == 0) {
                 //Assuming that it would be ok to visit a BB that starts with a phi expression
-                BlockSummary blockSummary = new BlockSummary(currUnit, methodExpression, canVeritestMethod, null).invoke();
+                BlockSummary blockSummary = new BlockSummary(currUnit, methodExpression, canVeritestMethod, null, null).invoke();
                 canVeritestMethod = blockSummary.isCanVeritest();
                 methodExpression = blockSummary.getExpression();
                 if(blockSummary.getIfExpression() != null) {
@@ -858,7 +861,7 @@ public class VeritestingMain {
             }
             else if (succs.size() == 2) {
                 //Summarize instructions before the condition
-                BlockSummary blockSummary = new BlockSummary(currUnit, methodExpression, canVeritestMethod, null).invoke();
+                BlockSummary blockSummary = new BlockSummary(currUnit, methodExpression, canVeritestMethod, null, null).invoke();
                 canVeritestMethod = blockSummary.isCanVeritest();
                 methodExpression = blockSummary.getExpression();
                 Expression conditionExpression = blockSummary.getIfExpression();
@@ -892,7 +895,7 @@ public class VeritestingMain {
         return currentClassName + "." + currentMethodName + methodSig + "#" + startingBC;
     }
 
-    public VeritestingRegion constructMethodRegion(
+    private VeritestingRegion constructMethodRegion(
             Expression summaryExp, int startBBNum, int endBBNum, HashSet<Integer> summarizedRegionStartBB,
             int endingBC) throws InvalidClassFileException {
         VeritestingRegion veritestingRegion = new VeritestingRegion();
@@ -920,46 +923,39 @@ public class VeritestingMain {
     }
 
     private class BlockSummary {
-        private Expression pathLabelHole;
         private final Expression PLAssign;
+        private final HoleExpression conditionHole;
         private ISSABasicBlock unit;
         private Expression expression;
         private Expression lastExpression;
         private boolean isExitNode = false;
         private boolean hasNewOrThrow = false;
 
-        public boolean isHasNewOrThrow() {
+        boolean isHasNewOrThrow() {
             return hasNewOrThrow;
         }
 
-        public Expression getIfExpression() {
+        Expression getIfExpression() {
             return ifExpression;
         }
         private Expression ifExpression = null;
 
         private boolean canVeritest;
 
-        public BlockSummary(ISSABasicBlock thenUnit, Expression thenExpr, boolean canVeritest, Expression PLAssign) {
+        BlockSummary(ISSABasicBlock thenUnit, Expression thenExpr, boolean canVeritest, Expression PLAssign,
+                     HoleExpression conditionHole) {
             this.unit = thenUnit;
             this.expression = thenExpr;
             this.canVeritest = canVeritest;
             this.PLAssign = PLAssign;
-        }
-
-        public BlockSummary(ISSABasicBlock thenUnit, Expression thenExpr, boolean canVeritest,
-                            Expression pathLabelHole, Expression PLAssign) {
-            this.unit = thenUnit;
-            this.expression = thenExpr;
-            this.canVeritest = canVeritest;
-            this.pathLabelHole = pathLabelHole;
-            this.PLAssign = PLAssign;
+            this.conditionHole = conditionHole;
         }
 
         public Expression getExpression() {
             return expression;
         }
 
-        public boolean isCanVeritest() {
+        boolean isCanVeritest() {
             return canVeritest;
         }
 
@@ -969,24 +965,22 @@ public class VeritestingMain {
 
         public BlockSummary invoke() {
             MyIVisitor myIVisitor;
-            Iterator<SSAInstruction> ssaInstructionIterator = unit.iterator();
-            while (ssaInstructionIterator.hasNext()) {
+            for (SSAInstruction anUnit : unit) {
                 //phi expressions are summarized in the constructVeritestingRegion method, dont try to summarize them here
 
-                myIVisitor = new MyIVisitor(varUtil, -1, -1, false, PLAssign, pathLabelHole);
-                SSAInstruction instruction = ssaInstructionIterator.next();
+                myIVisitor = new MyIVisitor(varUtil, -1, -1, false, PLAssign, conditionHole);
                 // can this be a Potentially Exception-raising Instruction ?
-                if (instruction.isPEI()) {
+                if (anUnit.isPEI()) {
                     //TODO: add this instruction's potential exception as an SPFCase
                 }
-                instruction.visit(myIVisitor);
+                anUnit.visit(myIVisitor);
 
                 if (!myIVisitor.canVeritest()) {
                     canVeritest = false;
                     break;
                 }
-                if(myIVisitor.isInvoke()) {
-                    if(!methodSummaryClassNames.contains(myIVisitor.getInvokeClassName())) {
+                if (myIVisitor.isInvoke()) {
+                    if (!methodSummaryClassNames.contains(myIVisitor.getInvokeClassName())) {
                         // we wont be able to summarize the method invocation later
                         System.out.println("methodSummaryClassNames does not contain " + myIVisitor.getInvokeClassName());
                         canVeritest = false;
@@ -996,11 +990,11 @@ public class VeritestingMain {
                 lastExpression = myIVisitor.getSPFExpr();
                 ifExpression = myIVisitor.getIfExpr();
                 expression = ExpressionUtil.nonNullOp(Operation.Operator.AND, expression, lastExpression);
-                if(myIVisitor.isExitNode()) {
+                if (myIVisitor.isExitNode()) {
                     isExitNode = true;
                     break;
                 }
-                if(myIVisitor.isHasNewOrThrow()) {
+                if (myIVisitor.isHasNewOrThrow()) {
                     hasNewOrThrow = true;
                     break;
                 }
@@ -1008,7 +1002,7 @@ public class VeritestingMain {
             return this;
         }
 
-        public boolean getIsExitNode() {
+        boolean getIsExitNode() {
             return isExitNode;
         }
     }

@@ -12,13 +12,10 @@ import com.ibm.wala.types.MethodReference;
 import com.ibm.wala.types.TypeReference;
 import com.ibm.wala.util.strings.Atom;
 import gov.nasa.jpf.symbc.VeritestingListener;
-import gov.nasa.jpf.symbc.veritesting.HoleExpression;
-import gov.nasa.jpf.symbc.veritesting.InvokeInfo;
+import gov.nasa.jpf.symbc.veritesting.*;
 import gov.nasa.jpf.symbc.veritesting.SPFCase.ArrayBoundsReason;
 import gov.nasa.jpf.symbc.veritesting.SPFCase.SPFCase;
 import gov.nasa.jpf.symbc.veritesting.SPFCase.TrueReason;
-import gov.nasa.jpf.symbc.veritesting.StaticRegionException;
-import gov.nasa.jpf.symbc.veritesting.VarUtil;
 import za.ac.sun.cs.green.expr.Expression;
 
 import za.ac.sun.cs.green.expr.Operation;
@@ -27,6 +24,7 @@ import za.ac.sun.cs.green.expr.Operation.Operator;
 import java.util.ArrayList;
 
 public class MyIVisitor implements SSAInstruction.IVisitor {
+    private final HoleExpression conditionHole;
     private int thenUseNum;
     private int elseUseNum;
     private boolean isMeetVisitor;
@@ -38,7 +36,6 @@ public class MyIVisitor implements SSAInstruction.IVisitor {
     private Expression phiExprLHS = null;
     private String invokeClassName;
     private boolean isInvoke = false;
-    private Expression pathLabelHole;
     private boolean hasNewOrThrow = false;
 
     public boolean isHasNewOrThrow() {
@@ -74,24 +71,15 @@ public class MyIVisitor implements SSAInstruction.IVisitor {
 
     private Expression SPFExpr;
 
-    public MyIVisitor(VarUtil _varUtil, int _thenUseNum, int _elseUseNum, boolean _isMeetVisitor, Expression PLAssign) {
+    public MyIVisitor(VarUtil _varUtil, int _thenUseNum, int _elseUseNum, boolean _isMeetVisitor, Expression PLAssign,
+                      HoleExpression conditionHole) {
         varUtil = _varUtil;
         thenUseNum = _thenUseNum;
         elseUseNum = _elseUseNum;
         isMeetVisitor = _isMeetVisitor;
         this.PLAssign = PLAssign;
+        this.conditionHole = conditionHole;
         //SPFExpr = new String();
-    }
-
-    public MyIVisitor(VarUtil _varUtil, int _thenUseNum, int _elseUseNum, boolean _isMeetVisitor,
-                      Expression PLAssign, Expression pathLabelHole) {
-        varUtil = _varUtil;
-        thenUseNum = _thenUseNum;
-        elseUseNum = _elseUseNum;
-        isMeetVisitor = _isMeetVisitor;
-        //SPFExpr = new String();
-        this.pathLabelHole = pathLabelHole;
-        this.PLAssign = PLAssign;
     }
 
     public void setCanVeritest(boolean val, SSAInstruction instruction) {
@@ -122,16 +110,16 @@ public class MyIVisitor implements SSAInstruction.IVisitor {
         Expression arrayRefHole = varUtil.addVal(arrayRef, PLAssign);
         Expression arrayIndexHole = varUtil.addVal(arrayIndex, PLAssign);
         Expression arrayLoadHole = varUtil.addArrayLoadVal(arrayRefHole, arrayIndexHole, lhsExpr, arrayType,
-                instruction, pathLabelHole, PLAssign);
+                instruction, PLAssign);
 
         // MWW: new code!  TODO: get rid of arrayRefHole and arrayIndexHole: they are discoverable.
         ArrayBoundsReason reason = new ArrayBoundsReason(arrayRefHole, arrayIndexHole, arrayLoadHole);
-        SPFCase c = new SPFCase(pathLabelHole, reason);
+        SPFCase c = new SPFCase(ExpressionUtil.nonNullOp(Operator.AND, PLAssign, conditionHole), reason);
         varUtil.addSpfCase(c);
         // MWW: end new code!
         // SPFExpr will be handled
-        // SPFExpr = new Operation(Operator.IMPLIES, arrayLoadResult, new Operation(Operator.EQ, lhsExpr, arrayLoadResult));
-        SPFExpr = arrayLoadHole;
+        SPFExpr = new Operation(Operator.EQ, lhsExpr, arrayLoadHole);
+//        SPFExpr = arrayLoadHole;
        setCanVeritest(true, instruction);
     }
 
@@ -410,7 +398,7 @@ public class MyIVisitor implements SSAInstruction.IVisitor {
             return;
         }
         TrueReason reason = new TrueReason(TrueReason.Cause.OBJECT_CREATION);
-        SPFCase c = new SPFCase(pathLabelHole, reason);
+        SPFCase c = new SPFCase(ExpressionUtil.nonNullOp(Operator.AND, PLAssign, conditionHole), reason);
         varUtil.addSpfCase(c);
         canVeritest = true;
         hasNewOrThrow = true;
@@ -428,7 +416,7 @@ public class MyIVisitor implements SSAInstruction.IVisitor {
         if(isMeetVisitor) return;
         System.out.println("SSAThrowInstruction = " + instruction);
         TrueReason reason = new TrueReason(TrueReason.Cause.EXCEPTION_THROWN);
-        SPFCase c = new SPFCase(pathLabelHole, reason);
+        SPFCase c = new SPFCase(ExpressionUtil.nonNullOp(Operator.AND, PLAssign, conditionHole), reason);
         varUtil.addSpfCase(c);
         setCanVeritest(false, instruction);
         hasNewOrThrow = true;

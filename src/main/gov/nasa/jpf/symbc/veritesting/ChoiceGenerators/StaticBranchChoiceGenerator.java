@@ -200,8 +200,8 @@ public class StaticBranchChoiceGenerator extends StaticPCChoiceGenerator {
         }
     }
 
-    // MWW: you are *in* the choice generator - why are you looking it up?!?
-    // Soha: You are right, I fixed that.
+
+
 
     public Instruction executeUnaryIf(Instruction instruction, int choice) {
         StackFrame sf = ti.getModifiableTopFrame();

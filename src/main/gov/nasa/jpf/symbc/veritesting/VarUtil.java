@@ -411,12 +411,12 @@ public class VarUtil {
 
     public Expression addArrayLoadVal(Expression arrayRef, Expression arrayIndex, HoleExpression lhsHole,
                                       TypeReference arrayType,
-                                      SSAArrayLoadInstruction instructionName, Expression pathLabelHole,
+                                      SSAArrayLoadInstruction instructionName,
                                       Expression PLAssign) {
         HoleExpression holeExpression = new HoleExpression(nextInt(), className, methodName,
                 HoleExpression.HoleType.ARRAYLOAD, PLAssign, -1, -1);
         holeExpression.setHoleVarName(instructionName.toString());
-        holeExpression.setArrayInfo(arrayRef, arrayIndex, lhsHole, arrayType, pathLabelHole);
+        holeExpression.setArrayInfo(arrayRef, arrayIndex, lhsHole, arrayType);
 
         varCache.put(holeExpression.getHoleVarName(), holeExpression);
         return holeExpression;

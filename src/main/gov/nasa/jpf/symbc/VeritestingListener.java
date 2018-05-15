@@ -28,7 +28,6 @@ package gov.nasa.jpf.symbc;
 // MWW general comment: there is very little OO in this code.
 // Poor encapsulation and little thought to behavioral interfaces.
 
-import com.ibm.wala.types.TypeReference;
 import gov.nasa.jpf.Config;
 import gov.nasa.jpf.JPF;
 import gov.nasa.jpf.PropertyListenerAdapter;
@@ -64,7 +63,7 @@ public class VeritestingListener extends PropertyListenerAdapter implements Publ
 
 
     //TODO: make these into configuration options
-    public static boolean boostPerf = true;
+    private static boolean boostPerf = true;
     /* In the jpf file, if
     veritestingMode = 1, then only regions that don't contain other regions are summarized and instantiated,
     veritestingMode = 2, then regions that contain other regions will also be summarized if they don't contain method calls
@@ -87,15 +86,15 @@ public class VeritestingListener extends PropertyListenerAdapter implements Publ
     public static long solverAllocTime = 0;
     public static long cleanupTime = 0;
     public static int solverCount = 0;
-    public static int pathLabelCount = 1;
+    private static int pathLabelCount = 1;
     private long staticAnalysisTime = 0;
     //These counts are incremented during static analysis once per operation encountered across all the region summaries
     public static int fieldReadAfterWrite = 0;
-    public static int fieldWriteAfterWrite = 0;
-    public static int fieldWriteAfterRead = 0;
+    static int fieldWriteAfterWrite = 0;
+    static int fieldWriteAfterRead = 0;
     public static final boolean allowFieldReadAfterWrite = true;
     public static final boolean allowFieldWriteAfterRead = true;
-    public static final boolean allowFieldWriteAfterWrite = true;
+    static final boolean allowFieldWriteAfterWrite = true;
     public static final int maxStaticExplorationDepth = 2;
     private static int methodSummaryRWInterference = 0;
     private static int phiCount;
@@ -252,7 +251,7 @@ public class VeritestingListener extends PropertyListenerAdapter implements Publ
 
         pc = ((PCChoiceGenerator) ti.getVM().getSystemState().getChoiceGenerator()).getCurrentPC();
         // this code checks if SPF has reached a branch with both sides being infeasible
-        if (boostPerf == false && instructionInfo != null) {
+        if (!boostPerf && instructionInfo != null) {
             PathCondition eqPC = pc.make_copy();
             eqPC._addDet(new GreenConstraint(instructionInfo.getCondition()));
             boolean eqSat = eqPC.simplify();
@@ -282,7 +281,7 @@ public class VeritestingListener extends PropertyListenerAdapter implements Publ
         // exitTransitionsFillASTHoles(fillHolesOutput.holeHashMap);
 
         // pc._addDet(new GreenConstraint(finalSummaryExpression));
-        if (boostPerf == false) {
+        if (!boostPerf) {
             //String finalSummaryExpressionString = ASTToString(finalSummaryExpression);
             if (!pc.simplify()) {
                 System.out.println("veritesting region added unsat summary");
@@ -332,10 +331,10 @@ public class VeritestingListener extends PropertyListenerAdapter implements Publ
         System.out.println("Number of veritesting regions = " + veritestingRegions.size());
     }
 
-    public static String ASTToString(Expression expression) {
+    private static String ASTToString(Expression expression) {
         if (expression instanceof Operation) {
             Operation operation = (Operation) expression;
-            String str = new String();
+            String str = "";
             if (operation.getOperator().getArity() == 2)
                 str = "(" + ASTToString(operation.getOperand(0)) + " " + operation.getOperator().toString() + " " +
                         ASTToString(operation.getOperand(1)) + ")";
@@ -459,11 +458,10 @@ public class VeritestingListener extends PropertyListenerAdapter implements Publ
         allOutputVars.addAll(region.getOutputVars());
         allOutputVars.addAll(fillHolesOutput.additionalOutputVars);
         LinkedHashMap<Expression, Expression> methodHoles = region.getHoleHashMap();
-        Iterator iterator = allOutputVars.iterator();
-        while (iterator.hasNext()) {
-            Expression expression = (Expression) iterator.next(), value;
-            assert (expression instanceof HoleExpression);
-            HoleExpression holeExpression = (HoleExpression) expression;
+        for (Expression allOutputVar : allOutputVars) {
+            Expression value;
+            assert (allOutputVar instanceof HoleExpression);
+            HoleExpression holeExpression = (HoleExpression) allOutputVar;
             assert (retHoleHashMap.containsKey(holeExpression));
             switch (holeExpression.getHoleType()) {
                 case LOCAL_OUTPUT:
@@ -471,9 +469,9 @@ public class VeritestingListener extends PropertyListenerAdapter implements Publ
                     stackFrame.setSlotAttr(holeExpression.getLocalStackSlot(), ExpressionUtil.GreenToSPFExpression(value));
                     break;
                 case FIELD_OUTPUT:
-                    if(holeExpression.isLatestWrite()) {
+                    if (holeExpression.isLatestWrite()) {
                         value = holeExpression.getFieldInfo().writeValue;
-                        if(value instanceof HoleExpression) {
+                        if (value instanceof HoleExpression) {
                             assert (retHoleHashMap.containsKey(value));
                             value = retHoleHashMap.get(value);
                         }
@@ -483,7 +481,7 @@ public class VeritestingListener extends PropertyListenerAdapter implements Publ
                     }
                     break;
                 case FIELD_PHI:
-                    if(holeExpression.isLatestWrite()) {
+                    if (holeExpression.isLatestWrite()) {
                         value = retHoleHashMap.get(holeExpression);
                         fillFieldHole(ti, stackFrame, holeExpression, methodHoles, retHoleHashMap, false, null,
                                 false,
@@ -504,10 +502,10 @@ public class VeritestingListener extends PropertyListenerAdapter implements Publ
                                                  ArrayList<HoleExpression> completedFieldOutputs,
                                                  HoleExpression holeExpression) throws StaticRegionException {
         assert(holeExpression.getHoleType() == FIELD_PHI);
-        for(int i=0; i < completedFieldOutputs.size(); i++) {
-            if(FieldUtil.isSameField(ti, sf, holeExpression, completedFieldOutputs.get(i), methodHoles, retHoleHashMap,
+        for (HoleExpression completedFieldOutput : completedFieldOutputs) {
+            if (FieldUtil.isSameField(ti, sf, holeExpression, completedFieldOutput, methodHoles, retHoleHashMap,
                     isMethodSummary, callSiteInfo, true)) {
-                return completedFieldOutputs.get(i);
+                return completedFieldOutput;
             }
         }
         return null;
@@ -525,7 +523,7 @@ public class VeritestingListener extends PropertyListenerAdapter implements Publ
         LinkedHashMap<Expression, Expression> holeHashMap = region.getHoleHashMap();
         LinkedHashMap<Expression, Expression> retHoleHashMap = new LinkedHashMap<>();
         LinkedHashSet<HoleExpression> additionalOutputVars = new LinkedHashSet<>();
-        Expression additionalAST = null;
+        Expression additionalAST;
         FillNonInputHoles fillNonInputHoles =
                 new FillNonInputHoles(retHoleHashMap, null, holeHashMap, instructionInfo, false, ti, stackFrame, region);
         FillNonInputHolesOutput fillNonInputHolesOutput = fillNonInputHoles.invoke();
@@ -536,6 +534,9 @@ public class VeritestingListener extends PropertyListenerAdapter implements Publ
                 new FillInputHoles(stackFrame, ti, retHoleHashMap, null, holeHashMap, false).invoke();
         if (fillInputHoles.failure()) return null;
         retHoleHashMap = fillInputHoles.retHoleHashMap;
+        FillArrayLoadOutput fillArrayLoadOutput = new FillArrayLoadHoles(ti, region.getHoleHashMap(), retHoleHashMap, additionalAST).invoke();
+        if (!fillArrayLoadOutput.isOk()) return null;
+        additionalAST = fillArrayLoadOutput.getAdditionalAST();
         FillInvokeHole fillInvokeHole = new FillInvokeHole(stackFrame, ti, holeHashMap, retHoleHashMap, additionalAST).invoke();
         if (fillInvokeHole.is()) return null;
         retHoleHashMap = fillInvokeHole.getRetHoleHashMap();
@@ -553,86 +554,6 @@ public class VeritestingListener extends PropertyListenerAdapter implements Publ
         return new FillHolesOutput(retHoleHashMap, additionalAST, additionalOutputVars);
     }
 
-    // This needs to store sufficient information in the holeHashMap so that I can discover it for the exception computation.
-    private boolean fillArrayLoadHoles(VeritestingRegion region, HashMap<Expression, Expression> holeHashMap, InstructionInfo instructionInfo,
-                                       StackFrame stackFrame, ThreadInfo ti, HashMap<Expression, Expression> retHoleHashMap) {
-        for (HashMap.Entry<Expression, Expression> entry : holeHashMap.entrySet()) {
-            Expression key = entry.getKey(), finalValueGreen;
-            gov.nasa.jpf.symbc.numeric.Expression indexAttr;
-            assert (key instanceof HoleExpression);
-            HoleExpression keyHoleExpression = (HoleExpression) key;
-            switch (keyHoleExpression.getHoleType()) {
-                case ARRAYLOAD:
-                    HoleExpression.ArrayInfo arrayInfo = keyHoleExpression.getArrayInfo();
-                    indexAttr =
-                            (gov.nasa.jpf.symbc.numeric.Expression) stackFrame.getLocalAttr(((HoleExpression) (arrayInfo.arrayIndexHole)).getLocalStackSlot());
-                    HoleExpression indexHole = (HoleExpression) arrayInfo.arrayIndexHole;
-                    HoleExpression arrayRefHole = ((HoleExpression) arrayInfo.arrayRefHole);
-
-                    switch (indexHole.getHoleType()) {
-                        // what happens for field inputs?
-                        // This code appears to be similar between both kinds of holes
-                        case LOCAL_INPUT: //case array index is local input
-                            int arrayRef = stackFrame.getLocalVariable(arrayRefHole.getLocalStackSlot());
-                            ElementInfo ei = ti.getElementInfo(arrayRef);
-                            int arrayLength = ((ArrayFields) ei.getFields()).arrayLength();
-
-                            // MWW: modified to be able to extract array length from spfCase.
-                            arrayInfo.setLength(arrayLength);
-                            // MWW: end of modification.
-
-                            TypeReference arrayType = arrayInfo.arrayType;
-                            Expression pathLabelConstraint = arrayInfo.getPathLabelHole();
-                            Expression arrayConstraint;
-                            if (indexAttr == null) //attribute is null so index is concrete
-                            {
-                                int indexVal = stackFrame.getLocalVariable(((HoleExpression) arrayInfo.arrayIndexHole).getLocalStackSlot());
-                                if (indexVal < 0 || indexVal >= arrayLength) //checking concrete index is out of bound
-                                    return true;
-                                int value = ei.getIntElement(indexVal);
-                                finalValueGreen = SPFToGreenExpr(new IntegerConstant(value));
-                            } else { //index is symbolic - fun starts here :)
-                                finalValueGreen = SPFToGreenExpr(indexAttr);
-                                Expression lhsExpr = retHoleHashMap.get(arrayInfo.lhsExpr);
-                                Expression[] arraySymbConstraint = new Expression[arrayLength];
-                                //Expression arrayLoadResult = new IntVariable("arrayLoadResult", Integer.MIN_VALUE, Integer.MAX_VALUE);
-                                for (int i = 0; i < arrayLength; i++) {//constructing the symbolic index constraint
-                                    Expression exp1 = new Operation(Operation.Operator.EQ, finalValueGreen, new IntConstant(i));
-                                    int value = ei.getIntElement(i);
-                                    Expression exp2 = new Operation(Operation.Operator.EQ, lhsExpr, new IntConstant(value)); //loadArrayElement(ei, arrayType)
-                                    arraySymbConstraint[i] = new Operation(Operation.Operator.IMPLIES, exp1, exp2);
-                                }
-                                arrayConstraint = unrollGreenOrConstraint(arraySymbConstraint);
-                                arrayConstraint = new Operation(Operation.Operator.IMPLIES, pathLabelConstraint, arrayConstraint);
-                                retHoleHashMap.put(keyHoleExpression, arrayConstraint);
-
-                                // MWW: TODO: move this code.
-                                /*
-                                if (outOfBound(arraySymbConstraint, finalValueGreen, ti)) {//outOfBoundException is possible
-                                    Expression lowerBoundConstraint = new Operation(Operation.Operator.GE, finalValueGreen, new IntConstant(0));
-                                    Expression upperBoundConstraint = new Operation(Operation.Operator.LT, finalValueGreen, new IntConstant(arraySymbConstraint.length));
-                                    Expression inBoundConstraint = new Operation(Operation.Operator.AND, lowerBoundConstraint, upperBoundConstraint);
-                                    ExitTransition outOfBoundExit = new ExitTransition(inBoundConstraint, ((HoleExpression) key).getHoleVarName(), pathLabelConstraint);
-                                    region.putExitTransition(outOfBoundExit);
-                                }
-                                */
-                            }
-                            break;
-                        case FIELD_INPUT:
-                            break;
-                        default:
-                            System.out.println("Array type not supported");
-                            break;
-                    }
-
-                    break;
-                default:
-                    break;
-            }
-        }
-        return false;
-    }
-
     private boolean outOfBound(Expression[] arraySymbConstraint, Expression finalValueGreen, ThreadInfo ti) {
         PCChoiceGenerator lastCG = ti.getVM().getSystemState().getLastChoiceGeneratorOfType(PCChoiceGenerator.class);
         PathCondition pcCopy;
@@ -645,15 +566,6 @@ public class VeritestingListener extends PropertyListenerAdapter implements Publ
         Expression outOfBoundConstraint = new Operation(Operation.Operator.OR, lowerOutOfBoundConstraint, upperOutOfBoundConstraint);
         pcCopy._addDet(new GreenConstraint(outOfBoundConstraint));
         return pcCopy.simplify();
-    }
-
-    private Expression unrollGreenOrConstraint(Expression[] arraySymbConstraint) {
-        assert (arraySymbConstraint != null);
-        Expression unrolledConstraint = arraySymbConstraint[0];
-        for (int i = 1; i < arraySymbConstraint.length; i++) {
-            unrolledConstraint = new Operation(Operation.Operator.AND, arraySymbConstraint[i], unrolledConstraint);
-        }
-        return unrolledConstraint;
     }
 
     public static gov.nasa.jpf.symbc.numeric.Expression fillFieldHole(ThreadInfo ti, StackFrame stackFrame,
@@ -1048,6 +960,10 @@ public class VeritestingListener extends PropertyListenerAdapter implements Publ
                 return this;
             }
             retHoleHashMap = fillInputHolesMS.retHoleHashMap;
+
+            FillArrayLoadOutput fillArrayLoadOutput = new FillArrayLoadHoles(ti, methodHoles, retHoleHashMap, additionalAST).invoke();
+            if (!fillArrayLoadOutput.isOk()) return null;
+            additionalAST = fillArrayLoadOutput.getAdditionalAST();
 
             FillInvokeHole fillInvokeHole = new FillInvokeHole(stackFrame, ti, methodHoles, retHoleHashMap, additionalAST).invoke();
             if (fillInvokeHole.is()) {

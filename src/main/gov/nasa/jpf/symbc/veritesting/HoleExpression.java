@@ -310,28 +310,21 @@ public class HoleExpression extends za.ac.sun.cs.green.expr.Expression{
 
     public ArrayInfo getArrayInfo() {return arrayInfo;}
     public void setArrayInfo(Expression arrayRef, Expression arrayIndex, HoleExpression lhsExpr,
-                             TypeReference arrayType, Expression pathLabelHole){
+                             TypeReference arrayType){
         assert(this.holeType== HoleType.ARRAYLOAD);
-        arrayInfo = new ArrayInfo(arrayRef, arrayIndex, lhsExpr, arrayType, pathLabelHole);
+        arrayInfo = new ArrayInfo(arrayRef, arrayIndex, lhsExpr, arrayType);
     }
 
     public class ArrayInfo {
         public Expression arrayRefHole, arrayIndexHole, lhsExpr;
         public TypeReference arrayType;
-        Expression pathLabelHole;
         int length;
 
-        public ArrayInfo(Expression arrayRef, Expression arrayIndex, Expression lhsExpr, TypeReference arrayType,
-                         Expression pathLabelHole){
+        public ArrayInfo(Expression arrayRef, Expression arrayIndex, Expression lhsExpr, TypeReference arrayType){
             this.arrayRefHole = arrayRef;
             this.lhsExpr = lhsExpr;
             this.arrayIndexHole = arrayIndex;
             this.arrayType = arrayType;
-            this.pathLabelHole = pathLabelHole;
-        }
-
-        public Expression getPathLabelHole() {
-            return pathLabelHole;
         }
 
         // instantiation information; transient.

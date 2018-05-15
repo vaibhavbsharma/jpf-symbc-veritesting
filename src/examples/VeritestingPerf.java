@@ -353,7 +353,7 @@ public class VeritestingPerf {
             temp = 2;
         } else {
             // System.out.println("executing else branch");
-            temp = x[index];
+            temp = x[index]+2;
         }
         System.out.println("now temp =" + temp);
         return temp;
