@@ -418,7 +418,7 @@ public class MyIVisitor implements SSAInstruction.IVisitor {
         TrueReason reason = new TrueReason(TrueReason.Cause.EXCEPTION_THROWN);
         SPFCase c = new SPFCase(ExpressionUtil.nonNullOp(Operator.AND, PLAssign, conditionHole), reason);
         varUtil.addSpfCase(c);
-        setCanVeritest(false, instruction);
+        setCanVeritest(true, instruction);
         hasNewOrThrow = true;
     }
 

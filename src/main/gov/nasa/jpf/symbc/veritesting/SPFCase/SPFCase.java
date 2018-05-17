@@ -7,6 +7,8 @@ import za.ac.sun.cs.green.expr.Operation;
 
 import java.util.HashMap;
 
+import static gov.nasa.jpf.symbc.veritesting.ExpressionUtil.replaceCondition;
+
 public class SPFCase {
     private Expression pathConstraint;
     private Expression instantiatedPathConstraint = null;
@@ -27,8 +29,8 @@ public class SPFCase {
         reason.simplify();
     }
 
-    SPFCase cloneEmbedPathConstraint(Expression e) throws StaticRegionException {
-        Expression exp = new Operation(Operation.Operator.AND, e, pathConstraint);
+    SPFCase cloneEmbedPathConstraint(Expression e, Expression cond) throws StaticRegionException {
+        Expression exp = new Operation(Operation.Operator.AND, e, replaceCondition(pathConstraint, cond));
         return new SPFCase(exp, reason.copy());
     }
 

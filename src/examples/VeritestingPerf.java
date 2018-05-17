@@ -30,9 +30,9 @@ public class VeritestingPerf {
         /****************** ArrayLoad Tests ********************/
         //(new VeritestingPerf()).testSegment1(true, true, 2);
         //(new VeritestingPerf()).testSegment2(true, true, 2);
-        (new VeritestingPerf()).inRangeloadArrayTC(22, 2);
-        //(new VeritestingPerf()).innerCatchOutRangeloadArrayTC(22, 2);
-        //(new VeritestingPerf()).outRangeloadArrayTC( 22, 2);
+//        (new VeritestingPerf()).inRangeloadArrayTC(22, 2);
+//        (new VeritestingPerf()).innerCatchOutRangeloadArrayTC(22, 2);
+        (new VeritestingPerf()).outRangeloadArrayTC( 22, 2);
         // (new VeritestingPerf()).catchOutRangeloadArrayTC(22, 2);
         //(new VeritestingPerf()).boundedOutRangeloadArrayTC(22, 2);
         //(new VeritestingPerf()).segmantTest(22, 2);
@@ -374,10 +374,10 @@ public class VeritestingPerf {
             System.out.println("catch array out of bound");
         }
 
-        if (temp == 1)
-            System.out.println("then branch");
-        else
-            System.out.println("else branch");
+//        if (temp == 1)
+//            System.out.println("then branch");
+//        else
+//            System.out.println("else branch");
         return y;
     }
 

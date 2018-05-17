@@ -24,7 +24,7 @@ public class ExpressionUtil {
 
     // Replace all holes of type CONDITION with conditionExpression
     // Replace all holes of type NEGCONDITION with !(conditionExpression)
-    static Expression replaceCondition(Expression summaryExpression, Expression conditionExpression) {
+    public static Expression replaceCondition(Expression summaryExpression, Expression conditionExpression) {
         if(summaryExpression instanceof HoleExpression) {
             Expression ret = summaryExpression;
             if(((HoleExpression)summaryExpression).getHoleType() == HoleExpression.HoleType.CONDITION)

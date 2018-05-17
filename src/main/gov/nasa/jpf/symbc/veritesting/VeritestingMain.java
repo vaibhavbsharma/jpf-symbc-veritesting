@@ -384,7 +384,7 @@ public class VeritestingMain {
                 I would have a co-recursive function that actually built the veritesting region
              */
             List<ISSABasicBlock> succs = new ArrayList<>(cfg.getNormalSuccessors(currUnit));
-            if(currentClassName.contains("VeritestingPerf") && currentMethodName.contains("inRangeloadArrayTC"))
+            if(currentClassName.contains("VeritestingPerf") && currentMethodName.contains("outRangeloadArrayTC"))
 //            if(currentClassName.contains("java.lang.CharacterDataLatin1") && currentMethodName.contains("toLowerCase"))
                 System.out.println("");
             ISSABasicBlock commonSucc = null;
@@ -535,7 +535,8 @@ public class VeritestingMain {
                             // defensive.
                             try {
                                 assert(conditionExpression != null);
-                                SPFCaseList innerCases = innerRegion.getSpfCases().cloneEmbedPathConstraint(outerRegionConditionHole);
+                                SPFCaseList innerCases =
+                                        innerRegion.getSpfCases().cloneEmbedPathConstraint(outerRegionConditionHole, conditionExpression);
                                 varUtil.getSpfCases().addAll(innerCases);
                             } catch (StaticRegionException sre) {
                                 System.out.println("Unable to instantiate spfCases: " + sre.toString());
@@ -676,7 +677,8 @@ public class VeritestingMain {
                             // defensive.
                             try {
                                 // need the negation of the condition expression here.
-                                SPFCaseList innerCases = innerRegion.getSpfCases().cloneEmbedPathConstraint(outerRegionNegConditionHole);
+                                SPFCaseList innerCases =
+                                        innerRegion.getSpfCases().cloneEmbedPathConstraint(outerRegionNegConditionHole, conditionExpression);
                                 varUtil.getSpfCases().addAll(innerCases);
                             } catch (StaticRegionException sre) {
                                 System.out.println("Unable to instantiate spfCases: " + sre.toString());

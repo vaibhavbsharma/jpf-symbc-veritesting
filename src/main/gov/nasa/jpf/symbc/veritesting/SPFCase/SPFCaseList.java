@@ -29,9 +29,9 @@ public class SPFCaseList {
         for (SPFCase c: cases) { c.simplify(); }
     }
 
-    public SPFCaseList cloneEmbedPathConstraint(Expression e) throws StaticRegionException {
+    public SPFCaseList cloneEmbedPathConstraint(Expression e, Expression cond) throws StaticRegionException {
         SPFCaseList cl = new SPFCaseList();
-        for (SPFCase c: cases) {cl.cases.add(c.cloneEmbedPathConstraint(e)); }
+        for (SPFCase c: cases) {cl.cases.add(c.cloneEmbedPathConstraint(e, cond)); }
         return cl;
     }
 

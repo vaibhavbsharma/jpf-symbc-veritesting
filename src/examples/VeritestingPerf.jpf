@@ -16,11 +16,7 @@ symbolic.debug=false
 #symbolic.method=VeritestingPerf.arrayTest(con#sym)
 
 ######## testing ArrrayLoad  ######
-symbolic.method=VeritestingPerf.inRangeloadArrayTC(sym#sym)
-#symbolic.method=VeritestingPerf.innerCatchOutRangeloadArrayTC(sym#sym)
-#symbolic.method=VeritestingPerf.catchOutRangeloadArrayTC(sym#sym)
-#symbolic.method=VeritestingPerf.outRangeloadArrayTC(sym#sym)
-#symbolic.method=VeritestingPerf.boundedOutRangeloadArrayTC(sym#sym)
+symbolic.method=VeritestingPerf.inRangeloadArrayTC(sym#sym),VeritestingPerf.outRangeloadArrayTC(sym#sym),VeritestingPerf.catchOutRangeloadArrayTC(sym#sym),VeritestingPerf.innerCatchOutRangeloadArrayTC(sym#sym),VeritestingPerf.boundedOutRangeloadArrayTC(sym#sym)
 #symbolic.method=VeritestingPerf.segmantTest(sym#sym)
 #symbolic.method=VeritestingPerf.testSegment2(sym#sym#sym)
 

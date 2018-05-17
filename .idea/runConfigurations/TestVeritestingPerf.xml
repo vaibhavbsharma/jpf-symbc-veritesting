@@ -9,7 +9,7 @@
     </extension>
     <module name="jpf-symbc-veritesting" />
     <option name="ALTERNATIVE_JRE_PATH_ENABLED" value="true" />
-    <option name="ALTERNATIVE_JRE_PATH" value="/usr/lib/jvm/java-1.8.0-openjdk-amd64/jre" />
+    <option name="ALTERNATIVE_JRE_PATH" value="1.8.0_144" />
     <option name="PACKAGE_NAME" value="gov.nasa.jpf.symbc" />
     <option name="MAIN_CLASS_NAME" value="gov.nasa.jpf.symbc.TestVeritestingPerf" />
     <option name="METHOD_NAME" value="mainTest" />
@@ -27,7 +27,7 @@
     </envs>
     <patterns />
     <method>
-      <option name="ToolBeforeRunTask" enabled="true" actionId="Tool_External Tools_TestVeritestingPerf-logs-save" />
+      <option name="ToolBeforeRunTask" enabled="true" actionId="Tool_External Tools_TestVeritestingPerf-last-10-logs" />
     </method>
   </configuration>
 </component>
