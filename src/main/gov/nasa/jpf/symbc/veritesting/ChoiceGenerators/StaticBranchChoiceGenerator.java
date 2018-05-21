@@ -1,6 +1,7 @@
 package gov.nasa.jpf.symbc.veritesting.ChoiceGenerators;
 
 import gov.nasa.jpf.jvm.bytecode.IfInstruction;
+import gov.nasa.jpf.symbc.VeritestingListener;
 import gov.nasa.jpf.symbc.bytecode.IFNONNULL;
 import gov.nasa.jpf.symbc.numeric.*;
 import gov.nasa.jpf.symbc.veritesting.StaticRegionException;
@@ -156,6 +157,7 @@ public class StaticBranchChoiceGenerator extends StaticPCChoiceGenerator {
                 if(!pc.simplify())  {// not satisfiable
                     // System.out.println("Then choice unsat!  Instruction: " + instruction.toString());
                     ti.getVM().getSystemState().setIgnored(true);
+                    VeritestingListener.unsatSPFCaseCount++;
                 }else{
                     this.setCurrentPC(pc);
                     // System.out.println("Then choice sat!  Instruction: " + instruction.toString());
@@ -174,6 +176,7 @@ public class StaticBranchChoiceGenerator extends StaticPCChoiceGenerator {
                 if(!pc.simplify())  {// not satisfiable
                     // System.out.println("Else choice unsat!  Instruction: " + instruction.toString());
                     ti.getVM().getSystemState().setIgnored(true);
+                    VeritestingListener.unsatSPFCaseCount++;
                 }else {
                     this.setCurrentPC(pc);
                     // System.out.println("Else choice sat!  Instruction: " + instruction.toString());
@@ -219,6 +222,7 @@ public class StaticBranchChoiceGenerator extends StaticPCChoiceGenerator {
             if (!pc.simplify()) {// not satisfiable
                 // System.out.println("Then choice unsat!  Instruction: " + instruction.toString());
                 ti.getVM().getSystemState().setIgnored(true);
+                VeritestingListener.unsatSPFCaseCount++;
             } else {
                 this.setCurrentPC(pc);
                 // System.out.println("Then choice sat!  Instruction: " + instruction.toString());
@@ -230,6 +234,7 @@ public class StaticBranchChoiceGenerator extends StaticPCChoiceGenerator {
             if (!pc.simplify()) {// not satisfiable
                 // System.out.println("Else choice unsat!  Instruction: " + instruction.toString());
                 ti.getVM().getSystemState().setIgnored(true);
+                VeritestingListener.unsatSPFCaseCount++;
             } else {
                 this.setCurrentPC(pc);
                 // System.out.println("Else choice sat!  Instruction: " + instruction.toString());

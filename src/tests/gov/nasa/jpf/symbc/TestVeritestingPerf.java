@@ -18,29 +18,40 @@ public class TestVeritestingPerf extends InvokeTest {
             ",gov.nasa.jpf.symbc.TestVeritestingPerf.wrapCountBitsSet6(sym)" +
             ",gov.nasa.jpf.symbc.TestVeritestingPerf.wrapCountBitsSet7(sym)" +
             ",gov.nasa.jpf.symbc.TestVeritestingPerf.wrapCountBitsSet8(sym)" +
-            ",gov.nasa.jpf.symbc.TestVeritestingPerf.wrapCountBitsSet9(sym)";
+            ",gov.nasa.jpf.symbc.TestVeritestingPerf.wrapCountBitsSet9(sym)" +
+            ",gov.nasa.jpf.symbc.TestVeritestingPerf.wrapArrayLoad0(sym#sym)" +
+            ",gov.nasa.jpf.symbc.TestVeritestingPerf.wrapArrayLoad1(sym#sym)" +
+            ",gov.nasa.jpf.symbc.TestVeritestingPerf.wrapArrayLoad2(sym#sym)";
     private static final String VM_STORAGE = "+vm.storage.class=nil";
     private static final String DEBUG = "+symbolic.debug=false";
     private static final String SOLVER = "+symbolic.dp=z3bitvector";
     private static final String MIN_INT = "+symbolic.min_int=-16";//2147483648";
     private static final String MAX_INT = "+symbolic.max_int=15";//2147483647";
     private static final String LISTENER = "+listener=gov.nasa.jpf.symbc.VeritestingListener";
-    private static final String VERITESTING_MODE = "+veritestingMode=3";
+    private static final String VERITESTING_MODE_4 = "+veritestingMode=4";
+    private static final String VERITESTING_MODE_3 = "+veritestingMode=3";
     private static final String REPORTER_CONFIG = "+test.report.console.finished=result,statistics";
+    private static final String VERITESTING_DEBUG = "+veritestingDebug = 0";
 
 
 
-    private static final String[] JPF_ARGS_FULL_INT = {INSN_FACTORY, CLASSPATH,
-            SYM_METHOD, VM_STORAGE, DEBUG, SOLVER,
+    private static final String[] FULL_INT_VM4 = {INSN_FACTORY, CLASSPATH,
+            SYM_METHOD, VM_STORAGE, DEBUG, SOLVER,VERITESTING_DEBUG,
             "+symbolic.min_int=-2147483648", "+symbolic.max_int=2147483647", REPORTER_CONFIG,
             LISTENER,
-            VERITESTING_MODE};
+            VERITESTING_MODE_4};
 
-    private static final String[] JPF_ARGS = {INSN_FACTORY, CLASSPATH,
-            SYM_METHOD, VM_STORAGE, DEBUG, SOLVER,
+    private static final String[] FULL_INT_VM3 = {INSN_FACTORY, CLASSPATH,
+            SYM_METHOD, VM_STORAGE, DEBUG, SOLVER,VERITESTING_DEBUG,
+            "+symbolic.min_int=-2147483648", "+symbolic.max_int=2147483647", REPORTER_CONFIG,
+            LISTENER,
+            VERITESTING_MODE_3};
+
+    private static final String[] SMALL_INT_VM4 = {INSN_FACTORY, CLASSPATH,
+            SYM_METHOD, VM_STORAGE, DEBUG, SOLVER,VERITESTING_DEBUG,
             MIN_INT, MAX_INT, REPORTER_CONFIG,
             LISTENER,
-            VERITESTING_MODE};
+            VERITESTING_MODE_4};
 
     public static void main(String[] args) {
         hideSummary = false;
@@ -50,7 +61,7 @@ public class TestVeritestingPerf extends InvokeTest {
     @Test
     public void testNestedRegion() {
         hideSummary = false;
-        if (verifyNoPropertyViolation(JPF_ARGS)) {
+        if (verifyNoPropertyViolation(FULL_INT_VM4)) {
             TestVeritestingPerf test = new TestVeritestingPerf();
 
             test.wrapNestedRegion(0, 0);
@@ -79,7 +90,7 @@ public class TestVeritestingPerf extends InvokeTest {
     @Test
     public void testSimple1() {
         hideSummary = false;
-        if (verifyNoPropertyViolation(JPF_ARGS)) {
+        if (verifyNoPropertyViolation(FULL_INT_VM4)) {
             TestVeritestingPerf test = new TestVeritestingPerf();
             test.wrapSimple1(0);
         }
@@ -100,7 +111,7 @@ public class TestVeritestingPerf extends InvokeTest {
     @Test
     public void testCountBitsSet1() {
         hideSummary = false;
-        if (verifyNoPropertyViolation(JPF_ARGS)) {
+        if (verifyNoPropertyViolation(SMALL_INT_VM4)) {
             TestVeritestingPerf test = new TestVeritestingPerf();
             test.wrapCountBitsSet1(0);
         }
@@ -122,7 +133,7 @@ public class TestVeritestingPerf extends InvokeTest {
     @Test
     public void testCountBitsSet1_1() {
         hideSummary = false;
-        if (verifyNoPropertyViolation(JPF_ARGS)) {
+        if (verifyNoPropertyViolation(SMALL_INT_VM4)) {
             TestVeritestingPerf test = new TestVeritestingPerf();
             test.wrapCountBitsSet1_1(0);
         }
@@ -144,7 +155,7 @@ public class TestVeritestingPerf extends InvokeTest {
     @Test
     public void testCountBitsSet2() {
         hideSummary = false;
-        if (verifyNoPropertyViolation(JPF_ARGS)) {
+        if (verifyNoPropertyViolation(SMALL_INT_VM4)) {
             TestVeritestingPerf test = new TestVeritestingPerf();
             test.wrapCountBitsSet2(0);
         }
@@ -168,7 +179,7 @@ public class TestVeritestingPerf extends InvokeTest {
     @Test
     public void testCountBitsSet2_1() {
         hideSummary = false;
-        if (verifyNoPropertyViolation(JPF_ARGS)) {
+        if (verifyNoPropertyViolation(SMALL_INT_VM4)) {
             TestVeritestingPerf test = new TestVeritestingPerf();
             test.wrapCountBitsSet2_1(0);
         }
@@ -192,7 +203,7 @@ public class TestVeritestingPerf extends InvokeTest {
     @Test
     public void testCountBitsSet3() {
         hideSummary = false;
-        if (verifyNoPropertyViolation(JPF_ARGS)) {
+        if (verifyNoPropertyViolation(SMALL_INT_VM4)) {
             TestVeritestingPerf test = new TestVeritestingPerf();
             test.wrapCountBitsSet3(0);
         }
@@ -217,7 +228,7 @@ public class TestVeritestingPerf extends InvokeTest {
     @Test
     public void testCountBitsSet4() {
         hideSummary = false;
-        if (verifyNoPropertyViolation(JPF_ARGS)) {
+        if (verifyNoPropertyViolation(SMALL_INT_VM4)) {
             TestVeritestingPerf test = new TestVeritestingPerf();
             test.wrapCountBitsSet4(0);
         }
@@ -241,7 +252,7 @@ public class TestVeritestingPerf extends InvokeTest {
     @Test
     public void testCountBitsSet5() {
         hideSummary = false;
-        if (verifyNoPropertyViolation(JPF_ARGS)) {
+        if (verifyNoPropertyViolation(SMALL_INT_VM4)) {
             TestVeritestingPerf test = new TestVeritestingPerf();
             test.wrapCountBitsSet5(0);
         }
@@ -266,7 +277,7 @@ public class TestVeritestingPerf extends InvokeTest {
     @Test
     public void testCountBitsSet6() {
         hideSummary = false;
-        if (verifyNoPropertyViolation(JPF_ARGS)) {
+        if (verifyNoPropertyViolation(SMALL_INT_VM4)) {
             TestVeritestingPerf test = new TestVeritestingPerf();
             test.wrapCountBitsSet6(0);
         }
@@ -291,7 +302,7 @@ public class TestVeritestingPerf extends InvokeTest {
     @Test
     public void testCountBitsSet7() {
         hideSummary = false;
-        if (verifyNoPropertyViolation(JPF_ARGS)) {
+        if (verifyNoPropertyViolation(SMALL_INT_VM4)) {
             TestVeritestingPerf test = new TestVeritestingPerf();
             test.wrapCountBitsSet7(0);
         }
@@ -317,7 +328,7 @@ public class TestVeritestingPerf extends InvokeTest {
     @Test
     public void testCountBitsSet8() {
         hideSummary = false;
-        if (verifyNoPropertyViolation(JPF_ARGS)) {
+        if (verifyNoPropertyViolation(SMALL_INT_VM4)) {
             TestVeritestingPerf test = new TestVeritestingPerf();
             test.wrapCountBitsSet8(0);
         }
@@ -342,7 +353,7 @@ public class TestVeritestingPerf extends InvokeTest {
     public void testCountBitsSet9() {
         hideSummary = false;
 
-        if (verifyNoPropertyViolation(JPF_ARGS_FULL_INT)) {
+        if (verifyNoPropertyViolation(FULL_INT_VM4)) {
             TestVeritestingPerf test = new TestVeritestingPerf();
             test.wrapCountBitsSet9(0);
         }
@@ -362,58 +373,96 @@ public class TestVeritestingPerf extends InvokeTest {
         return count;
     }
 
-//    @Test
-    public void testNestedRegionThrowsException() {
+    @Test
+    public void testArrayLoad0() {
         hideSummary = false;
-        if (verifyNoPropertyViolation(JPF_ARGS)) {
+        if (verifyNoPropertyViolation(FULL_INT_VM3)) {
             TestVeritestingPerf test = new TestVeritestingPerf();
-            test.wrapNestedRegionThrowsException(0);
+            test.wrapArrayLoad0(0, 0);
         }
     }
-    public int wrapNestedRegionThrowsException(int x) {
-        System.out.println("running wrapNestedRegionThrowsException");
-        return nestedRegionThrowsException(x);
+    public int wrapArrayLoad0(int x, int y) {
+        System.out.println("running wrapArrayLoad1");
+        return arrayLoad0(x, y);
     }
-    public int nestedRegionThrowsException(int x) {
-        int count = -1;
-        if (x < 0) {
-            count = 0;
-//            throw new NullPointerException("negative");
-        } else {
-            if (x == 0) throw new NullPointerException("zero");
-            else {
-                if (x == 1) throw new NullPointerException("one");
-                else if (x == 2) throw new NullPointerException("two");
-                else count = 1;
+    public int arrayLoad0(int index, int length) {
+        int[] x = {300, 400};
+        int temp = 1;
+        try {
+            if (length <= 0) {
+                temp = 2;
+            } else {
+                temp = x[index] + 2;
             }
+        } catch (ArrayIndexOutOfBoundsException e) {
+            temp = 3;
         }
-        count += 1000;
-        return count;
+        assert length <= 0 ? temp == 2 : true;
+        assert length > 0 && index == 0 ? temp == 302 : true;
+        assert length > 0 && index == 1 ? temp == 402 : true;
+        assert length > 0 && index != 0 && index != 1 ? temp == 3 : true;
+        return temp;
     }
-
-//    @Test
-    public void testSimpleRegionThrowsException() {
+    @Test
+    public void testArrayLoad1() {
         hideSummary = false;
-        if (verifyNoPropertyViolation(JPF_ARGS)) {
+        if (verifyNoPropertyViolation(FULL_INT_VM4)) {
             TestVeritestingPerf test = new TestVeritestingPerf();
-            test.wrapSimpleRegionThrowsException(0);
+            test.wrapArrayLoad1(0, 0);
         }
     }
-    public int wrapSimpleRegionThrowsException(int x) {
-        System.out.println("running wrapSimpleRegionThrowsException");
-        return simpleRegionThrowsException(x);
+    public int wrapArrayLoad1(int x, int y) {
+        System.out.println("running wrapArrayLoad1");
+        return arrayLoad1(x, y);
     }
-    public int simpleRegionThrowsException(int i) {
-        int ret = -1;
-        TempClass tempClass = new TempClass();
-        if (i < 0) {
-            throw new NullPointerException("negative");
-        } else {
-            ret = ret + tempClass.getTempInt();
+    public int arrayLoad1(int index, int length) {
+        int[] x = {300, 400};
+        int temp = 1;
+        try {
+            if (length <= 0) {
+                temp = 2;
+            } else {
+                temp = x[index] + 2;
+            }
+        } catch (ArrayIndexOutOfBoundsException e) {
+            temp = 3;
+        }
+        assert length <= 0 ? temp == 2 : true;
+        assert length > 0 && index == 0 ? temp == 302 : true;
+        assert length > 0 && index == 1 ? temp == 402 : true;
+        assert length > 0 && index != 0 && index != 1 ? temp == 3 : true;
+        return temp;
+    }
 
+    @Test
+    public void testArrayLoad2() {
+        hideSummary = false;
+        if (verifyNoPropertyViolation(FULL_INT_VM4)) {
+            TestVeritestingPerf test = new TestVeritestingPerf();
+            test.wrapArrayLoad2(0, 0);
         }
-        ret += 1;
-        return ret;
+    }
+    public int wrapArrayLoad2(int x, int y) {
+        System.out.println("running wrapArrayLoad1");
+        return arrayLoad2(x, y);
+    }
+    public int arrayLoad2(int index, int length) throws ArrayIndexOutOfBoundsException {
+        int[] x = {300};
+        int temp = 1;
+        try {
+            if (length > 0) {
+                temp = x[index];
+            } else {
+                temp = 2;
+            }
+        } catch (ArrayIndexOutOfBoundsException e) {
+            System.out.println("catch array out of bound");
+            temp = 3;
+        }
+        assert ((length <= 0) ? (temp == 2) : true);
+        assert (length > 0) && (index == 0)? (temp == 300 ) : true;
+        assert (length > 0) && (index != 0)? (temp == 3 ) : true;
+        return 0;
     }
 }
 

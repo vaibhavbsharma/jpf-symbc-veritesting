@@ -30,9 +30,9 @@ public class VeritestingPerf {
         /****************** ArrayLoad Tests ********************/
         //(new VeritestingPerf()).testSegment1(true, true, 2);
         //(new VeritestingPerf()).testSegment2(true, true, 2);
-//        (new VeritestingPerf()).inRangeloadArrayTC(22, 2);
+        (new VeritestingPerf()).inRangeloadArrayTC(22, 2);
 //        (new VeritestingPerf()).innerCatchOutRangeloadArrayTC(22, 2);
-        (new VeritestingPerf()).outRangeloadArrayTC( 22, 2);
+//        (new VeritestingPerf()).outRangeloadArrayTC( 22, 2);
         // (new VeritestingPerf()).catchOutRangeloadArrayTC(22, 2);
         //(new VeritestingPerf()).boundedOutRangeloadArrayTC(22, 2);
         //(new VeritestingPerf()).segmantTest(22, 2);
@@ -348,37 +348,50 @@ public class VeritestingPerf {
     public int inRangeloadArrayTC(int index, int length) {
         int[] x = {300, 400};
         int temp = 1;
-        if (length > 0) {
-            //     System.out.println("executing then branch");
-            temp = 2;
-        } else {
-            // System.out.println("executing else branch");
-            temp = x[index]+2;
+        try {
+            if (length <= 0) {
+                //     System.out.println("executing then branch");
+                temp = 2;
+            } else {
+                // System.out.println("executing else branch");
+                temp = x[index] + 2;
+            }
+        } catch (ArrayIndexOutOfBoundsException e) {
+            temp = 3;
         }
-        System.out.println("now temp =" + temp);
+        assert length <= 0 ? temp == 2 : true;
+        assert length > 0 && index == 0 ? temp == 302 : true;
+        assert length > 0 && index == 1 ? temp == 402 : true;
+        assert length > 0 && index != 0 && index != 1 ? temp == 3 : true;
+//        Debug.printPC("vaibhav: pc = ");
+//        System.out.println("temp = " + temp);
         return temp;
     }
 
     //testing outRangeArrayLoad for symbolic index
     public int outRangeloadArrayTC(int index, int length) throws ArrayIndexOutOfBoundsException {
         int[] x = {300};
-        int temp = 2;
-        int y = 1;
+        int temp = 1;
         try {
             if (length > 0) {
                 temp = x[index];
             } else {
-                temp = 1;
+                temp = 2;
             }
         } catch (ArrayIndexOutOfBoundsException e) {
-            System.out.println("catch array out of bound");
+            System.out.println("catch array out of bound, length = " + length + ", index = " + index);
+            temp = 3;
         }
+        System.out.println("temp = " + temp);
 
+        assert ((length <= 0) ? (temp == 2) : true);
+        assert (length > 0) && (index == 0)? (temp == 300 ) : true;
+        assert (length > 0) && (index != 0)? (temp == 3 ) : true;
 //        if (temp == 1)
 //            System.out.println("then branch");
 //        else
 //            System.out.println("else branch");
-        return y;
+        return 0;
     }
 
     public int catchOutRangeloadArrayTC(int index, int length) throws ArrayIndexOutOfBoundsException {

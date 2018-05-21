@@ -2,10 +2,7 @@ package gov.nasa.jpf.symbc.veritesting;
 
 
 /*
-  Command used to copy WALA jar files to jpf-symbc/lib
-  for file in `ls -l ~/git_repos/MyWALA/ | grep ^d | tr -s ' ' | cut -d ' ' -f 9 | grep -v jars | grep -v target`; do
-    cp ~/git_repos/MyWALA/$file/target/*.jar ~/IdeaProjects/jpf-symbc/lib/;
-  done
+
 */
 import java.io.File;
 import java.io.IOException;
@@ -15,13 +12,9 @@ import java.net.URL;
 import java.net.URLClassLoader;
 import java.util.*;
 
-import com.ibm.wala.cfg.CFGSanitizer;
 import com.ibm.wala.cfg.Util;
-import com.ibm.wala.classLoader.CallSiteReference;
 import com.ibm.wala.classLoader.IBytecodeMethod;
-import com.ibm.wala.classLoader.IClass;
 import com.ibm.wala.classLoader.IMethod;
-import com.ibm.wala.core.tests.callGraph.CallGraphTestUtil;
 import com.ibm.wala.ipa.callgraph.AnalysisCacheImpl;
 import com.ibm.wala.ipa.callgraph.AnalysisOptions;
 import com.ibm.wala.ipa.callgraph.AnalysisScope;
@@ -29,13 +22,11 @@ import com.ibm.wala.ipa.callgraph.IAnalysisCacheView;
 import com.ibm.wala.ipa.callgraph.impl.Everywhere;
 import com.ibm.wala.ipa.cha.ClassHierarchy;
 import com.ibm.wala.ipa.cha.ClassHierarchyFactory;
-import com.ibm.wala.shrikeBT.IInstruction;
 import com.ibm.wala.shrikeCT.InvalidClassFileException;
 import com.ibm.wala.ssa.*;
 import com.ibm.wala.types.MethodReference;
 import com.ibm.wala.util.WalaException;
 import com.ibm.wala.util.config.AnalysisScopeReader;
-import com.ibm.wala.util.debug.Assertions;
 import com.ibm.wala.util.graph.NumberedGraph;
 import com.ibm.wala.util.graph.dominators.Dominators;
 import com.ibm.wala.util.graph.dominators.NumberedDominators;
@@ -78,6 +69,7 @@ public class VeritestingMain {
     HashSet<NatLoop> loops;
     IR ir;
     private String currentPackageName;
+    private VeriCFGSanitizer sanitizer;
 
     public VeritestingMain(String appJar) {
         try {
@@ -86,21 +78,12 @@ public class VeritestingMain {
             AnalysisScope scope = AnalysisScopeReader.makeJavaBinaryAnalysisScope(appJar,
                     (new FileProvider()).getFile("../MyJava60RegressionExclusions.txt"));
             cha = ClassHierarchyFactory.make(scope);
-            methodSummaryClassNames = new HashSet<String>();
-            VeritestingListener.veritestingRegions = new HashMap<String, VeritestingRegion>();
+            methodSummaryClassNames = new HashSet<>();
+            VeritestingListener.veritestingRegions = new HashMap<>();
+            sanitizer = new VeriCFGSanitizer(false, true);
         } catch (WalaException | IOException e) {
             e.printStackTrace();
         }
-    }
-    /*public static void main(String[] args) {
-        endingInsnsHash = new HashSet();
-        new MyAnalysis(args[1], args[3]);
-    }*/
-    public int getObjectReference() {
-        return objectReference;
-    }
-    public void setObjectReference(int objectReference) {
-        this.objectReference = objectReference;
     }
 
     public void analyzeForVeritesting(ThreadInfo ti, String classPath, String _className) {
@@ -127,11 +110,13 @@ public class VeritestingMain {
                 startAnalysis(getPackageName(_className),_className,signature);
             }
             if(VeritestingListener.veritestingMode <= 2) return;
-            for(Iterator it = methodSummaryClassNames.iterator(); it.hasNext();) {
-                String methodSummaryClassName = (String) it.next();
+            for (String methodSummaryClassName : methodSummaryClassNames) {
                 Class cAdditional;
-                try { cAdditional = urlcl.loadClass(methodSummaryClassName); }
-                catch (ClassNotFoundException e) { continue; }
+                try {
+                    cAdditional = urlcl.loadClass(methodSummaryClassName);
+                } catch (ClassNotFoundException e) {
+                    continue;
+                }
                 Method[] allMethodsAdditional;
                 try {
                     allMethodsAdditional = cAdditional.getDeclaredMethods();
@@ -147,11 +132,13 @@ public class VeritestingMain {
             }
             //summarize methods inside all methods discovered so far
             methodAnalysis = true;
-            for(Iterator it = methodSummaryClassNames.iterator(); it.hasNext();) {
-                String methodSummaryClassName = (String) it.next();
+            for (String methodSummaryClassName : methodSummaryClassNames) {
                 Class cAdditional;
-                try { cAdditional = urlcl.loadClass(methodSummaryClassName); }
-                catch (ClassNotFoundException e) { continue; }
+                try {
+                    cAdditional = urlcl.loadClass(methodSummaryClassName);
+                } catch (ClassNotFoundException e) {
+                    continue;
+                }
                 Method[] allMethodsAdditional;
                 try {
                     allMethodsAdditional = cAdditional.getDeclaredMethods();
@@ -175,7 +162,7 @@ public class VeritestingMain {
         else return null;
     }
 
-    public void startAnalysis(String packageName, String className, String methodSig) {
+    private void startAnalysis(String packageName, String className, String methodSig) {
         try {
 
             MethodReference mr = StringStuff.makeMethodReference(className + "." + methodSig);
@@ -293,14 +280,13 @@ public class VeritestingMain {
 
         MyIVisitor myIVisitor;
         Expression phiExprSPF, finalPathExpr = pathExpr1;
-        Iterator<SSAInstruction> iterator = commonSucc.iterator();
-        while(iterator.hasNext()) {
+        for (SSAInstruction aCommonSucc : commonSucc) {
             // visit instructions one at a time, break on the first non-phi statement because a region summary starts at
             // the condition and ends at the meet point. The meet point ends at the first non-phi statement. Any outer
             // region that encapsulates this inner region will have to summarize statements that appear after the first
             // non-phi statement in this basic block.
             myIVisitor = new MyIVisitor(varUtil, thenUseNum, elseUseNum, true, null, null);
-            iterator.next().visit(myIVisitor);
+            aCommonSucc.visit(myIVisitor);
             if (myIVisitor.hasPhiExpr()) {
                 phiExprSPF = myIVisitor.getPhiExprSPF(thenPLAssignSPF, elsePLAssignSPF);
                 finalPathExpr =
@@ -365,13 +351,11 @@ public class VeritestingMain {
 
         ISSABasicBlock currUnit = startingUnit;
         if (startingPointsHistory.contains(startingUnit)) return;
-        Expression methodExpression = null;
-        HashSet<Integer> methodSummarizedRegionStartBB = new HashSet<>();
         while (true) {
             if (currUnit == null || currUnit == endingUnit) break;
 
             /*
-                Get the list of normal successors (excluding JVM-generated exceptions) and find find their
+                Get the list of normal successors (excluding JVM-generated exceptions) and find their
                 common successor.  If there is no successors, exit, and if only one successor, immediately
                 continue exploration.  The interesting case involves 2 successors.
                 endingUnit can be null.
@@ -387,9 +371,9 @@ public class VeritestingMain {
             if(currentClassName.contains("VeritestingPerf") && currentMethodName.contains("outRangeloadArrayTC"))
 //            if(currentClassName.contains("java.lang.CharacterDataLatin1") && currentMethodName.contains("toLowerCase"))
                 System.out.println("");
-            ISSABasicBlock commonSucc = null;
+            ISSABasicBlock commonSucc;
             try {
-                commonSucc = cfg.getIPdom(currUnit.getNumber(), true, false, ir, cha);
+                commonSucc = cfg.getIPdom(currUnit.getNumber(), sanitizer, ir, cha);
             } catch (WalaException|IllegalArgumentException e) {
                 //The IllegalArgumentException happens when we try to find the immediate post-dominator of basic blocks
                 // that are inside an infinite loop. An infinite loop body does not have a path to the exit node.
@@ -438,9 +422,9 @@ public class VeritestingMain {
 
                 // constructing path labels.
                 Expression thenExpr = null, elseExpr = null;
-                String pathLabelString = "pathLabel" + varUtil.getPathCounter();
-                final int thenPathLabel = varUtil.getPathCounter();
-                final int elsePathLabel = varUtil.getPathCounter();
+                String pathLabelString = "pathLabel" + VarUtil.getPathCounter();
+                final int thenPathLabel = VarUtil.getPathCounter();
+                final int elsePathLabel = VarUtil.getPathCounter();
                 ISSABasicBlock thenPred = thenUnit, elsePred = elseUnit;
                 int thenUseNum = -1, elseUseNum = -1;
                 Expression pathLabel = varUtil.makeIntermediateVar(pathLabelString, true, null);
@@ -515,7 +499,7 @@ public class VeritestingMain {
                             if(!canVeritest) break;
                             ISSABasicBlock commonSuccthenUnit;
                             try {
-                                commonSuccthenUnit = cfg.getIPdom(thenUnit.getNumber(), true, false, ir, cha);
+                                commonSuccthenUnit = cfg.getIPdom(thenUnit.getNumber(), sanitizer, ir, cha);
                             } catch (WalaException|IllegalArgumentException  e) {
                                 System.out.println(e.getMessage() + "\nran into WalaException|IllegalArgumentException  on cfg.getIPdom(thenUnit = " + thenUnit.toString() + ")");
                                 return;
@@ -656,7 +640,7 @@ public class VeritestingMain {
                             if(!canVeritest) break;
                             ISSABasicBlock commonSuccelseUnit ;
                             try {
-                                commonSuccelseUnit = cfg.getIPdom(elseUnit.getNumber(), true, false, ir, cha);
+                                commonSuccelseUnit = cfg.getIPdom(elseUnit.getNumber(), sanitizer, ir, cha);
                             } catch (WalaException|IllegalArgumentException  e) {
                                 System.out.println(e.getMessage() +
                                         "\nran into WalaException|IllegalArgumentException  on cfg.getIPdom(elseUnit = "
@@ -751,7 +735,7 @@ public class VeritestingMain {
                         thenUseNum = Util.whichPred(cfg, thenPred, commonSucc);
                     if(elsePred != null)
                         elseUseNum = Util.whichPred(cfg, elsePred, commonSucc);
-                    VeritestingRegion veritestingRegion = null;
+                    VeritestingRegion veritestingRegion;
                     try {
                         veritestingRegion = constructVeritestingRegion(thenExpr, elseExpr,
                                 thenPLAssign, elsePLAssign,
@@ -830,7 +814,7 @@ public class VeritestingMain {
             ISSABasicBlock commonSucc = null;
             try {
                 if(currUnit.isExitBlock()) commonSucc = currUnit;
-                else commonSucc = cfg.getIPdom(currUnit.getNumber(), true, false, ir, cha);
+                else commonSucc = cfg.getIPdom(currUnit.getNumber(), sanitizer, ir, cha);
             } catch (WalaException|IllegalArgumentException  e) {
             }
             if (commonSucc == null)
@@ -959,10 +943,6 @@ public class VeritestingMain {
 
         boolean isCanVeritest() {
             return canVeritest;
-        }
-
-        public Expression getLastExpression() {
-            return lastExpression;
         }
 
         public BlockSummary invoke() {

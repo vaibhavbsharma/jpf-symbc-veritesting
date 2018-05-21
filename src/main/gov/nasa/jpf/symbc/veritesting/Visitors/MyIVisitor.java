@@ -23,6 +23,8 @@ import za.ac.sun.cs.green.expr.Operation.Operator;
 
 import java.util.ArrayList;
 
+import static gov.nasa.jpf.symbc.VeritestingListener.DEBUG_VERBOSE;
+
 public class MyIVisitor implements SSAInstruction.IVisitor {
     private final HoleExpression conditionHole;
     private int thenUseNum;
@@ -93,14 +95,18 @@ public class MyIVisitor implements SSAInstruction.IVisitor {
     @Override
     public void visitGoto(SSAGotoInstruction instruction) {
         if(isMeetVisitor) return;
-        System.out.println("SSAGotoInstruction = " + instruction);
+        LogUtil.log(DEBUG_VERBOSE, "SSAGotoInstruction = " + instruction);
         setCanVeritest(true, instruction);
     }
 
     @Override
     public void visitArrayLoad(SSAArrayLoadInstruction instruction) {
         if(isMeetVisitor) return;
-        System.out.println("SSAArrayLoadInstruction = " + instruction);
+        LogUtil.log(DEBUG_VERBOSE, "SSAArrayLoadInstruction = " + instruction);
+        if (VeritestingListener.veritestingMode < 4) {
+            setCanVeritest(false, instruction);
+            return;
+        }
         int lhs = instruction.getDef();
         HoleExpression lhsExpr = (HoleExpression) varUtil.makeIntermediateVar(lhs, true, PLAssign);
         // Expression arrayLoadResult = new IntVariable("arrayLoadResult", Integer.MIN_VALUE, Integer.MAX_VALUE);
@@ -126,14 +132,14 @@ public class MyIVisitor implements SSAInstruction.IVisitor {
     @Override
     public void visitArrayStore(SSAArrayStoreInstruction instruction) {
         if(isMeetVisitor) return;
-        System.out.println("SSAArrayStoreInstruction = " + instruction);
+        LogUtil.log(DEBUG_VERBOSE, "SSAArrayStoreInstruction = " + instruction);
         setCanVeritest(false, instruction);
     }
 
     @Override
     public void visitBinaryOp(SSABinaryOpInstruction instruction) {
         if(isMeetVisitor) return;
-        System.out.println("SSABinaryOpInstruction = " + instruction);
+        LogUtil.log(DEBUG_VERBOSE, "SSABinaryOpInstruction = " + instruction);
         assert(instruction.getNumberOfUses()==2);
         assert(instruction.getNumberOfDefs()==1);
         if (instruction.mayBeIntegerOp() != true) {
@@ -188,7 +194,7 @@ public class MyIVisitor implements SSAInstruction.IVisitor {
     @Override
     public void visitUnaryOp(SSAUnaryOpInstruction instruction) {
         if(isMeetVisitor) return;
-        System.out.println("SSAUnaryOpInstruction = " + instruction);
+        LogUtil.log(DEBUG_VERBOSE, "SSAUnaryOpInstruction = " + instruction);
         //TODO: make SPFExpr
         setCanVeritest(false, instruction);
     }
@@ -196,21 +202,21 @@ public class MyIVisitor implements SSAInstruction.IVisitor {
     @Override
     public void visitConversion(SSAConversionInstruction instruction) {
         if(isMeetVisitor) return;
-        System.out.println("SSAConversionInstruction = " + instruction);
+        LogUtil.log(DEBUG_VERBOSE, "SSAConversionInstruction = " + instruction);
         setCanVeritest(false, instruction);
     }
 
     @Override
     public void visitComparison(SSAComparisonInstruction instruction) {
         if(isMeetVisitor) return;
-        System.out.println("SSAComparisonInstruction = " + instruction);
+        LogUtil.log(DEBUG_VERBOSE, "SSAComparisonInstruction = " + instruction);
         setCanVeritest(false, instruction);
     }
 
     @Override
     public void visitConditionalBranch(SSAConditionalBranchInstruction instruction) {
         if(isMeetVisitor) return;
-        System.out.println("SSAConditionalBranchInstruction = " + instruction);
+        LogUtil.log(DEBUG_VERBOSE, "SSAConditionalBranchInstruction = " + instruction);
         if(!instruction.isIntegerComparison()) {
             System.out.println("can only veritest with integer comparison-containing conditional branch instructions\n");
             canVeritest=false;
@@ -249,14 +255,14 @@ public class MyIVisitor implements SSAInstruction.IVisitor {
     @Override
     public void visitSwitch(SSASwitchInstruction instruction) {
         if(isMeetVisitor) return;
-        System.out.println("SSASwitchInstruction = " + instruction);
+        LogUtil.log(DEBUG_VERBOSE, "SSASwitchInstruction = " + instruction);
         setCanVeritest(false, instruction);
     }
 
     @Override
     public void visitReturn(SSAReturnInstruction instruction) {
         if(isMeetVisitor) return;
-        System.out.println("SSAReturnInstruction = " + instruction);
+        LogUtil.log(DEBUG_VERBOSE, "SSAReturnInstruction = " + instruction);
         //we can only handle a return value not associated with an object
         if (instruction.getNumberOfUses() > 1) {
             setCanVeritest(false, instruction);
@@ -283,7 +289,7 @@ public class MyIVisitor implements SSAInstruction.IVisitor {
     @Override
     public void visitGet(SSAGetInstruction instruction) {
         if(isMeetVisitor) return;
-        System.out.println("SSAGetInstruction = " + instruction);
+        LogUtil.log(DEBUG_VERBOSE, "SSAGetInstruction = " + instruction);
         int objRef;
         if(instruction.isStatic()) {
             assert (instruction.getNumberOfDefs() == 1);
@@ -303,7 +309,7 @@ public class MyIVisitor implements SSAInstruction.IVisitor {
             declaringClass = packageName + "." + declaringClass;
         }
         String fieldName = fieldReference.getName().toString();
-        System.out.println("declaringClass = " + declaringClass + ", currentMethodName = " + fieldName);
+        LogUtil.log(DEBUG_VERBOSE, "declaringClass = " + declaringClass + ", currentMethodName = " + fieldName);
         int def = instruction.getDef(0);
         if(varUtil.addFieldInputVal(def, objRef, declaringClass, fieldName,
                 instruction.isStatic(), this.PLAssign) == null) {
@@ -316,7 +322,7 @@ public class MyIVisitor implements SSAInstruction.IVisitor {
     @Override
     public void visitPut(SSAPutInstruction instruction) {
         if(isMeetVisitor) return;
-        System.out.println("SSAPutInstruction = " + instruction);
+        LogUtil.log(DEBUG_VERBOSE, "SSAPutInstruction = " + instruction);
         String holeName = "";
         if(instruction.isStatic()) {
             assert(instruction.getNumberOfUses()==1);
@@ -349,7 +355,7 @@ public class MyIVisitor implements SSAInstruction.IVisitor {
 
     @Override
     public void visitInvoke(SSAInvokeInstruction instruction) {
-        System.out.println("SSAInvokeInstruction = " + instruction);
+        LogUtil.log(DEBUG_VERBOSE, "SSAInvokeInstruction = " + instruction);
         MethodReference methodReference = instruction.getDeclaredTarget();
         CallSiteReference site = instruction.getCallSite();
         //Only adding support for invokeVirtual statements
@@ -392,7 +398,7 @@ public class MyIVisitor implements SSAInstruction.IVisitor {
     @Override
     public void visitNew(SSANewInstruction instruction) {
         if(isMeetVisitor) return;
-        System.out.println("SSANewInstruction = " + instruction);
+        LogUtil.log(DEBUG_VERBOSE, "SSANewInstruction = " + instruction);
         if (VeritestingListener.veritestingMode < 4) {
             setCanVeritest(false, instruction);
             return;
@@ -407,14 +413,18 @@ public class MyIVisitor implements SSAInstruction.IVisitor {
     @Override
     public void visitArrayLength(SSAArrayLengthInstruction instruction) {
         if(isMeetVisitor) return;
-        System.out.println("SSAArrayLengthInstruction = " + instruction);
+        LogUtil.log(DEBUG_VERBOSE, "SSAArrayLengthInstruction = " + instruction);
         setCanVeritest(false, instruction);
     }
 
     @Override
     public void visitThrow(SSAThrowInstruction instruction) {
         if(isMeetVisitor) return;
-        System.out.println("SSAThrowInstruction = " + instruction);
+        LogUtil.log(DEBUG_VERBOSE, "SSAThrowInstruction = " + instruction);
+        if (VeritestingListener.veritestingMode < 4) {
+            setCanVeritest(false, instruction);
+            return;
+        }
         TrueReason reason = new TrueReason(TrueReason.Cause.EXCEPTION_THROWN);
         SPFCase c = new SPFCase(ExpressionUtil.nonNullOp(Operator.AND, PLAssign, conditionHole), reason);
         varUtil.addSpfCase(c);
@@ -425,21 +435,21 @@ public class MyIVisitor implements SSAInstruction.IVisitor {
     @Override
     public void visitMonitor(SSAMonitorInstruction instruction) {
         if(isMeetVisitor) return;
-        System.out.println("SSAMonitorInstruction = " + instruction);
+        LogUtil.log(DEBUG_VERBOSE, "SSAMonitorInstruction = " + instruction);
         setCanVeritest(false, instruction);
     }
 
     @Override
     public void visitCheckCast(SSACheckCastInstruction instruction) {
         if(isMeetVisitor) return;
-        System.out.println("SSACheckCastInstruction = " + instruction);
+        LogUtil.log(DEBUG_VERBOSE, "SSACheckCastInstruction = " + instruction);
         setCanVeritest(false, instruction);
     }
 
     @Override
     public void visitInstanceof(SSAInstanceofInstruction instruction) {
         if(isMeetVisitor) return;
-        System.out.println("SSAInstanceofInstruction = " + instruction);
+        LogUtil.log(DEBUG_VERBOSE, "SSAInstanceofInstruction = " + instruction);
         setCanVeritest(false, instruction);
     }
 
@@ -449,7 +459,7 @@ public class MyIVisitor implements SSAInstruction.IVisitor {
             setCanVeritest(true, instruction);
             return;
         }
-        System.out.println("SSAPhiInstruction = " + instruction);
+        LogUtil.log(DEBUG_VERBOSE, "SSAPhiInstruction = " + instruction);
         assert(instruction.getNumberOfUses()>=2);
         assert(instruction.getNumberOfDefs()==1);
 
@@ -473,21 +483,21 @@ public class MyIVisitor implements SSAInstruction.IVisitor {
     @Override
     public void visitPi(SSAPiInstruction instruction) {
         if(isMeetVisitor) return;
-        System.out.println("SSAPiInstruction = " + instruction);
+        LogUtil.log(DEBUG_VERBOSE, "SSAPiInstruction = " + instruction);
         setCanVeritest(false, instruction);
     }
 
     @Override
     public void visitGetCaughtException(SSAGetCaughtExceptionInstruction instruction) {
         if(isMeetVisitor) return;
-        System.out.println("SSAGetCaughtExceptionInstruction = " + instruction);
+        LogUtil.log(DEBUG_VERBOSE, "SSAGetCaughtExceptionInstruction = " + instruction);
         setCanVeritest(false, instruction);
     }
 
     @Override
     public void visitLoadMetadata(SSALoadMetadataInstruction instruction) {
         if(isMeetVisitor) return;
-        System.out.println("SSALoadMetadataInstruction = " + instruction);
+        LogUtil.log(DEBUG_VERBOSE, "SSALoadMetadataInstruction = " + instruction);
         setCanVeritest(false, instruction);
     }
 

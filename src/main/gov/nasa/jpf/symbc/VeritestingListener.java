@@ -79,7 +79,7 @@ public class VeritestingListener extends PropertyListenerAdapter implements Publ
     public static final int DEBUG_MEDIUM = 2;
     public static final int DEBUG_VERBOSE = 3;
     public static int veritestingMode = 0;
-    public static int debug = 0;
+    public static int debug = DEBUG_VERBOSE;
 
     public static long totalSolverTime = 0, z3Time = 0;
     public static long parseTime = 0;
@@ -87,6 +87,7 @@ public class VeritestingListener extends PropertyListenerAdapter implements Publ
     public static long cleanupTime = 0;
     public static int solverCount = 0;
     private static int pathLabelCount = 1;
+    public static int unsatSPFCaseCount = 0;
     private long staticAnalysisTime = 0;
     //These counts are incremented during static analysis once per operation encountered across all the region summaries
     public static int fieldReadAfterWrite = 0;
@@ -118,6 +119,8 @@ public class VeritestingListener extends PropertyListenerAdapter implements Publ
                     if (conf.hasValue("pathToZ3Binary"))
                         pathToZ3Binary = conf.getString("pathToZ3Binary");
                 }
+                if (conf.hasValue("veritestingDebug"))
+                    debug = conf.getInt("veritestingDebug");
             }
         } else {
             System.out.println("* Warning: no veritestingMode specified");
@@ -419,6 +422,7 @@ public class VeritestingListener extends PropertyListenerAdapter implements Publ
         for (String region: regions) {
             System.out.println(region);
         }
+        System.out.println("VeritestingListener.unsatSPFCaseCount = " + unsatSPFCaseCount);
 
     }
 

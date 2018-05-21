@@ -101,6 +101,8 @@
     <NATIVE>
       <root url="file://$PROJECT_DIR$/lib" />
     </NATIVE>
-    <SOURCES />
+    <SOURCES>
+      <root url="jar://$PROJECT_DIR$/lib/com.ibm.wala.core-1.4.4-SNAPSHOT-sources.jar!/" />
+    </SOURCES>
   </library>
 </component>
