@@ -4,6 +4,7 @@ package gov.nasa.jpf.symbc.veritesting;
 /*
 
 */
+
 import java.io.File;
 import java.io.IOException;
 import java.lang.reflect.Method;
@@ -102,14 +103,14 @@ public class VeritestingMain {
                 allMethods = c.getDeclaredMethods();
             } catch (NoClassDefFoundError n) {
                 System.out.println("NoClassDefFoundError for className = " + _className + "\n " +
-                    n.getMessage());
+                        n.getMessage());
                 return;
             }
             for (Method m : allMethods) {
                 String signature = getSignature(m);
-                startAnalysis(getPackageName(_className),_className,signature);
+                startAnalysis(getPackageName(_className), _className, signature);
             }
-            if(VeritestingListener.veritestingMode <= 2) return;
+            if (VeritestingListener.veritestingMode <= 2) return;
             for (String methodSummaryClassName : methodSummaryClassNames) {
                 Class cAdditional;
                 try {
@@ -193,10 +194,9 @@ public class VeritestingMain {
             HashSet<Integer> visited = new HashSet<>();
             NatLoopSolver.findAllLoops(cfg, uninverteddom, loops, visited, cfg.getNode(0));
             // Here is where the magic happens.
-            if(!methodAnalysis) {
+            if (!methodAnalysis) {
                 doAnalysis(cfg.entry(), null);
-            }
-            else doMethodAnalysis(cfg.entry(), cfg.exit());
+            } else doMethodAnalysis(cfg.entry(), cfg.exit());
         } catch (InvalidClassFileException e) {
             e.printStackTrace();
         } catch (StaticRegionException e) {
@@ -236,8 +236,8 @@ public class VeritestingMain {
         if (elseExpr != null)
             elseExpr = new Operation(Operation.Operator.AND, elseExpr, elsePLAssignSPF);
         else elseExpr = elsePLAssignSPF;
-        assert(ExpressionUtil.isNoHoleLeftBehind(thenExpr, varUtil.holeHashMap));
-        assert(ExpressionUtil.isNoHoleLeftBehind(elseExpr, varUtil.holeHashMap));
+        assert (ExpressionUtil.isNoHoleLeftBehind(thenExpr, varUtil.holeHashMap));
+        assert (ExpressionUtil.isNoHoleLeftBehind(elseExpr, varUtil.holeHashMap));
 
         // (If && thenExpr) || (ifNot && elseExpr)
 
@@ -248,14 +248,14 @@ public class VeritestingMain {
         // varUtil.defLocalVars because every FIELD_OUTPUT hole is already in region.outputVars.
         Iterator itr = varUtil.defLocalVars.iterator();
         HashSet<HoleExpression> extraHoles = new HashSet<>();
-        while(itr.hasNext()) {
+        while (itr.hasNext()) {
             HoleExpression h = (HoleExpression) itr.next();
-            if(h.getHoleType() == FIELD_OUTPUT) {
+            if (h.getHoleType() == FIELD_OUTPUT) {
                 HoleExpression h1 = new HoleExpression(VarUtil.nextInt(), h.getClassName(), h.getMethodName(),
                         HoleExpression.HoleType.FIELD_PHI, null, h.getLocalStackSlot(), h.getGlobalStackSlot());
                 h1.setFieldInfo(h.getFieldInfo());
                 h1.getFieldInfo().writeValue = null;
-                h1.setHoleVarName(h.getHoleVarName().replaceAll("put","PHI"));
+                h1.setHoleVarName(h.getHoleVarName().replaceAll("put", "PHI"));
 
                 HoleExpression fieldInput = new HoleExpression(VarUtil.nextInt(), h.getClassName(), h.getMethodName(),
                         HoleExpression.HoleType.FIELD_INPUT, null, h.getLocalStackSlot(), h.getGlobalStackSlot());
@@ -263,14 +263,14 @@ public class VeritestingMain {
                 fieldInput.setFieldInfo(f.getFieldStaticClassName(), f.fieldName, f.methodName, null, f.isStaticField,
                         f.useHole);
                 fieldInput.getFieldInfo().writeValue = null;
-                fieldInput.setHoleVarName(h.getHoleVarName().replaceAll("put","PHI_INPUT"));
+                fieldInput.setHoleVarName(h.getHoleVarName().replaceAll("put", "PHI_INPUT"));
                 MapUtil.add(varUtil.holeHashMap, 0, fieldInput, fieldInput);
                 h1.getFieldInfo().setFieldInputHole(fieldInput);
                 extraHoles.add(h1);
                 extraHoles.add(fieldInput);
             }
         }
-        for(HoleExpression e: extraHoles) {
+        for (HoleExpression e : extraHoles) {
             varUtil.varCache.put(e.getHoleVarName(), e);
         }
         Expression pathExpr1 =
@@ -299,15 +299,14 @@ public class VeritestingMain {
         if (ir.getControlFlowGraph().exit() == commonSucc) {
             endingBC = -1; // for debugging situations where the common successor is the exit node of the CFG
         }
-        if(commonSucc.getFirstInstructionIndex() == -1) {
+        if (commonSucc.getFirstInstructionIndex() == -1) {
             if (ir.getControlFlowGraph().exit() == commonSucc) {
                 SSAInstruction[] insns = ir.getInstructions();
-                endingBC = ((IBytecodeMethod) (ir.getMethod())).getBytecodeIndex(insns[insns.length-1].iindex);
+                endingBC = ((IBytecodeMethod) (ir.getMethod())).getBytecodeIndex(insns[insns.length - 1].iindex);
             } else
                 throw new StaticRegionException("failed to get ending bytecode offset from non-exit common successor: " +
                         commonSucc.toString());
-        }
-        else endingBC = ((IBytecodeMethod) (ir.getMethod())).getBytecodeIndex(commonSucc.getFirstInstructionIndex());
+        } else endingBC = ((IBytecodeMethod) (ir.getMethod())).getBytecodeIndex(commonSucc.getFirstInstructionIndex());
 
 
         VeritestingRegion veritestingRegion = new VeritestingRegion();
@@ -368,13 +367,13 @@ public class VeritestingMain {
                 I would have a co-recursive function that actually built the veritesting region
              */
             List<ISSABasicBlock> succs = new ArrayList<>(cfg.getNormalSuccessors(currUnit));
-            if(currentClassName.contains("VeritestingPerf") && currentMethodName.contains("outRangeloadArrayTC"))
+            if (currentClassName.contains("VeritestingPerf") && currentMethodName.contains("outRangeloadArrayTC"))
 //            if(currentClassName.contains("java.lang.CharacterDataLatin1") && currentMethodName.contains("toLowerCase"))
                 System.out.println("");
             ISSABasicBlock commonSucc;
             try {
                 commonSucc = cfg.getIPdom(currUnit.getNumber(), sanitizer, ir, cha);
-            } catch (WalaException|IllegalArgumentException e) {
+            } catch (WalaException | IllegalArgumentException e) {
                 //The IllegalArgumentException happens when we try to find the immediate post-dominator of basic blocks
                 // that are inside an infinite loop. An infinite loop body does not have a path to the exit node.
                 // This exception is raised by WALA in such cases. One example of this issue is when we try to summarize
@@ -382,9 +381,11 @@ public class VeritestingMain {
                 System.out.println(e.getMessage() + "\nran into WalaException|IllegalArgumentException in cfg.getIPdom(currUnit = " + currUnit.toString() + ")");
                 return;
             }
-            if (commonSucc == null)
+
+            if (commonSucc == null) {
                 throw new StaticRegionException("compute immediate post-dominator of "
                         + currUnit.toString() + ", isExit = " + currUnit.isExitBlock());
+            }
             if (succs.size() == 1) {
                 currUnit = succs.get(0);
                 continue;
@@ -393,6 +394,7 @@ public class VeritestingMain {
                 currUnit = commonSucc;
                 break;
             } else if (succs.size() == 2 && !startingPointsHistory.contains(currUnit)) {
+
                 startingPointsHistory.add(currUnit);
                 if (!(currUnit.getLastInstruction() instanceof SSAConditionalBranchInstruction)) {
                     currUnit = commonSucc;
@@ -443,9 +445,13 @@ public class VeritestingMain {
                 HashSet<Integer> summarizedRegionStartBB = new HashSet<>();
                 summarizedRegionStartBB.add(currUnit.getNumber());
 
+                SPFCaseList outerCases = null;
+                SPFCaseList innerCases = null;
+                SPFCaseList conditionCases = null;
+
                 // Create thenExpr
                 while (thenUnit != commonSucc) { // the meet point not reached yet
-                    while(cfg.getNormalSuccessors(thenUnit).size() > 1 && thenUnit != commonSucc && canVeritest) {  //TODO: Support exceptionalSuccessors in the future
+                    while (cfg.getNormalSuccessors(thenUnit).size() > 1 && thenUnit != commonSucc && canVeritest) {  //TODO: Support exceptionalSuccessors in the future
                         if (VeritestingListener.veritestingMode < 2) {
                             canVeritest = false;
                             break;
@@ -457,11 +463,15 @@ public class VeritestingMain {
                         // recursive doAnalysis call
                         LinkedHashMap<HoleExpression, HoleExpression> savedHoleHashMap = saveHoleHashMap();
                         LinkedHashMap<String, Expression> savedVarCache = saveVarCache();
-                        SPFCaseList savedCaseList = varUtil.getSpfCases();
+                        // SPFCaseList savedCaseList = varUtil.getSpfCases();
 
                         // recursive call to doAnalysis to try to summarize the inner region
                         try {
+                            outerCases = varUtil.getSpfCases();
+                            varUtil.setSpfCases(new SPFCaseList());
                             doAnalysis(thenUnit, commonSucc);
+                            innerCases = varUtil.getSpfCases();
+                            varUtil.setSpfCases(outerCases);
                         } catch (StaticRegionException s) {
                             System.out.println(s.getMessage() + "\nfailed to summarize inner region in then-side");
                             return;
@@ -473,7 +483,7 @@ public class VeritestingMain {
                         varUtil.holeHashMap.putAll(savedHoleHashMap);
                         varUtil.varCache.putAll(savedVarCache);//this will also populate varUtil.defLocalVars and
                         // varUtil.holeHashmap because VarUtil.varCache.put and VarUtil.varCache.putAll method are overridden
-                        varUtil.getSpfCases().addAll(savedCaseList);
+                        // varUtil.getSpfCases().addAll(savedCaseList);
 
                         int offset;
                         try {
@@ -485,7 +495,7 @@ public class VeritestingMain {
                         String key = getCurrentKey(offset);
 
                         // working with inner region here
-                        if(VeritestingListener.veritestingRegions.containsKey(key)) {
+                        if (VeritestingListener.veritestingRegions.containsKey(key)) {
                             // we are able to summarize the inner region, try to include it
                             System.out.println("Veritested inner region with key = " + key);
                             //visit all instructions up to and including the condition
@@ -495,12 +505,12 @@ public class VeritestingMain {
                             thenExpr = blockSummary.getExpression(); // outer region thenExpr
                             Expression conditionExpression = blockSummary.getIfExpression();
                             //cannot handle returns inside a if-then-else
-                            if(blockSummary.getIsExitNode()) canVeritest = false;
-                            if(!canVeritest) break;
+                            if (blockSummary.getIsExitNode()) canVeritest = false;
+                            if (!canVeritest) break;
                             ISSABasicBlock commonSuccthenUnit;
                             try {
                                 commonSuccthenUnit = cfg.getIPdom(thenUnit.getNumber(), sanitizer, ir, cha);
-                            } catch (WalaException|IllegalArgumentException  e) {
+                            } catch (WalaException | IllegalArgumentException e) {
                                 System.out.println(e.getMessage() + "\nran into WalaException|IllegalArgumentException  on cfg.getIPdom(thenUnit = " + thenUnit.toString() + ")");
                                 return;
                             }
@@ -512,16 +522,20 @@ public class VeritestingMain {
                             NumberedDominators<ISSABasicBlock> postDom = (NumberedDominators<ISSABasicBlock>)
                                     Dominators.make(invertedCFG, cfg.exit());
                             boolean bPostDom = (postDom.isDominatedBy(commonSuccthenUnit, commonSucc));
-                            assert(bPostDom);
+                            assert (bPostDom);
                             //start swallow holes from inner region to the outer region by taking a copy of the inner holes to the outer region
                             VeritestingRegion innerRegion = VeritestingListener.veritestingRegions.get(key);
                             // MWW: new code.  Note: really exception should never occur, so perhaps this is *too*
                             // defensive.
                             try {
-                                assert(conditionExpression != null);
+                                assert (conditionExpression != null);
+                                conditionCases = innerCases.cloneEmbedPathConstraint(outerRegionConditionHole,conditionExpression);
+                                outerCases.addAll(conditionCases);
+                                varUtil.setSpfCases(outerCases);
+                                /*assert (conditionExpression != null);
                                 SPFCaseList innerCases =
                                         innerRegion.getSpfCases().cloneEmbedPathConstraint(outerRegionConditionHole, conditionExpression);
-                                varUtil.getSpfCases().addAll(innerCases);
+                                varUtil.getSpfCases().addAll(innerCases);*/
                             } catch (StaticRegionException sre) {
                                 System.out.println("Unable to instantiate spfCases: " + sre.toString());
                                 canVeritest = false;
@@ -540,7 +554,7 @@ public class VeritestingMain {
                             replaceHolesInPLAssign(innerHolesCopyMap);
                             thenExpr1 = replaceHolesInExpression(thenExpr1, innerHolesCopyMap);
                             insertIntoVarUtil(innerHolesCopyMap, varUtil);
-                            assert(ExpressionUtil.isNoHoleLeftBehind(thenExpr1, varUtil.holeHashMap));
+                            assert (ExpressionUtil.isNoHoleLeftBehind(thenExpr1, varUtil.holeHashMap));
 
                             thenExpr = ExpressionUtil.nonNullOp(Operation.Operator.AND, thenExpr, thenExpr1);
                             thenPred = null;
@@ -554,12 +568,12 @@ public class VeritestingMain {
                     canVeritest = blockSummary.isCanVeritest();
                     thenExpr = blockSummary.getExpression();
                     //we should not encounter a BB with more than one successor at this point
-                    assert(blockSummary.getIfExpression() == null);
+                    assert (blockSummary.getIfExpression() == null);
                     //cannot handle returns inside a if-then-else
-                    if(blockSummary.getIsExitNode()) canVeritest = false;
+                    if (blockSummary.getIsExitNode()) canVeritest = false;
                     //SH: supporting new object or throw instructions
                     if (!canVeritest) break;
-                    if (blockSummary.isHasNewOrThrow()){ //SH: skip to the end of the region when a new Object or throw instruction encountered
+                    if (blockSummary.isHasNewOrThrow()) { //SH: skip to the end of the region when a new Object or throw instruction encountered
                         thenUnit = commonSucc;
                         thenPred = null;
                         break;
@@ -573,8 +587,8 @@ public class VeritestingMain {
 
                 //move static analysis deeper into the then-side searching for veritesting regions
                 if (!canVeritest) {
-                    while(thenUnit != commonSucc) {
-                        if(cfg.getNormalSuccessors(thenUnit).size() > 1) {
+                    while (thenUnit != commonSucc) {
+                        if (cfg.getNormalSuccessors(thenUnit).size() > 1) {
                             try {
                                 doAnalysis(thenUnit, commonSucc);
                             } catch (StaticRegionException s) {
@@ -583,14 +597,14 @@ public class VeritestingMain {
                             }
                             break;
                         }
-                        if(cfg.getNormalSuccessors(thenUnit).size() == 0) break;
+                        if (cfg.getNormalSuccessors(thenUnit).size() == 0) break;
                         thenUnit = cfg.getNormalSuccessors(thenUnit).iterator().next();
                     }
                 }
 
                 // Create elseExpr
                 while (canVeritest && elseUnit != commonSucc) {
-                    while(cfg.getNormalSuccessors(elseUnit).size() > 1 && elseUnit != commonSucc && canVeritest) {
+                    while (cfg.getNormalSuccessors(elseUnit).size() > 1 && elseUnit != commonSucc && canVeritest) {
                         if (VeritestingListener.veritestingMode < 2) {
                             canVeritest = false;
                             break;
@@ -606,7 +620,11 @@ public class VeritestingMain {
 
                         // recursive call to doAnalysis to try to summarize the inner region
                         try {
+                            outerCases = varUtil.getSpfCases();
+                            varUtil.setSpfCases(new SPFCaseList());
                             doAnalysis(elseUnit, commonSucc);
+                            innerCases = varUtil.getSpfCases();
+                            varUtil.setSpfCases(outerCases);
                         } catch (StaticRegionException s) {
                             System.out.println(s.getMessage() + "\nfailed to summarize inner region in else-side");
                             return;
@@ -627,7 +645,7 @@ public class VeritestingMain {
                             return;
                         }
                         String key = getCurrentKey(offset);
-                        if(VeritestingListener.veritestingRegions.containsKey(key)) {
+                        if (VeritestingListener.veritestingRegions.containsKey(key)) {
                             System.out.println("Veritested inner region with key = " + key);
                             //visit all instructions up to and including the condition
                             BlockSummary blockSummary = new BlockSummary(elseUnit, elseExpr, canVeritest,
@@ -636,12 +654,12 @@ public class VeritestingMain {
                             elseExpr = blockSummary.getExpression();
                             Expression conditionExpression = blockSummary.getIfExpression();
                             //cannot handle returns inside a if-else-else
-                            if(blockSummary.getIsExitNode()) canVeritest = false;
-                            if(!canVeritest) break;
-                            ISSABasicBlock commonSuccelseUnit ;
+                            if (blockSummary.getIsExitNode()) canVeritest = false;
+                            if (!canVeritest) break;
+                            ISSABasicBlock commonSuccelseUnit;
                             try {
                                 commonSuccelseUnit = cfg.getIPdom(elseUnit.getNumber(), sanitizer, ir, cha);
-                            } catch (WalaException|IllegalArgumentException  e) {
+                            } catch (WalaException | IllegalArgumentException e) {
                                 System.out.println(e.getMessage() +
                                         "\nran into WalaException|IllegalArgumentException  on cfg.getIPdom(elseUnit = "
                                         + elseUnit.toString() + ")");
@@ -654,16 +672,19 @@ public class VeritestingMain {
                             NumberedDominators<ISSABasicBlock> postDom = (NumberedDominators<ISSABasicBlock>)
                                     Dominators.make(invertedCFG, cfg.exit());
                             boolean bPostDom = (postDom.isDominatedBy(commonSuccelseUnit, commonSucc));
-                            assert(bPostDom);
+                            assert (bPostDom);
 
                             VeritestingRegion innerRegion = VeritestingListener.veritestingRegions.get(key);
                             // MWW: new code.  Note: really exception should never occur, so perhaps this is *too*
                             // defensive.
                             try {
                                 // need the negation of the condition expression here.
-                                SPFCaseList innerCases =
+                                conditionCases = innerCases.cloneEmbedPathConstraint(outerRegionNegConditionHole,conditionExpression);
+                                outerCases.addAll(conditionCases);
+                                varUtil.setSpfCases(outerCases);
+                                /*SPFCaseList innerCases =
                                         innerRegion.getSpfCases().cloneEmbedPathConstraint(outerRegionNegConditionHole, conditionExpression);
-                                varUtil.getSpfCases().addAll(innerCases);
+                                varUtil.getSpfCases().addAll(innerCases);*/
                             } catch (StaticRegionException sre) {
                                 System.out.println("Unable to instantiate spfCases: " + sre.toString());
                                 canVeritest = false;
@@ -682,7 +703,7 @@ public class VeritestingMain {
                             replaceHolesInPLAssign(innerHolesCopyMap);
                             elseExpr1 = replaceHolesInExpression(elseExpr1, innerHolesCopyMap);
                             insertIntoVarUtil(innerHolesCopyMap, varUtil);
-                            assert(ExpressionUtil.isNoHoleLeftBehind(elseExpr1, varUtil.holeHashMap));
+                            assert (ExpressionUtil.isNoHoleLeftBehind(elseExpr1, varUtil.holeHashMap));
 
                             elseExpr = ExpressionUtil.nonNullOp(Operation.Operator.AND, elseExpr, elseExpr1);
                             elsePred = null;
@@ -696,11 +717,11 @@ public class VeritestingMain {
                     canVeritest = blockSummary.isCanVeritest();
                     elseExpr = blockSummary.getExpression();
                     //we should not encounter a BB with more than one successor at this point
-                    assert(blockSummary.getIfExpression() == null);
+                    assert (blockSummary.getIfExpression() == null);
                     //cannot handle returns inside a if-else-else
-                    if(blockSummary.getIsExitNode()) canVeritest = false;
+                    if (blockSummary.getIsExitNode()) canVeritest = false;
                     if (!canVeritest) break;
-                    if (blockSummary.isHasNewOrThrow()){ //SH: skip to the end of the region when a new Object or throw instruction encountered
+                    if (blockSummary.isHasNewOrThrow()) { //SH: skip to the end of the region when a new Object or throw instruction encountered
                         elseUnit = commonSucc;
                         elsePred = null;
                         break;
@@ -714,8 +735,8 @@ public class VeritestingMain {
 
                 //move static analysis deeper into the else-side searching for veritesting regions
                 if (!canVeritest) {
-                    while(elseUnit != commonSucc) {
-                        if(cfg.getNormalSuccessors(elseUnit).size() > 1) {
+                    while (elseUnit != commonSucc) {
+                        if (cfg.getNormalSuccessors(elseUnit).size() > 1) {
                             try {
                                 doAnalysis(elseUnit, commonSucc);
                             } catch (StaticRegionException s) {
@@ -724,16 +745,16 @@ public class VeritestingMain {
                             }
                             break;
                         }
-                        if(cfg.getNormalSuccessors(elseUnit).size() == 0) break;
+                        if (cfg.getNormalSuccessors(elseUnit).size() == 0) break;
                         elseUnit = cfg.getNormalSuccessors(elseUnit).iterator().next();
                     }
                 }
 
                 // Assign pathLabel a value in the elseExpr
                 if ((canVeritest)) {
-                    if(thenPred != null)
+                    if (thenPred != null)
                         thenUseNum = Util.whichPred(cfg, thenPred, commonSucc);
-                    if(elsePred != null)
+                    if (elsePred != null)
                         elseUseNum = Util.whichPred(cfg, elsePred, commonSucc);
                     VeritestingRegion veritestingRegion;
                     try {
@@ -760,6 +781,8 @@ public class VeritestingMain {
             }
             System.out.println();
         } // end while(true)
+
+        //SH: What is this block of code used for?
         if (currUnit != null && currUnit != startingUnit && currUnit != endingUnit &&
                 cfg.getNormalSuccessors(currUnit).size() > 0) {
             try {
@@ -785,20 +808,21 @@ public class VeritestingMain {
         return ret;
     }
 
-    private LinkedHashMap<HoleExpression,HoleExpression> saveHoleHashMap() {
+    private LinkedHashMap<HoleExpression, HoleExpression> saveHoleHashMap() {
         LinkedHashMap<HoleExpression, HoleExpression> ret = new LinkedHashMap<>();
         for (Map.Entry<Expression, Expression> entry : varUtil.holeHashMap.entrySet()) {
-            ret.put((HoleExpression)entry.getKey(), (HoleExpression)entry.getValue());
+            ret.put((HoleExpression) entry.getKey(), (HoleExpression) entry.getValue());
         }
         return ret;
     }
 
     public void doMethodAnalysis(ISSABasicBlock startingUnit, ISSABasicBlock endingUnit) throws InvalidClassFileException, StaticRegionException {
-        assert(methodAnalysis);
-        if(VeritestingListener.veritestingMode < 3) {
+        return;
+        /*assert (methodAnalysis);
+        if (VeritestingListener.veritestingMode < 3) {
             return;
         }
-        if(currentClassName.contains("TempClassDerived") && currentMethodName.contains("nestedRegion"))
+        if (currentClassName.contains("TempClassDerived") && currentMethodName.contains("nestedRegion"))
             System.out.println("");
         //System.out.println("Starting doMethodAnalysis");
         //currUnit represents the next BB to be summarized
@@ -808,14 +832,14 @@ public class VeritestingMain {
         boolean canVeritestMethod = true;
         int endingBC = 0;
         while (true) {
-            if(((SSACFG.BasicBlock) currUnit).getAllInstructions().size() > 0)
+            if (((SSACFG.BasicBlock) currUnit).getAllInstructions().size() > 0)
                 endingBC = ((IBytecodeMethod) (ir.getMethod())).getBytecodeIndex(currUnit.getLastInstructionIndex());
             List<ISSABasicBlock> succs = new ArrayList<>(cfg.getNormalSuccessors(currUnit));
             ISSABasicBlock commonSucc = null;
             try {
-                if(currUnit.isExitBlock()) commonSucc = currUnit;
+                if (currUnit.isExitBlock()) commonSucc = currUnit;
                 else commonSucc = cfg.getIPdom(currUnit.getNumber(), sanitizer, ir, cha);
-            } catch (WalaException|IllegalArgumentException  e) {
+            } catch (WalaException | IllegalArgumentException e) {
             }
             if (commonSucc == null)
                 throw new StaticRegionException("failed to compute immediate post-dominator of "
@@ -825,11 +849,11 @@ public class VeritestingMain {
                 BlockSummary blockSummary = new BlockSummary(currUnit, methodExpression, canVeritestMethod, null, null).invoke();
                 canVeritestMethod = blockSummary.isCanVeritest();
                 methodExpression = blockSummary.getExpression();
-                if(blockSummary.getIfExpression() != null) {
+                if (blockSummary.getIfExpression() != null) {
                     System.out.println("doMethodAnalysis encountered BB (" + currUnit + ") with 1 successor ending with if");
                 }
-                if(!canVeritestMethod) return;
-                if(blockSummary.getIsExitNode() || succs.size() == 0) {
+                if (!canVeritestMethod) return;
+                if (blockSummary.getIsExitNode() || succs.size() == 0) {
                     VeritestingRegion veritestingRegion =
                             constructMethodRegion(methodExpression, cfg.entry().getNumber(),
                                     cfg.entry().getNumber(), methodSummarizedRegionStartBB, endingBC);
@@ -841,30 +865,29 @@ public class VeritestingMain {
                     return;
                 }
                 if (!canVeritestMethod) return;
-                if(succs.size() == 0) return;
+                if (succs.size() == 0) return;
                 currUnit = succs.get(0);
                 continue;
-            }
-            else if (succs.size() == 2) {
+            } else if (succs.size() == 2) {
                 //Summarize instructions before the condition
                 BlockSummary blockSummary = new BlockSummary(currUnit, methodExpression, canVeritestMethod, null, null).invoke();
                 canVeritestMethod = blockSummary.isCanVeritest();
                 methodExpression = blockSummary.getExpression();
                 Expression conditionExpression = blockSummary.getIfExpression();
-                if(!canVeritestMethod) return;
+                if (!canVeritestMethod) return;
                 //cannot handle returns inside a if-then-else
-                if(blockSummary.getIsExitNode()) return;
+                if (blockSummary.getIsExitNode()) return;
                 int startingBC = ((IBytecodeMethod) (ir.getMethod())).getBytecodeIndex(currUnit.getLastInstructionIndex());
                 String key = getCurrentKey(startingBC);
-                if(!VeritestingListener.veritestingRegions.containsKey(key)) return;
+                if (!VeritestingListener.veritestingRegions.containsKey(key)) return;
                 VeritestingRegion veritestingRegion = VeritestingListener.veritestingRegions.get(key);
                 Expression summaryExpression = veritestingRegion.getSummaryExpression();
                 summaryExpression = replaceCondition(summaryExpression, conditionExpression);
                 methodExpression = ExpressionUtil.nonNullOp(Operation.Operator.AND, methodExpression, summaryExpression);
                 methodSummarizedRegionStartBB.addAll(veritestingRegion.summarizedRegionStartBB);
-                for(HashMap.Entry<Expression, Expression> entry: veritestingRegion.getHoleHashMap().entrySet()) {
-                    if(((HoleExpression)entry.getKey()).getHoleType() == HoleExpression.HoleType.CONDITION ||
-                            ((HoleExpression)entry.getKey()).getHoleType() == HoleExpression.HoleType.NEGCONDITION)
+                for (HashMap.Entry<Expression, Expression> entry : veritestingRegion.getHoleHashMap().entrySet()) {
+                    if (((HoleExpression) entry.getKey()).getHoleType() == HoleExpression.HoleType.CONDITION ||
+                            ((HoleExpression) entry.getKey()).getHoleType() == HoleExpression.HoleType.NEGCONDITION)
                         continue;
                     HoleExpression holeExpression = (HoleExpression) entry.getKey();
                     varUtil.varCache.put(holeExpression.getHoleVarName(), holeExpression);
@@ -874,7 +897,7 @@ public class VeritestingMain {
                 System.out.println("doMethodAnalysis: cannot summarize more than 2 successors in BB = " + currUnit);
                 return;
             }
-        } // end while(true)
+        } // end while(true)*/
     } // end doMethodAnalysis
 
     private String getCurrentKey(int startingBC) {
@@ -924,6 +947,7 @@ public class VeritestingMain {
         Expression getIfExpression() {
             return ifExpression;
         }
+
         private Expression ifExpression = null;
 
         private boolean canVeritest;

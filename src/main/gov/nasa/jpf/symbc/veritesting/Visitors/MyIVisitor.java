@@ -120,7 +120,7 @@ public class MyIVisitor implements SSAInstruction.IVisitor {
 
         // MWW: new code!  TODO: get rid of arrayRefHole and arrayIndexHole: they are discoverable.
         ArrayBoundsReason reason = new ArrayBoundsReason(arrayRefHole, arrayIndexHole, arrayLoadHole);
-        SPFCase c = new SPFCase(ExpressionUtil.nonNullOp(Operator.AND, PLAssign, conditionHole), reason);
+        SPFCase c = new SPFCase(conditionHole, reason);
         varUtil.addSpfCase(c);
         // MWW: end new code!
         // SPFExpr will be handled
@@ -404,7 +404,7 @@ public class MyIVisitor implements SSAInstruction.IVisitor {
             return;
         }
         TrueReason reason = new TrueReason(TrueReason.Cause.OBJECT_CREATION);
-        SPFCase c = new SPFCase(ExpressionUtil.nonNullOp(Operator.AND, PLAssign, conditionHole), reason);
+        SPFCase c = new SPFCase(conditionHole, reason);
         varUtil.addSpfCase(c);
         canVeritest = true;
         hasNewOrThrow = true;

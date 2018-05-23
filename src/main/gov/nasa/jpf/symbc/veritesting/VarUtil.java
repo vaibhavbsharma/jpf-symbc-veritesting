@@ -46,6 +46,7 @@ public class VarUtil {
 
     public void addSpfCase(SPFCase c) { spfCases.addCase(c); }
     public SPFCaseList getSpfCases() { return spfCases; }
+    public void setSpfCases(SPFCaseList spfCases) { this.spfCases = spfCases; }
 
     public static final int getPathCounter() { pathCounter++; return pathCounter; }
 
