@@ -483,7 +483,6 @@ public class VeritestingMain {
                         varUtil.holeHashMap.putAll(savedHoleHashMap);
                         varUtil.varCache.putAll(savedVarCache);//this will also populate varUtil.defLocalVars and
                         // varUtil.holeHashmap because VarUtil.varCache.put and VarUtil.varCache.putAll method are overridden
-                        // varUtil.getSpfCases().addAll(savedCaseList);
 
                         int offset;
                         try {
@@ -532,10 +531,6 @@ public class VeritestingMain {
                                 conditionCases = innerCases.cloneEmbedPathConstraint(outerRegionConditionHole,conditionExpression);
                                 outerCases.addAll(conditionCases);
                                 varUtil.setSpfCases(outerCases);
-                                /*assert (conditionExpression != null);
-                                SPFCaseList innerCases =
-                                        innerRegion.getSpfCases().cloneEmbedPathConstraint(outerRegionConditionHole, conditionExpression);
-                                varUtil.getSpfCases().addAll(innerCases);*/
                             } catch (StaticRegionException sre) {
                                 System.out.println("Unable to instantiate spfCases: " + sre.toString());
                                 canVeritest = false;
@@ -571,7 +566,6 @@ public class VeritestingMain {
                     assert (blockSummary.getIfExpression() == null);
                     //cannot handle returns inside a if-then-else
                     if (blockSummary.getIsExitNode()) canVeritest = false;
-                    //SH: supporting new object or throw instructions
                     if (!canVeritest) break;
                     if (blockSummary.isHasNewOrThrow()) { //SH: skip to the end of the region when a new Object or throw instruction encountered
                         thenUnit = commonSucc;
@@ -636,7 +630,6 @@ public class VeritestingMain {
                         varUtil.holeHashMap.putAll(savedHoleHashMap);
                         varUtil.varCache.putAll(savedVarCache);//this will also populate varUtil.defLocalVars and
                         // varUtil.holeHashmap because VarUtil.varCache.put and VarUtil.varCache.putAll method are overridden
-                        varUtil.getSpfCases().addAll(savedCaseList);
                         int offset;
                         try {
                             offset = ((IBytecodeMethod) (ir.getMethod())).getBytecodeIndex(elseUnit.getLastInstructionIndex());
@@ -682,9 +675,6 @@ public class VeritestingMain {
                                 conditionCases = innerCases.cloneEmbedPathConstraint(outerRegionNegConditionHole,conditionExpression);
                                 outerCases.addAll(conditionCases);
                                 varUtil.setSpfCases(outerCases);
-                                /*SPFCaseList innerCases =
-                                        innerRegion.getSpfCases().cloneEmbedPathConstraint(outerRegionNegConditionHole, conditionExpression);
-                                varUtil.getSpfCases().addAll(innerCases);*/
                             } catch (StaticRegionException sre) {
                                 System.out.println("Unable to instantiate spfCases: " + sre.toString());
                                 canVeritest = false;

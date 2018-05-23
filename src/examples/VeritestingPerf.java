@@ -25,12 +25,13 @@ public class VeritestingPerf {
         //(new VeritestingPerf()).createObjectComplexRegionTC4(true, true);
         //(new VeritestingPerf()).createObjectComplexRegionTC5(true, true);
         //(new VeritestingPerf()).createObjectComplexRegionTC6(true, true);
-
+        //(new VeritestingPerf()).createObjectComplexRegionTC7(true, true);
+        (new VeritestingPerf()).createObjectComplexRegionTC8(true, true);
 
         /****************** ArrayLoad Tests ********************/
         //(new VeritestingPerf()).testSegment1(true, true, 2);
         //(new VeritestingPerf()).testSegment2(true, true, 2);
-        (new VeritestingPerf()).inRangeloadArrayTC(22, 2);
+        //(new VeritestingPerf()).inRangeloadArrayTC(22, 2);
 //        (new VeritestingPerf()).innerCatchOutRangeloadArrayTC(22, 2);
 //        (new VeritestingPerf()).outRangeloadArrayTC( 22, 2);
         // (new VeritestingPerf()).catchOutRangeloadArrayTC(22, 2);
@@ -76,7 +77,7 @@ public class VeritestingPerf {
 //        list.add(Debug.makeSymbolicInteger("a2"));
 //        (new VeritestingPerf()).countArrayList(list);
     }
-
+/*
     private int nestedRegionThrowsException(int i) {
         if ( i != 0) {
             if (i < 0)
@@ -448,7 +449,6 @@ public class VeritestingPerf {
         return y;
     }
 
-    //SH: Pass April 21.
     public int createObjectTC1(boolean x, boolean y) {
         int a = 3;
         if (x) {
@@ -460,7 +460,6 @@ public class VeritestingPerf {
         return a;
     }
 
-    //SH: Pass April 21.
     public int createObjectTC2(boolean x, boolean y) {
         int a = 0;
         if (x) {
@@ -473,7 +472,6 @@ public class VeritestingPerf {
         return a;
     }
 
-    //SH: Pass April 21.
     public int createObjectTC3(boolean x, boolean y) {
         int a = 0;
         if (x) {
@@ -499,7 +497,6 @@ public class VeritestingPerf {
     }
 
 
-    //SH: Pass r April 21.
     public int createObjectTC5(boolean x, boolean y) {
         int a = 0;
         if (x) {
@@ -513,7 +510,6 @@ public class VeritestingPerf {
         return a;
     }
 
-    //SH: Pass April 21.
     public int createObjectTC6(boolean x, boolean y) {
         int a = 0;
         if (x) {
@@ -527,7 +523,6 @@ public class VeritestingPerf {
         return a;
     }
 
-    //SH: Pass regionSummary & instantiation , April 21.
     public int createObjectTC7(boolean x, boolean y) {
         int a = 3;
         if (x) {
@@ -544,7 +539,7 @@ public class VeritestingPerf {
         return a;
     }
 
-    //SH: Pass April 21.
+
     public int createObjectTC8(boolean x, boolean y) {
         int a = 0;
         if (x) {
@@ -566,7 +561,6 @@ public class VeritestingPerf {
         return a;
     }
 
-    //SH: Pass April 22nd
     public int createObjectComplexRegionTC1(boolean x, boolean y) {
         int a = 0;
         if (y) {
@@ -584,8 +578,7 @@ public class VeritestingPerf {
 
         return a;
     }
-
-    //SH: Pass. April 23.
+*/
     public int createObjectComplexRegionTC2(boolean x, boolean y) {
         int a = 0;
         if (y) {
@@ -611,7 +604,6 @@ public class VeritestingPerf {
         return a;
     }
 
-    //SH:Passed April 23rd.
     public int createObjectComplexRegionTC3(boolean x, boolean y) {
         int a = 0;
         if (y) {
@@ -640,7 +632,6 @@ public class VeritestingPerf {
         return a;
     }
 
-    //SH:Passed April 23rd.
     public int createObjectComplexRegionTC5(boolean x, boolean y) {
         int a = 0;
         if (y) {
@@ -660,7 +651,6 @@ public class VeritestingPerf {
     }
 
 
-    //SH: Pas. April 23.
     public int createObjectComplexRegionTC6(boolean x, boolean y) {
         int a = 0;
         if (new TempClass3(x).valid) {
@@ -674,7 +664,6 @@ public class VeritestingPerf {
         return a;
     }
 
-    //SH: Pas. April 23.
     public int createObjectComplexRegionTC7(boolean x, boolean y) {
         int a = 0;
         if (new TempClass3(true).valid) {
@@ -687,9 +676,33 @@ public class VeritestingPerf {
         }
         return a;
     }
+    public int createObjectComplexRegionTC8(boolean x, boolean y) {
+        int a = 0;
+        if (y) {
+            if (x) {
+                a = 3;
+                TempClass tempClass2 = new TempClass();
+            } else {
+                a = 2;
+                TempClass tempClass2 = new TempClass();
+            }
+        }
+        else {
+            if (x) {
+                a = 3;
+                TempClass tempClass2 = new TempClass();
+            } else {
+                TempClass tempClass2 = new TempClass();
+                a = 2;
+            }
+        }
+//        assert((y && x) ? a==3: true);
+//        assert((y && !x) ? a==2: true);
+//        assert(!y ? a==0: true);
 
+        return a;
+    }
 
-    //SH: Pass. April 23.
     public int branchOnConcrete(boolean x, boolean y) {
         int a = 0;
         if (new TempClass3(true).valid) {
@@ -726,6 +739,8 @@ public class VeritestingPerf {
         }
         return a;
     }
+
+
 
 
     /*public int segmantTest(int index, int length) throws ArrayIndexOutOfBoundsException {
