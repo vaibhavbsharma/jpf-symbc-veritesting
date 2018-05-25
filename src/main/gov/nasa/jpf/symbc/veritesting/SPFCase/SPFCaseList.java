@@ -35,6 +35,11 @@ public class SPFCaseList {
         return cl;
     }
 
+
+    public void replaceCondition(Expression cond) throws StaticRegionException {
+        for (SPFCase c: cases) {c.spfReplaceCondition(cond); }
+    }
+
     public Expression spfPredicate() throws StaticRegionException {
         Expression result = Operation.FALSE;
         for (SPFCase c: cases) {

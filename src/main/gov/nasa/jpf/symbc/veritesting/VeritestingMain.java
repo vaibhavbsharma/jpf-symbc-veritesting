@@ -807,8 +807,8 @@ public class VeritestingMain {
     }
 
     public void doMethodAnalysis(ISSABasicBlock startingUnit, ISSABasicBlock endingUnit) throws InvalidClassFileException, StaticRegionException {
-        return;
-        /*assert (methodAnalysis);
+        //return;
+        assert (methodAnalysis);
         if (VeritestingListener.veritestingMode < 3) {
             return;
         }
@@ -818,6 +818,11 @@ public class VeritestingMain {
         //currUnit represents the next BB to be summarized
         ISSABasicBlock currUnit = startingUnit;
         Expression methodExpression = null;
+
+        //SH:support SPFCases for method Summary here
+        SPFCaseList methodSpfCaseList = new SPFCaseList();
+        //end of support
+
         HashSet<Integer> methodSummarizedRegionStartBB = new HashSet<>();
         boolean canVeritestMethod = true;
         int endingBC = 0;
@@ -839,6 +844,7 @@ public class VeritestingMain {
                 BlockSummary blockSummary = new BlockSummary(currUnit, methodExpression, canVeritestMethod, null, null).invoke();
                 canVeritestMethod = blockSummary.isCanVeritest();
                 methodExpression = blockSummary.getExpression();
+
                 if (blockSummary.getIfExpression() != null) {
                     System.out.println("doMethodAnalysis encountered BB (" + currUnit + ") with 1 successor ending with if");
                 }
@@ -851,6 +857,11 @@ public class VeritestingMain {
                     FNV1 fnv = new FNV1a64();
                     fnv.init(key);
                     long hash = fnv.getHash();
+
+                    //SH:support SPFCases for method Summary here
+                    veritestingRegion.setSpfCases(methodSpfCaseList);
+                    //end of support
+
                     VeritestingListener.veritestingRegions.put(key, veritestingRegion);
                     return;
                 }
@@ -874,6 +885,15 @@ public class VeritestingMain {
                 Expression summaryExpression = veritestingRegion.getSummaryExpression();
                 summaryExpression = replaceCondition(summaryExpression, conditionExpression);
                 methodExpression = ExpressionUtil.nonNullOp(Operation.Operator.AND, methodExpression, summaryExpression);
+
+                //SH:support SPFCases for method Summary here
+                SPFCaseList staticRegionSpfCases = veritestingRegion.getSpfCases();
+                if(staticRegionSpfCases != null){
+                    methodSpfCaseList.addAll(staticRegionSpfCases);
+                    methodSpfCaseList.replaceCondition(conditionExpression);
+                }
+                //end of support
+
                 methodSummarizedRegionStartBB.addAll(veritestingRegion.summarizedRegionStartBB);
                 for (HashMap.Entry<Expression, Expression> entry : veritestingRegion.getHoleHashMap().entrySet()) {
                     if (((HoleExpression) entry.getKey()).getHoleType() == HoleExpression.HoleType.CONDITION ||
@@ -887,7 +907,7 @@ public class VeritestingMain {
                 System.out.println("doMethodAnalysis: cannot summarize more than 2 successors in BB = " + currUnit);
                 return;
             }
-        } // end while(true)*/
+        } // end while(true)
     } // end doMethodAnalysis
 
     private String getCurrentKey(int startingBC) {

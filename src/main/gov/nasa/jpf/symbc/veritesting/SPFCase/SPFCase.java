@@ -34,10 +34,16 @@ public class SPFCase {
         return new SPFCase(exp, reason.copy());
     }
 
+
+
+
     Expression spfPredicate() throws StaticRegionException {
         Expression spfConstraint =
                 new Operation(Operation.Operator.AND, instantiatedPathConstraint, reason.getInstantiatedSPFPredicate());
         return spfConstraint;
     }
 
+    public void spfReplaceCondition(Expression cond) {
+        pathConstraint = replaceCondition(pathConstraint, cond);
+    }
 }
