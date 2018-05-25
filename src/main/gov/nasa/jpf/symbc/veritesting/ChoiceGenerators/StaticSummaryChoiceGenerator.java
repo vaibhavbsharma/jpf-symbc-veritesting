@@ -27,7 +27,11 @@ public class StaticSummaryChoiceGenerator extends StaticPCChoiceGenerator {
         Instruction nextInstruction = null;
         if (choice == STATIC_CHOICE) {
 //            System.out.println("Executing static region");
-            nextInstruction = setupSPF(ti, instruction, getRegion());
+            if(this.getCurrentPC().simplify())
+                nextInstruction = setupSPF(ti, instruction, getRegion());
+            else //ignore choice if it is unsat
+                ti.getVM().getSystemState().setIgnored(true);
+
         } else if (choice == SPF_CHOICE) {
             PathCondition pc;
             pc = this.getCurrentPC();
