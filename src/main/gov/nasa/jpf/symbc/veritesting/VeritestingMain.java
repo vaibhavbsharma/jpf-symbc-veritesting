@@ -528,7 +528,7 @@ public class VeritestingMain {
                             // defensive.
                             try {
                                 assert (conditionExpression != null);
-                                conditionCases = innerCases.cloneEmbedPathConstraint(outerRegionConditionHole,conditionExpression);
+                                conditionCases = innerCases.cloneEmbedPathConstraint(outerRegionConditionHole, conditionExpression);
                                 outerCases.addAll(conditionCases);
                                 varUtil.setSpfCases(outerCases);
                             } catch (StaticRegionException sre) {
@@ -672,7 +672,7 @@ public class VeritestingMain {
                             // defensive.
                             try {
                                 // need the negation of the condition expression here.
-                                conditionCases = innerCases.cloneEmbedPathConstraint(outerRegionNegConditionHole,conditionExpression);
+                                conditionCases = innerCases.cloneEmbedPathConstraint(outerRegionNegConditionHole, conditionExpression);
                                 outerCases.addAll(conditionCases);
                                 varUtil.setSpfCases(outerCases);
                             } catch (StaticRegionException sre) {
@@ -807,6 +807,7 @@ public class VeritestingMain {
     }
 
     public void doMethodAnalysis(ISSABasicBlock startingUnit, ISSABasicBlock endingUnit) throws InvalidClassFileException, StaticRegionException {
+        boolean skipMethod = false;
         //return;
         assert (methodAnalysis);
         if (VeritestingListener.veritestingMode < 3) {
@@ -844,25 +845,24 @@ public class VeritestingMain {
                 BlockSummary blockSummary = new BlockSummary(currUnit, methodExpression, canVeritestMethod, null, null).invoke();
                 canVeritestMethod = blockSummary.isCanVeritest();
                 methodExpression = blockSummary.getExpression();
-
+                if (!canVeritestMethod) return;
                 if (blockSummary.getIfExpression() != null) {
                     System.out.println("doMethodAnalysis encountered BB (" + currUnit + ") with 1 successor ending with if");
                 }
-                if (!canVeritestMethod) return;
-                if (blockSummary.getIsExitNode() || succs.size() == 0) {
-                    VeritestingRegion veritestingRegion =
-                            constructMethodRegion(methodExpression, cfg.entry().getNumber(),
-                                    cfg.entry().getNumber(), methodSummarizedRegionStartBB, endingBC);
-                    String key = getKey(veritestingRegion);
-                    FNV1 fnv = new FNV1a64();
-                    fnv.init(key);
-                    long hash = fnv.getHash();
 
-                    //SH:support SPFCases for method Summary here
-                    veritestingRegion.setSpfCases(methodSpfCaseList);
-                    //end of support
+                //SH:SPFCase support
+                if(canVeritestMethod && VeritestingListener.veritestingMode >= 4) {
+                    if (blockSummary.isHasNewOrThrow()) {
+                        methodSpfCaseList.addAll(varUtil.getSpfCases());
+                        methodSpfCaseList.setIsMethodCaseList(true);
+                        constructSPFCaseRegion(Operation.TRUE, methodSummarizedRegionStartBB, endingBC, methodSpfCaseList);
+                        return;
+                    }
+                }
+                //End Support
 
-                    VeritestingListener.veritestingRegions.put(key, veritestingRegion);
+                if (blockSummary.getIsExitNode() || succs.size() == 0 ) {
+                    constructSPFCaseRegion(methodExpression, methodSummarizedRegionStartBB, endingBC, methodSpfCaseList);
                     return;
                 }
                 if (!canVeritestMethod) return;
@@ -874,8 +874,21 @@ public class VeritestingMain {
                 BlockSummary blockSummary = new BlockSummary(currUnit, methodExpression, canVeritestMethod, null, null).invoke();
                 canVeritestMethod = blockSummary.isCanVeritest();
                 methodExpression = blockSummary.getExpression();
+
                 Expression conditionExpression = blockSummary.getIfExpression();
                 if (!canVeritestMethod) return;
+
+                //SH:SPFCase support
+                if (canVeritestMethod && VeritestingListener.veritestingMode >= 4) {
+                    if (blockSummary.isHasNewOrThrow()) {
+                        methodSpfCaseList.addAll(varUtil.getSpfCases());
+                        methodSpfCaseList.setIsMethodCaseList(true);
+                        constructSPFCaseRegion(Operation.TRUE, methodSummarizedRegionStartBB, endingBC, methodSpfCaseList);
+                        return;
+                    }
+                }
+                //End Support
+
                 //cannot handle returns inside a if-then-else
                 if (blockSummary.getIsExitNode()) return;
                 int startingBC = ((IBytecodeMethod) (ir.getMethod())).getBytecodeIndex(currUnit.getLastInstructionIndex());
@@ -887,10 +900,12 @@ public class VeritestingMain {
                 methodExpression = ExpressionUtil.nonNullOp(Operation.Operator.AND, methodExpression, summaryExpression);
 
                 //SH:support SPFCases for method Summary here
-                SPFCaseList staticRegionSpfCases = veritestingRegion.getSpfCases();
-                if(staticRegionSpfCases != null){
-                    methodSpfCaseList.addAll(staticRegionSpfCases);
-                    methodSpfCaseList.replaceCondition(conditionExpression);
+                if (VeritestingListener.veritestingMode >= 4) {
+                    SPFCaseList staticRegionSpfCases = veritestingRegion.getSpfCases();
+                    if (staticRegionSpfCases != null) {
+                        methodSpfCaseList.addAll(staticRegionSpfCases.cloneSPFCaseList());
+                        methodSpfCaseList.replaceCondition(conditionExpression);
+                    }
                 }
                 //end of support
 
@@ -909,6 +924,72 @@ public class VeritestingMain {
             }
         } // end while(true)
     } // end doMethodAnalysis
+
+    private void constructSPFCaseRegion(Expression methodExpression, HashSet<Integer> methodSummarizedRegionStartBB, int endingBC, SPFCaseList methodSpfCaseList) throws StaticRegionException, InvalidClassFileException {
+        VeritestingRegion veritestingRegion =
+                constructMethodRegion(methodExpression, cfg.entry().getNumber(),
+                        getMethodEndUnit(cfg.entry()).getNumber(), methodSummarizedRegionStartBB, endingBC);
+        String key = getKey(veritestingRegion);
+        FNV1 fnv = new FNV1a64();
+        fnv.init(key);
+        long hash = fnv.getHash();
+
+        if (VeritestingListener.veritestingMode >= 4) {
+            veritestingRegion.setSpfCases(methodSpfCaseList);
+        }
+
+        VeritestingListener.veritestingRegions.put(key, veritestingRegion);
+    }
+
+
+    private String constructKey(VeritestingRegion veritestingRegion) {
+        String key = getKey(veritestingRegion);
+        FNV1 fnv = new FNV1a64();
+        fnv.init(key);
+        long hash = fnv.getHash();
+        return  key;
+    }
+
+    //SH: Calculating endUnit for a methodSummary
+    private ISSABasicBlock getMethodEndUnit(ISSABasicBlock currUnit) throws StaticRegionException {
+        ISSABasicBlock endUnit = null;
+        boolean endUnitNotfound = true;
+        List<ISSABasicBlock> succs = null;
+        while(endUnitNotfound){
+            succs = new ArrayList<>(cfg.getNormalSuccessors(currUnit));
+            switch (succs.size()) {
+                case 0:
+                    endUnit = currUnit;
+                    endUnitNotfound = false;
+                    break;
+                case 1 : //check if last instruction in the block is a return, then this is the end of the method, otherwise keep searching.
+                    if(succs.get(0).getLastInstruction() instanceof SSAReturnInstruction) {
+                        endUnit = succs.get(0);
+                        endUnitNotfound = false;
+                        break;
+                    }
+                    else {
+                        currUnit = succs.get(0);
+                        break;
+                    }
+                case 2:
+                    try{
+                        currUnit = cfg.getIPdom(currUnit.getNumber(), sanitizer, ir, cha);
+                        if(currUnit.getLastInstruction() instanceof SSAReturnInstruction) {
+                            endUnit = currUnit;
+                            endUnitNotfound = false;
+                        }
+                        break;
+                    }
+                    catch (WalaException e){
+                        throw new StaticRegionException("Wala exception raised while calculating end unit for method summary.");
+                    }
+                default:
+                    throw new StaticRegionException("Wala exception raised while calculating end unit for method summary.");
+            }
+        }
+        return  endUnit;
+    }
 
     private String getCurrentKey(int startingBC) {
         return currentClassName + "." + currentMethodName + methodSig + "#" + startingBC;
@@ -935,7 +1016,7 @@ public class VeritestingMain {
         veritestingRegion.setSummarizedRegionStartBB(summarizedRegionStartBB);
 
         // MWW: adding the spfCases
-        veritestingRegion.setSpfCases(varUtil.getSpfCases());
+        // veritestingRegion.setSpfCases(varUtil.getSpfCases());
         // MWW: end addition
 
         return veritestingRegion;
@@ -1010,7 +1091,7 @@ public class VeritestingMain {
                     isExitNode = true;
                     break;
                 }
-                if (myIVisitor.isHasNewOrThrow()) {
+                if (myIVisitor.isHasNewOrThrow() && VeritestingListener.veritestingMode >= 4) {
                     hasNewOrThrow = true;
                     break;
                 }

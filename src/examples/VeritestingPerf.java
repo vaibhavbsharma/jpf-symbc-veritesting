@@ -10,7 +10,7 @@ public class VeritestingPerf {
     public static void main(String[] args) {
 
         /**************** create New Object Tests************/
-        //(new VeritestingPerf()).createObjectTC1(true, true);
+        (new VeritestingPerf()).createObjectTC1(true, true);
         //(new VeritestingPerf()).createObjectTC2(true, true);
         //(new VeritestingPerf()).createObjectTC3(true, true);
         //(new VeritestingPerf()).createObjectTC4(true, true);
@@ -18,6 +18,8 @@ public class VeritestingPerf {
         //(new VeritestingPerf()).createObjectTC6(true, true);
         //(new VeritestingPerf()).createObjectTC7(true, true);
         //(new VeritestingPerf()).createObjectTC8(true, true);
+        //(new VeritestingPerf()).createObjectTC9(true, true);
+        //(new VeritestingPerf()).createObjectTC10(true, true);
         //(new VeritestingPerf()).assertRegions(true, true);
         //(new VeritestingPerf()).createObjectComplexRegionTC1(true, true);
         //(new VeritestingPerf()).createObjectComplexRegionTC2(true, true);
@@ -26,7 +28,7 @@ public class VeritestingPerf {
         //(new VeritestingPerf()).createObjectComplexRegionTC5(true, true);
         //(new VeritestingPerf()).createObjectComplexRegionTC6(true, true);
         //(new VeritestingPerf()).createObjectComplexRegionTC7(true, true);
-        (new VeritestingPerf()).createObjectComplexRegionTC8(true, true);
+        //(new VeritestingPerf()).createObjectComplexRegionTC8(true, true);
 
         /****************** ArrayLoad Tests ********************/
         //(new VeritestingPerf()).testSegment1(true, true, 2);
@@ -448,8 +450,8 @@ public class VeritestingPerf {
             y = 0;
         return y;
     }
-
-    public int createObjectTC1(boolean x, boolean y) {
+*/
+    public void createObjectTC1(boolean x, boolean y) {
         int a = 3;
         if (x) {
             TempClass tempClass2 = new TempClass();
@@ -457,7 +459,7 @@ public class VeritestingPerf {
         }
 //        assert(x ? a==0: true);
 //        assert(!x ? a==3: true);
-        return a;
+ //       return a;
     }
 
     public int createObjectTC2(boolean x, boolean y) {
@@ -467,6 +469,7 @@ public class VeritestingPerf {
         } else {
             a = 3;
         }
+        System.out.println("after the if condition.");
 //        assert(x ? a==0: true);
 //        assert(!x ? a==3: true);
         return a;
@@ -561,6 +564,31 @@ public class VeritestingPerf {
         return a;
     }
 
+
+    public int createObjectTC9(boolean x, boolean y) {
+        int a = 3;
+        TempClass tempClass2 = new TempClass();
+        if (x) {
+            a = 4;
+        }
+//        assert(x ? a==0: true);
+//        assert(!x ? a==3: true);
+        return a;
+    }
+
+
+    public int createObjectTC10(boolean x, boolean y) {
+        int a = 3;
+        if (x) {
+            a = 4;
+        }
+        TempClass tempClass2 = new TempClass();
+        ++a;
+//        assert(x ? a==0: true);
+//        assert(!x ? a==3: true);
+        return a;
+    }
+
     public int createObjectComplexRegionTC1(boolean x, boolean y) {
         int a = 0;
         if (y) {
@@ -578,7 +606,7 @@ public class VeritestingPerf {
 
         return a;
     }
-*/
+
     public int createObjectComplexRegionTC2(boolean x, boolean y) {
         int a = 0;
         if (y) {
@@ -703,6 +731,7 @@ public class VeritestingPerf {
         return a;
     }
 
+/*
     public int branchOnConcrete(boolean x, boolean y) {
         int a = 0;
         if (new TempClass3(true).valid) {
@@ -739,6 +768,7 @@ public class VeritestingPerf {
         }
         return a;
     }
+*/
 
 
 
@@ -756,6 +786,7 @@ public class VeritestingPerf {
         return temp;
     }*/
 
+/*
 
     public int ifNull(String x) {
         if (x == null) {
@@ -781,6 +812,7 @@ public class VeritestingPerf {
             l = arrayOfSilly[index].f;
         }
     }
+*/
 
     /*public int countArrayList(ArrayList<Integer> x) {
         // x = ArrayList of symbolic integers with
@@ -797,7 +829,7 @@ public class VeritestingPerf {
         else System.out.println("bug");
         return sum;
     }*/
-
+/*
     int a, b, c, d, e, f;
 
     public int checkOperator(int a, int b) {
@@ -885,7 +917,7 @@ public class VeritestingPerf {
             if (x[i] < 0) x[i] *= -1;
             else x[i] *= 2;
         }
-    }
+    }*/
 };
 
 class TempClassDerived extends TempClass {

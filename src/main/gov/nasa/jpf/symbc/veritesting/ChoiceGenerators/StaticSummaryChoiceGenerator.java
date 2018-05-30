@@ -10,7 +10,11 @@ import gov.nasa.jpf.vm.ThreadInfo;
 import za.ac.sun.cs.green.expr.Expression;
 import za.ac.sun.cs.green.expr.Operation;
 
+import java.util.ArrayList;
+import java.util.List;
+
 public class StaticSummaryChoiceGenerator extends StaticPCChoiceGenerator {
+    public static List<Instruction> spfCasesIgnoreInstList = new ArrayList<>();
 
     public static final int STATIC_CHOICE = 0;
     public static final int SPF_CHOICE = 1;
@@ -42,6 +46,7 @@ public class StaticSummaryChoiceGenerator extends StaticPCChoiceGenerator {
             }
             else {
                 // System.out.println("SPF summary choice sat!  Instruction: " + instruction.toString());
+                spfCasesIgnoreInstList.add(instruction);
             }
         }
         return nextInstruction;
@@ -56,7 +61,13 @@ public class StaticSummaryChoiceGenerator extends StaticPCChoiceGenerator {
 
     public void makeVeritestingCG(Expression regionSummary, ThreadInfo ti) throws StaticRegionException {
         assert(regionSummary != null);
-        PathCondition pc = ((PCChoiceGenerator)(ti.getVM().getSystemState().getChoiceGenerator())).getCurrentPC();
+        PathCondition pc;
+        if (ti.getVM().getSystemState().getChoiceGenerator() instanceof PCChoiceGenerator)
+            pc = ((PCChoiceGenerator)(ti.getVM().getSystemState().getChoiceGenerator())).getCurrentPC();
+        else{
+            pc = new PathCondition();
+            pc._addDet(new GreenConstraint(Operation.TRUE));
+        }
 
         setPC(createPC(pc, regionSummary, getRegion().staticNominalPredicate()), STATIC_CHOICE);
         setPC(createPC(pc, regionSummary, getRegion().spfPathPredicate()), SPF_CHOICE);

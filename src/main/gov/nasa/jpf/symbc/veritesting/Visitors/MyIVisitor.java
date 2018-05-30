@@ -283,6 +283,8 @@ public class MyIVisitor implements SSAInstruction.IVisitor {
                 setCanVeritest(false, instruction);
             }
         }
+        else if (instruction.getNumberOfUses() == 0) //SH: supporting return with no values
+                setCanVeritest(true, instruction);
 
     }
 

@@ -143,6 +143,11 @@ public class VeritestingListener extends PropertyListenerAdapter implements Publ
     public void executeInstruction(VM vm, ThreadInfo ti, Instruction instructionToExecute) {
         if (veritestingMode == 0) return;
 
+        if((veritestingMode == 4) && (StaticSummaryChoiceGenerator.spfCasesIgnoreInstList.contains(instructionToExecute))){
+            StaticSummaryChoiceGenerator.spfCasesIgnoreInstList.remove(instructionToExecute);
+            return;
+        }
+
         // MWW: Essentially, this acts as a singleton to construct an element.
         if (veritestingRegions == null) {
             discoverRegions(ti); // static analysis to discover regions
@@ -249,10 +254,15 @@ public class VeritestingListener extends PropertyListenerAdapter implements Publ
 
 
         PathCondition pc;
-        //We've intercepted execution before any symbolic state was reached, so return
-        if (!(ti.getVM().getSystemState().getChoiceGenerator() instanceof PCChoiceGenerator)) return null;
-
-        pc = ((PCChoiceGenerator) ti.getVM().getSystemState().getChoiceGenerator()).getCurrentPC();
+        if(VeritestingListener.veritestingMode >= 4){
+            pc = new PathCondition();
+            pc._addDet(new GreenConstraint(Operation.TRUE));
+        }
+        else {
+            //We've intercepted execution before any symbolic state was reached, so return
+            if (!(ti.getVM().getSystemState().getChoiceGenerator() instanceof PCChoiceGenerator)) return null;
+            pc = ((PCChoiceGenerator) ti.getVM().getSystemState().getChoiceGenerator()).getCurrentPC();
+        }
         // this code checks if SPF has reached a branch with both sides being infeasible
         if (!boostPerf && instructionInfo != null) {
             PathCondition eqPC = pc.make_copy();
@@ -277,7 +287,7 @@ public class VeritestingListener extends PropertyListenerAdapter implements Publ
                 region.getSummaryExpression(), fillHolesOutput.additionalAST);
         FillAstHoleVisitor visitor = new FillAstHoleVisitor(fillHolesOutput.holeHashMap);
         finalSummaryExpression = visitor.visit(finalSummaryExpression); //not constant-folding for now
-        if (VeritestingListener.veritestingMode >= 4) {
+        if ((VeritestingListener.veritestingMode >= 4)) {
             region.getSpfCases().instantiate(fillHolesOutput.holeHashMap);
             region.getSpfCases().simplify();
         }

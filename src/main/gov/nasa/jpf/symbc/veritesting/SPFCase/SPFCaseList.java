@@ -20,9 +20,12 @@ public class SPFCaseList {
     public void addCase(SPFCase c) { cases.add(c); }
     public void addAll(SPFCaseList cl) {cases.addAll(cl.cases); }
 
+
     // behavior
     public void instantiate(HashMap<Expression, Expression> holeHashMap) throws StaticRegionException {
-        for (SPFCase c : cases) {  c.instantiate(holeHashMap); }
+        for (SPFCase c : cases) {
+            if(!c.isInstantiated())
+                c.instantiate(holeHashMap); }
     }
 
     public void simplify() throws StaticRegionException {
@@ -35,6 +38,12 @@ public class SPFCaseList {
         return cl;
     }
 
+
+    public SPFCaseList cloneSPFCaseList(){
+        SPFCaseList cl = new SPFCaseList();
+        for (SPFCase c: cases) {cl.cases.add(c.cloneSPFCase()); }
+        return cl;
+    }
 
     public void replaceCondition(Expression cond) throws StaticRegionException {
         for (SPFCase c: cases) {c.spfReplaceCondition(cond); }
@@ -51,5 +60,9 @@ public class SPFCaseList {
     public Expression staticNominalPredicate() throws StaticRegionException {
         Expression result = new Operation(Operation.Operator.NOT, spfPredicate());
         return result;
+    }
+
+    public void setIsMethodCaseList(boolean isMethodCase){
+        for (SPFCase c: cases) {c.setIsMethodCase(isMethodCase); }
     }
 }

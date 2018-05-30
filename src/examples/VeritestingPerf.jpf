@@ -22,7 +22,7 @@ symbolic.debug=false
 
 
 ######## testing createObject  ######
-#symbolic.method=VeritestingPerf.createObjectTC1(sym#sym)
+symbolic.method=VeritestingPerf.createObjectTC1(sym#sym)
 #symbolic.method=VeritestingPerf.createObjectTC2(sym#sym)
 #symbolic.method=VeritestingPerf.createObjectTC3(sym#sym)
 #symbolic.method=VeritestingPerf.createObjectTC4(sym#sym)
@@ -30,6 +30,8 @@ symbolic.debug=false
 #symbolic.method=VeritestingPerf.createObjectTC6(sym#sym)
 #symbolic.method=VeritestingPerf.createObjectTC7(sym#sym)
 #symbolic.method=VeritestingPerf.createObjectTC8(sym#sym)
+#symbolic.method=VeritestingPerf.createObjectTC9(sym#sym)
+symbolic.method=VeritestingPerf.createObjectTC10(sym#sym)
 #symbolic.method=VeritestingPerf.assertRegions(sym#sym)
 #symbolic.method=VeritestingPerf.createObjectComplexRegionTC1(sym#sym)
 #symbolic.method=VeritestingPerf.createObjectComplexRegionTC2(sym#sym)
@@ -38,8 +40,9 @@ symbolic.debug=false
 #symbolic.method=VeritestingPerf.createObjectComplexRegionTC5(sym#sym)
 #symbolic.method=VeritestingPerf.createObjectComplexRegionTC6(sym#sym)
 #symbolic.method=VeritestingPerf.createObjectComplexRegionTC7(sym#sym)
-symbolic.method=VeritestingPerf.createObjectComplexRegionTC8(sym#sym)
-
+#symbolic.method=VeritestingPerf.createObjectComplexRegionTC8(sym#sym)
+#symbolic.method=VeritestingPerf.createObjectComplexRegionTC9(sym#sym)
+#symbolic.method=VeritestingPerf.createObjectComplexRegionTC10(sym#sym)
 
 ######## testing complexRegions  ######
 #symbolic.method=VeritestingPerf.foo(sym)

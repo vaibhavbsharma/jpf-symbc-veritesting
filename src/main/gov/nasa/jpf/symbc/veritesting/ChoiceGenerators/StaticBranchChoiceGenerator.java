@@ -264,7 +264,15 @@ public class StaticBranchChoiceGenerator extends StaticPCChoiceGenerator {
 
     public void makeVeritestingCG(Expression regionSummary, ThreadInfo ti) throws StaticRegionException {
         assert(regionSummary != null);
-        PathCondition pc = ((PCChoiceGenerator)(ti.getVM().getSystemState().getChoiceGenerator())).getCurrentPC();
+        //PathCondition pc = ((PCChoiceGenerator)(ti.getVM().getSystemState().getChoiceGenerator())).getCurrentPC();
+
+        PathCondition pc;
+        if (ti.getVM().getSystemState().getChoiceGenerator() instanceof PCChoiceGenerator)
+            pc = ((PCChoiceGenerator)(ti.getVM().getSystemState().getChoiceGenerator())).getCurrentPC();
+        else{
+            pc = new PathCondition();
+            pc._addDet(new GreenConstraint(Operation.TRUE));
+        }
 
         setPC(createPC(pc, regionSummary, getRegion().staticNominalPredicate()), STATIC_CHOICE);
         setPC(createPC(pc, regionSummary, getRegion().spfPathPredicate()), THEN_CHOICE);
