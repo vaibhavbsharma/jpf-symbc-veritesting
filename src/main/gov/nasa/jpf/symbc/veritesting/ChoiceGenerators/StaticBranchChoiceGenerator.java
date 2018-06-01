@@ -15,13 +15,13 @@ import za.ac.sun.cs.green.expr.Operation;
 
 public class StaticBranchChoiceGenerator extends StaticPCChoiceGenerator {
 
-    public static final int STATIC_CHOICE = 0;
-    public static final int THEN_CHOICE = 1;
-    public static final int ELSE_CHOICE = 2;
+    public static final int STATIC_CHOICE = 2;
+    public static final int THEN_CHOICE = 0;
+    public static final int ELSE_CHOICE = 1;
     public static final int RETURN_CHOICE = 3;
 
     public StaticBranchChoiceGenerator(VeritestingRegion region, Instruction instruction) {
-        super(2, region, instruction);
+        super(0, region, instruction); //TODO: SOHA, restore this value again to 2
         Kind kind = getKind(instruction);
 
         assert(kind == Kind.BINARYIF ||
@@ -30,7 +30,6 @@ public class StaticBranchChoiceGenerator extends StaticPCChoiceGenerator {
     }
 
     // MWW: I see vey similar code in InstuctionInfo.  Why?
-    //TODO: Fix that after talking with Vaibhav
     public Comparator getComparator(Instruction instruction) {
         switch (instruction.getMnemonic()) {
             case "ifeq":
@@ -59,7 +58,6 @@ public class StaticBranchChoiceGenerator extends StaticPCChoiceGenerator {
     }
 
     // MWW: I see vey similar code in InstuctionInfo.  Why?
-    //TODO: Fix that after talking with Vaibhav
     public Comparator getNegComparator(Instruction instruction) {
         switch (instruction.getMnemonic()) {
             case "ifeq":
@@ -131,7 +129,11 @@ public class StaticBranchChoiceGenerator extends StaticPCChoiceGenerator {
         We unpack the instruction, add it to the PC, and execute.
      */
     private Instruction executeBinaryIf(Instruction instruction, int choice) {
+        /*if(currentTopFrame != null)
+            ti.setTopFrame(currentTopFrame); //retoring the stackframe for SPFCase
+*/
         StackFrame sf = ti.getModifiableTopFrame();
+
 
         IntegerExpression sym_v1 = (IntegerExpression) sf.getOperandAttr(1);
         IntegerExpression sym_v2 = (IntegerExpression) sf.getOperandAttr(0);
@@ -148,7 +150,7 @@ public class StaticBranchChoiceGenerator extends StaticPCChoiceGenerator {
             assert pc != null;
             assert(choice == THEN_CHOICE || choice == ELSE_CHOICE);
 
-            if (choice == THEN_CHOICE) {
+            if (choice == ELSE_CHOICE) {
                 Comparator byteCodeOp = this.getComparator(instruction);
                 if (sym_v1 != null){
                     if (sym_v2 != null){ //both are symbolic values
@@ -220,8 +222,9 @@ public class StaticBranchChoiceGenerator extends StaticPCChoiceGenerator {
 
         sf.pop();
         PathCondition pc = this.getCurrentPC();
-
-        if (choice == THEN_CHOICE) {
+        /*if(currentTopFrame != null)
+            ti.setTopFrame(currentTopFrame); //retoring the stackframe for SPFCase*/
+        if (choice == ELSE_CHOICE) {
             pc._addDet(this.getComparator(instruction), sym_v, 0);
             if (!pc.simplify()) {// not satisfiable
                 // System.out.println("Then choice unsat!  Instruction: " + instruction.toString());
@@ -274,9 +277,10 @@ public class StaticBranchChoiceGenerator extends StaticPCChoiceGenerator {
             pc._addDet(new GreenConstraint(Operation.TRUE));
         }
 
-        setPC(createPC(pc, regionSummary, getRegion().staticNominalPredicate()), STATIC_CHOICE);
+        //TODO: Soha restore the third choice
+       // setPC(createPC(pc, regionSummary, getRegion().staticNominalPredicate()), STATIC_CHOICE);
         setPC(createPC(pc, regionSummary, getRegion().spfPathPredicate()), THEN_CHOICE);
-        setPC(createPC(pc, regionSummary, getRegion().spfPathPredicate()), ELSE_CHOICE);
+      //  setPC(createPC(pc, regionSummary, getRegion().spfPathPredicate()), ELSE_CHOICE);
         // TODO: create the path predicate for the 'return' case.
     }
 

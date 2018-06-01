@@ -16,12 +16,13 @@ import java.util.List;
 public class StaticSummaryChoiceGenerator extends StaticPCChoiceGenerator {
     public static List<Instruction> spfCasesIgnoreInstList = new ArrayList<>();
 
-    public static final int STATIC_CHOICE = 0;
-    public static final int SPF_CHOICE = 1;
+    //TODO: SOHA to restore that order again
+    public static final int STATIC_CHOICE = 1;
+    public static final int SPF_CHOICE = 0;
     public static final int RETURN_CHOICE = 2;
 
     public StaticSummaryChoiceGenerator(VeritestingRegion region, Instruction instruction) {
-        super(1, region, instruction);
+        super(0, region, instruction);
         assert(getKind(instruction) == Kind.OTHER);
     }
 
@@ -46,6 +47,8 @@ public class StaticSummaryChoiceGenerator extends StaticPCChoiceGenerator {
             }
             else {
                 // System.out.println("SPF summary choice sat!  Instruction: " + instruction.toString());
+                /*if(currentTopFrame != null)
+                    ti.setTopFrame(currentTopFrame);*/
                 spfCasesIgnoreInstList.add(instruction);
             }
         }
@@ -69,8 +72,9 @@ public class StaticSummaryChoiceGenerator extends StaticPCChoiceGenerator {
             pc._addDet(new GreenConstraint(Operation.TRUE));
         }
 
-        setPC(createPC(pc, regionSummary, getRegion().staticNominalPredicate()), STATIC_CHOICE);
+        //setPC(createPC(pc, regionSummary, getRegion().staticNominalPredicate()), STATIC_CHOICE);
         setPC(createPC(pc, regionSummary, getRegion().spfPathPredicate()), SPF_CHOICE);
+       // setPC(createPC(pc, regionSummary, getRegion().spfPathPredicate()), SPF_CHOICE);
         // TODO: create the path predicate for the 'return' case.
     }
 }

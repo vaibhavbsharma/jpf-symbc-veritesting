@@ -59,12 +59,16 @@ public abstract class StaticPCChoiceGenerator extends PCChoiceGenerator {
     public enum Kind {UNARYIF, BINARYIF, NULLIF, OTHER}
 
     private VeritestingRegion region;
+    protected StackFrame currentTopFrame = null;
 
     public StaticPCChoiceGenerator(int count, VeritestingRegion region, Instruction instruction) {
         super(0, count);
         this.region = region;
         setOffset(instruction.getPosition());
         setMethodName(instruction.getMethodInfo().getFullName());
+        if(ti != null && ti.getTopFrame() != null)
+            this.currentTopFrame = ti.getTopFrame();; //backup the frame for the SPFCase
+
     }
 
     protected VeritestingRegion getRegion() { return region; }
