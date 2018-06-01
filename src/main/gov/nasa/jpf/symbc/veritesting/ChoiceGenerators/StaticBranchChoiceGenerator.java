@@ -4,6 +4,7 @@ import gov.nasa.jpf.jvm.bytecode.IfInstruction;
 import gov.nasa.jpf.symbc.VeritestingListener;
 import gov.nasa.jpf.symbc.bytecode.IFNONNULL;
 import gov.nasa.jpf.symbc.numeric.*;
+import gov.nasa.jpf.symbc.veritesting.FillHolesOutput;
 import gov.nasa.jpf.symbc.veritesting.StaticRegionException;
 import gov.nasa.jpf.symbc.veritesting.VeritestingRegion;
 import gov.nasa.jpf.vm.Instruction;
@@ -15,13 +16,13 @@ import za.ac.sun.cs.green.expr.Operation;
 
 public class StaticBranchChoiceGenerator extends StaticPCChoiceGenerator {
 
-    public static final int STATIC_CHOICE = 2;
-    public static final int THEN_CHOICE = 0;
-    public static final int ELSE_CHOICE = 1;
+    public static final int STATIC_CHOICE = 0;
+    public static final int THEN_CHOICE = 1;
+    public static final int ELSE_CHOICE = 2;
     public static final int RETURN_CHOICE = 3;
 
     public StaticBranchChoiceGenerator(VeritestingRegion region, Instruction instruction) {
-        super(0, region, instruction); //TODO: SOHA, restore this value again to 2
+        super(2, region, instruction);
         Kind kind = getKind(instruction);
 
         assert(kind == Kind.BINARYIF ||
@@ -86,7 +87,7 @@ public class StaticBranchChoiceGenerator extends StaticPCChoiceGenerator {
     }
 
     // MWW: make choice 0 and choice 4 also the responsibility of the CG
-    public Instruction execute(ThreadInfo ti, Instruction instructionToExecute, int choice) {
+    public Instruction execute(ThreadInfo ti, Instruction instructionToExecute, int choice, FillHolesOutput fillHolesOutput) throws StaticRegionException {
         // if/else conditions.
         assert(choice == STATIC_CHOICE || choice == THEN_CHOICE || choice == ELSE_CHOICE);
 
@@ -94,7 +95,7 @@ public class StaticBranchChoiceGenerator extends StaticPCChoiceGenerator {
         if (choice == STATIC_CHOICE) {
             //System.out.println("Executing static region");
             if(this.getCurrentPC().simplify())
-                nextInstruction = setupSPF(ti, instructionToExecute, getRegion());
+                nextInstruction = setupSPF(ti, instructionToExecute, getRegion(), fillHolesOutput);
             else //ignore choice if it is unsat
                 ti.getVM().getSystemState().setIgnored(true);
 
@@ -278,9 +279,9 @@ public class StaticBranchChoiceGenerator extends StaticPCChoiceGenerator {
         }
 
         //TODO: Soha restore the third choice
-       // setPC(createPC(pc, regionSummary, getRegion().staticNominalPredicate()), STATIC_CHOICE);
-        setPC(createPC(pc, regionSummary, getRegion().spfPathPredicate()), THEN_CHOICE);
-      //  setPC(createPC(pc, regionSummary, getRegion().spfPathPredicate()), ELSE_CHOICE);
+       setPC(createPC(pc, regionSummary, getRegion().staticNominalPredicate()), STATIC_CHOICE);
+       setPC(createPC(pc, regionSummary, getRegion().spfPathPredicate()), THEN_CHOICE);
+       setPC(createPC(pc, regionSummary, getRegion().spfPathPredicate()), ELSE_CHOICE);
         // TODO: create the path predicate for the 'return' case.
     }
 

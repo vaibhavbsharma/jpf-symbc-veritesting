@@ -102,6 +102,8 @@ public class VeritestingListener extends PropertyListenerAdapter implements Publ
     public static boolean filterUnsat = false;
     public static int filterUnsatTimeout = 2;
     public static String pathToZ3Binary = "z3";
+    private InstantiateRegionOutput instantiateRegionOutput = null;
+
 
     public VeritestingListener(Config conf, JPF jpf) {
         if (conf.hasValue("veritestingMode")) {
@@ -144,6 +146,7 @@ public class VeritestingListener extends PropertyListenerAdapter implements Publ
         if (veritestingMode == 0) return;
 
         if((veritestingMode == 4) && (StaticSummaryChoiceGenerator.spfCasesIgnoreInstList.contains(instructionToExecute))){
+            assert(StaticSummaryChoiceGenerator.spfCasesIgnoreInstList.size() <= 1);
             StaticSummaryChoiceGenerator.spfCasesIgnoreInstList.remove(instructionToExecute);
             return;
         }
@@ -171,7 +174,9 @@ public class VeritestingListener extends PropertyListenerAdapter implements Publ
                     }
 
                     try {
-                        regionSummary = instantiateRegion(ti, region); // fill holes in region
+                         instantiateRegionOutput = instantiateRegion(ti, region); // fill holes in region
+
+                        regionSummary = instantiateRegionOutput.summaryExpression;
                         if (regionSummary == null)
                             return;
                         //System.out.println(ASTToString(regionSummary));
@@ -190,14 +195,22 @@ public class VeritestingListener extends PropertyListenerAdapter implements Publ
                     if (cg instanceof StaticPCChoiceGenerator) {
                         StaticPCChoiceGenerator vcg = (StaticPCChoiceGenerator) cg;
                         int choice = (Integer) cg.getNextChoice();
-                        Instruction nextInstruction = vcg.execute(ti, instructionToExecute, choice);
+                        Instruction nextInstruction = null;
+                        try {
+                            nextInstruction = vcg.execute(ti, instructionToExecute, choice, instantiateRegionOutput.fillHolesOutput);
+                        } catch (StaticRegionException sre) {
+                            System.out.println(sre.toString());
+                            return;
+                        }
                         ti.setNextPC(nextInstruction);
                     }
                 }
             } else if (veritestingMode >= 1 && veritestingMode <= 3) {
                 // MWW: hopefully this code all goes away sometime soon!
                 try {
-                    Expression regionSummary = instantiateRegion(ti, region); // fill holes in region
+                    instantiateRegionOutput = instantiateRegion(ti, region); // fill holes in region
+
+                    Expression regionSummary = instantiateRegionOutput.summaryExpression;
                     if (regionSummary == null)
                         return;
 
@@ -209,7 +222,7 @@ public class VeritestingListener extends PropertyListenerAdapter implements Publ
                     ((PCChoiceGenerator) ti.getVM().getSystemState().getChoiceGenerator()).setCurrentPC(pc);
                     // MWW: end of add.
 
-                    Instruction nextInstruction = StaticPCChoiceGenerator.setupSPF(ti, instructionToExecute, region);
+                    Instruction nextInstruction = StaticPCChoiceGenerator.setupSPF(ti, instructionToExecute, region, instantiateRegionOutput.fillHolesOutput);
                     ti.setNextPC(nextInstruction);
                 } catch (StaticRegionException sre) {
                     System.out.println(sre.toString());
@@ -234,7 +247,7 @@ public class VeritestingListener extends PropertyListenerAdapter implements Publ
                 + "#" + instructionToExecute.getPosition();
     }
 
-    private Expression instantiateRegion(ThreadInfo ti, VeritestingRegion region) throws StaticRegionException {
+    private InstantiateRegionOutput instantiateRegion(ThreadInfo ti, VeritestingRegion region) throws StaticRegionException {
         // increment path labels for current region.
         pathLabelCount += 1;
         // MWW: Why is this code not in the region class?
@@ -302,9 +315,8 @@ public class VeritestingListener extends PropertyListenerAdapter implements Publ
                 assert (false);
             }
         }
-        populateOutputs(ti,sf, region, fillHolesOutput);
 
-        return finalSummaryExpression;
+        return new InstantiateRegionOutput(finalSummaryExpression, fillHolesOutput);
     }
 
 /*
@@ -460,51 +472,6 @@ public class VeritestingListener extends PropertyListenerAdapter implements Publ
         return maxSummarizedBranch;
     }
 
-    /*
-    write all outputs of the veritesting region, FIELD_OUTPUT have the value to be written in a field named writeValue
-    LOCAL_OUTPUT and FIELD_PHIs have the final value mapped in fillHolesOutput.holeHashMap
-     */
-    //TODO make this method write the outputs atomically, either all of them get written or none of them do and then SPF takes over
-    private void populateOutputs(ThreadInfo ti, StackFrame stackFrame, VeritestingRegion region,
-                                 FillHolesOutput fillHolesOutput) throws StaticRegionException {
-        LinkedHashMap<Expression, Expression> retHoleHashMap = fillHolesOutput.holeHashMap;
-        LinkedHashSet<Expression> allOutputVars = new LinkedHashSet<>();
-        allOutputVars.addAll(region.getOutputVars());
-        allOutputVars.addAll(fillHolesOutput.additionalOutputVars);
-        LinkedHashMap<Expression, Expression> methodHoles = region.getHoleHashMap();
-        for (Expression allOutputVar : allOutputVars) {
-            Expression value;
-            assert (allOutputVar instanceof HoleExpression);
-            HoleExpression holeExpression = (HoleExpression) allOutputVar;
-            assert (retHoleHashMap.containsKey(holeExpression));
-            switch (holeExpression.getHoleType()) {
-                case LOCAL_OUTPUT:
-                    value = retHoleHashMap.get(holeExpression);
-                    stackFrame.setSlotAttr(holeExpression.getLocalStackSlot(), ExpressionUtil.GreenToSPFExpression(value));
-                    break;
-                case FIELD_OUTPUT:
-                    if (holeExpression.isLatestWrite()) {
-                        value = holeExpression.getFieldInfo().writeValue;
-                        if (value instanceof HoleExpression) {
-                            assert (retHoleHashMap.containsKey(value));
-                            value = retHoleHashMap.get(value);
-                        }
-                        fillFieldHole(ti, stackFrame, holeExpression, methodHoles, retHoleHashMap, false, null,
-                                false,
-                                ExpressionUtil.GreenToSPFExpression(value));
-                    }
-                    break;
-                case FIELD_PHI:
-                    if (holeExpression.isLatestWrite()) {
-                        value = retHoleHashMap.get(holeExpression);
-                        fillFieldHole(ti, stackFrame, holeExpression, methodHoles, retHoleHashMap, false, null,
-                                false,
-                                ExpressionUtil.GreenToSPFExpression(value));
-                    }
-                    break;
-            }
-        }
-    }
 
     /*
     Have we previously resolved field outputs to the field output hole in holeExpression ?
@@ -556,14 +523,6 @@ public class VeritestingListener extends PropertyListenerAdapter implements Publ
         retHoleHashMap = fillInvokeHole.getRetHoleHashMap();
         additionalAST = fillInvokeHole.getAdditionalAST();
         additionalOutputVars = fillInvokeHole.getAdditionalOutputVars();
-        /* populate the return value of methodSummary regions that have a non-null return value */
-        if(region.isMethodSummary() && region.retVal != null) {
-            ti.getModifiableTopFrame().push(0);
-            if(region.retVal instanceof HoleExpression)
-                ti.getModifiableTopFrame().setOperandAttr(ExpressionUtil.GreenToSPFExpression(retHoleHashMap.get(region.retVal)));
-            else ti.getModifiableTopFrame().setOperandAttr(ExpressionUtil.GreenToSPFExpression(region.retVal));
-        }
-
 
         return new FillHolesOutput(retHoleHashMap, additionalAST, additionalOutputVars);
     }

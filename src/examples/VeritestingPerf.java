@@ -451,7 +451,7 @@ public class VeritestingPerf {
         return y;
     }
 */
-    public void createObjectTC1(boolean x, boolean y) {
+    public int createObjectTC1(boolean x, boolean y) {
         int a = 3;
         if (x) {
             TempClass tempClass2 = new TempClass();
@@ -459,7 +459,7 @@ public class VeritestingPerf {
         }
 //        assert(x ? a==0: true);
 //        assert(!x ? a==3: true);
- //       return a;
+        return a;
     }
 
     public int createObjectTC2(boolean x, boolean y) {

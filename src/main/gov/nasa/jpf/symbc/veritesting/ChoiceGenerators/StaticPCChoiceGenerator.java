@@ -39,15 +39,18 @@ package gov.nasa.jpf.symbc.veritesting.ChoiceGenerators;
 import gov.nasa.jpf.jvm.bytecode.GOTO;
 import gov.nasa.jpf.symbc.InstructionInfo;
 import gov.nasa.jpf.symbc.numeric.*;
-import gov.nasa.jpf.symbc.veritesting.StaticRegionException;
-import gov.nasa.jpf.symbc.veritesting.VeritestingRegion;
+import gov.nasa.jpf.symbc.veritesting.*;
 import gov.nasa.jpf.vm.Instruction;
 import gov.nasa.jpf.vm.StackFrame;
 import gov.nasa.jpf.vm.ThreadInfo;
 import za.ac.sun.cs.green.expr.Expression;
 
+import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
+
 import static gov.nasa.jpf.symbc.VeritestingListener.DEBUG_LIGHT;
 import static gov.nasa.jpf.symbc.VeritestingListener.debug;
+import static gov.nasa.jpf.symbc.VeritestingListener.fillFieldHole;
 
 // MWW: general comment: many uses of nulls as 'signal' values.
 // This usually leads to brittle and hard to debug code with lots
@@ -74,7 +77,7 @@ public abstract class StaticPCChoiceGenerator extends PCChoiceGenerator {
     protected VeritestingRegion getRegion() { return region; }
 
     // MWW: make choice 0 and choice 4 also the responsibility of the CG
-    abstract public Instruction execute(ThreadInfo ti, Instruction instructionToExecute, int choice);
+    abstract public Instruction execute(ThreadInfo ti, Instruction instructionToExecute, int choice, FillHolesOutput fillHolesOutput) throws StaticRegionException;
 
     public static StaticSummaryChoiceGenerator.Kind getKind(Instruction instruction) {
         switch (instruction.getMnemonic()) {
@@ -100,7 +103,10 @@ public abstract class StaticPCChoiceGenerator extends PCChoiceGenerator {
     }
 
 
-    public static Instruction setupSPF(ThreadInfo ti, Instruction instructionToExecute, VeritestingRegion region) {
+    public static Instruction setupSPF(ThreadInfo ti, Instruction instructionToExecute, VeritestingRegion region, FillHolesOutput fillHolesOutput) throws StaticRegionException {
+        StackFrame sf = ti.getTopFrame();
+
+        populateOutputs(ti,sf, region, fillHolesOutput);
         Instruction insn = instructionToExecute;
         while (insn.getPosition() != region.getEndInsnPosition()) {
             if (insn instanceof GOTO && (((GOTO) insn).getTarget().getPosition() <= region.getEndInsnPosition()))
@@ -114,7 +120,6 @@ public abstract class StaticPCChoiceGenerator extends PCChoiceGenerator {
 
         StackFrame modifiableTopFrame = ti.getModifiableTopFrame();
         int numOperands = 0;
-        StackFrame sf = ti.getTopFrame();
         InstructionInfo instructionInfo = new InstructionInfo().invoke(sf);
         if (instructionInfo != null && !region.isMethodSummary())
             numOperands = instructionInfo.getNumOperands();
@@ -137,6 +142,60 @@ public abstract class StaticPCChoiceGenerator extends PCChoiceGenerator {
             System.out.println("used region: " + region.toString() +", topStackFrame = " + ti.getTopFrame().toString());
         return insn;
 
+    }
+
+
+    /*
+write all outputs of the veritesting region, FIELD_OUTPUT have the value to be written in a field named writeValue
+LOCAL_OUTPUT and FIELD_PHIs have the final value mapped in fillHolesOutput.holeHashMap
+ */
+    //TODO make this method write the outputs atomically, either all of them get written or none of them do and then SPF takes over
+    private static void populateOutputs(ThreadInfo ti, StackFrame stackFrame, VeritestingRegion region,
+                                 FillHolesOutput fillHolesOutput) throws StaticRegionException {
+        LinkedHashMap<Expression, Expression> retHoleHashMap = fillHolesOutput.holeHashMap;
+        LinkedHashSet<Expression> allOutputVars = new LinkedHashSet<>();
+        allOutputVars.addAll(region.getOutputVars());
+        allOutputVars.addAll(fillHolesOutput.additionalOutputVars);
+        LinkedHashMap<Expression, Expression> methodHoles = region.getHoleHashMap();
+        for (Expression allOutputVar : allOutputVars) {
+            Expression value;
+            assert (allOutputVar instanceof HoleExpression);
+            HoleExpression holeExpression = (HoleExpression) allOutputVar;
+            assert (retHoleHashMap.containsKey(holeExpression));
+            switch (holeExpression.getHoleType()) {
+                case LOCAL_OUTPUT:
+                    value = retHoleHashMap.get(holeExpression);
+                    stackFrame.setSlotAttr(holeExpression.getLocalStackSlot(), ExpressionUtil.GreenToSPFExpression(value));
+                    break;
+                case FIELD_OUTPUT:
+                    if (holeExpression.isLatestWrite()) {
+                        value = holeExpression.getFieldInfo().writeValue;
+                        if (value instanceof HoleExpression) {
+                            assert (retHoleHashMap.containsKey(value));
+                            value = retHoleHashMap.get(value);
+                        }
+                        fillFieldHole(ti, stackFrame, holeExpression, methodHoles, retHoleHashMap, false, null,
+                                false,
+                                ExpressionUtil.GreenToSPFExpression(value));
+                    }
+                    break;
+                case FIELD_PHI:
+                    if (holeExpression.isLatestWrite()) {
+                        value = retHoleHashMap.get(holeExpression);
+                        fillFieldHole(ti, stackFrame, holeExpression, methodHoles, retHoleHashMap, false, null,
+                                false,
+                                ExpressionUtil.GreenToSPFExpression(value));
+                    }
+                    break;
+            }
+        }
+         /* populate the return value of methodSummary regions that have a non-null return value */
+        if(region.isMethodSummary() && region.retVal != null) {
+            ti.getModifiableTopFrame().push(0);
+            if(region.retVal instanceof HoleExpression)
+                ti.getModifiableTopFrame().setOperandAttr(ExpressionUtil.GreenToSPFExpression(retHoleHashMap.get(region.retVal)));
+            else ti.getModifiableTopFrame().setOperandAttr(ExpressionUtil.GreenToSPFExpression(region.retVal));
+        }
     }
 
     public abstract void makeVeritestingCG(Expression regionSummary, ThreadInfo ti) throws StaticRegionException;
