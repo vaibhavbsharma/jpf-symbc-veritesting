@@ -423,6 +423,21 @@ public class VarUtil {
         return holeExpression;
     }
 
+
+    public Expression addArrayStoreHole(Expression arrayRef, Expression arrayIndex, Expression rhsHole,
+                                      TypeReference arrayType,
+                                      SSAArrayStoreInstruction instructionName,
+                                      Expression PLAssign) {
+        HoleExpression holeExpression = new HoleExpression(nextInt(), className, methodName,
+                HoleExpression.HoleType.ARRAYSTORE, PLAssign, -1, -1);
+        holeExpression.setHoleVarName(instructionName.toString());
+        holeExpression.setArrayInfo(arrayRef, arrayIndex, rhsHole, arrayType);
+
+        varCache.put(holeExpression.getHoleVarName(), holeExpression);
+        return holeExpression;
+    }
+
+
     // def will be value being defined in case of FIELD_INPUT hole
     public Expression addFieldInputVal(int def, int use, String fieldStaticClassName, String fieldName,
                                        boolean isStaticField, Expression PLAssign) {

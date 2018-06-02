@@ -10,7 +10,7 @@ public class VeritestingPerf {
     public static void main(String[] args) {
 
         /**************** create New Object Tests************/
-        (new VeritestingPerf()).createObjectTC1(true, true);
+        //(new VeritestingPerf()).createObjectTC1(true, true);
         //(new VeritestingPerf()).createObjectTC2(true, true);
         //(new VeritestingPerf()).createObjectTC3(true, true);
         //(new VeritestingPerf()).createObjectTC4(true, true);
@@ -30,7 +30,7 @@ public class VeritestingPerf {
         //(new VeritestingPerf()).createObjectComplexRegionTC7(true, true);
         //(new VeritestingPerf()).createObjectComplexRegionTC8(true, true);
 
-        /****************** ArrayLoad Tests ********************/
+        /****************** arrayLoad Tests ********************/
         //(new VeritestingPerf()).testSegment1(true, true, 2);
         //(new VeritestingPerf()).testSegment2(true, true, 2);
         //(new VeritestingPerf()).inRangeloadArrayTC(22, 2);
@@ -40,6 +40,10 @@ public class VeritestingPerf {
         //(new VeritestingPerf()).boundedOutRangeloadArrayTC(22, 2);
         //(new VeritestingPerf()).segmantTest(22, 2);
         //(new VeritestingPerf()).assertRegions(true,true);
+
+        /****************** arrayStore Tests ********************/
+        (new VeritestingPerf()).arrayStoreTC1(1, 2);
+
 
         //(new VeritestingPerf()).nestedRegionThrowsException(0);
 //        (new VeritestingPerf()).simpleRegionThrowsException(0);
@@ -469,7 +473,6 @@ public class VeritestingPerf {
         } else {
             a = 3;
         }
-        System.out.println("after the if condition.");
 //        assert(x ? a==0: true);
 //        assert(!x ? a==3: true);
         return a;
@@ -730,6 +733,45 @@ public class VeritestingPerf {
 
         return a;
     }
+
+
+    public int arrayStoreTC1(int index, int length) {
+        int[] x = {300, 400};
+        int temp = 1;
+        try {
+            if (length <= 0) {
+                //     System.out.println("executing then branch");
+                temp = 2;
+            } else {
+                // System.out.println("executing else branch");
+                x[index] = temp;
+            }
+        } catch (ArrayIndexOutOfBoundsException e) {
+            temp = 3;
+        }
+
+        return temp;
+    }
+
+
+    public int arrayStoreTC2(int index, int length) {
+        int[] x = {300, 400};
+        int temp = 1;
+        try {
+            if (length <= 0) {
+                //     System.out.println("executing then branch");
+                temp = 2;
+            } else {
+                // System.out.println("executing else branch");
+                x[1] = temp;
+            }
+        } catch (ArrayIndexOutOfBoundsException e) {
+            temp = 3;
+        }
+
+        return temp;
+    }
+
 
 /*
     public int branchOnConcrete(boolean x, boolean y) {

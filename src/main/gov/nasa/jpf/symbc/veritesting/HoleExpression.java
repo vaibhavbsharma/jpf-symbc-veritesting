@@ -135,6 +135,9 @@ public class HoleExpression extends za.ac.sun.cs.green.expr.Expression{
             case ARRAYLOAD:
                 ret += ", arrayInfo = " + arrayInfo.toString();
                 break;
+            case ARRAYSTORE:
+                ret += ", arrayInfo = " + arrayInfo.toString();
+                break;
             default:
                 System.out.println("undefined toString for holeType (" + holeType + ")");
                 assert(false);
@@ -235,6 +238,7 @@ public class HoleExpression extends za.ac.sun.cs.green.expr.Expression{
         FIELD_OUTPUT("field_output"),
         INVOKE("invoke"),
         ARRAYLOAD("array_load"),
+        ARRAYSTORE("array_store"),
         FIELD_PHI("field_phi");
         private final String string;
 
@@ -260,6 +264,7 @@ public class HoleExpression extends za.ac.sun.cs.green.expr.Expression{
                 (h == HoleType.FIELD_OUTPUT) ||
                 (h == HoleType.INVOKE) ||
                 (h == HoleType.ARRAYLOAD) ||
+                (h == HoleType.ARRAYSTORE) ||
                 (h == HoleType.FIELD_PHI));
         holeType = h;
     }
@@ -309,9 +314,9 @@ public class HoleExpression extends za.ac.sun.cs.green.expr.Expression{
     }
 
     public ArrayInfo getArrayInfo() {return arrayInfo;}
-    public void setArrayInfo(Expression arrayRef, Expression arrayIndex, HoleExpression lhsExpr,
+    public void setArrayInfo(Expression arrayRef, Expression arrayIndex, Expression lhsExpr,
                              TypeReference arrayType){
-        assert(this.holeType== HoleType.ARRAYLOAD);
+        assert(this.holeType== HoleType.ARRAYLOAD || this.holeType == HoleType.ARRAYSTORE);
         arrayInfo = new ArrayInfo(arrayRef, arrayIndex, lhsExpr, arrayType);
     }
 

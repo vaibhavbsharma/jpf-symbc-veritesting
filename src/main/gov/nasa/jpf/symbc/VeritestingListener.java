@@ -518,6 +518,14 @@ public class VeritestingListener extends PropertyListenerAdapter implements Publ
         FillArrayLoadOutput fillArrayLoadOutput = new FillArrayLoadHoles(ti, region.getHoleHashMap(), retHoleHashMap, additionalAST).invoke();
         if (!fillArrayLoadOutput.isOk()) return null;
         additionalAST = fillArrayLoadOutput.getAdditionalAST();
+
+
+        FillArrayStoreOutput fillArrayStoreOutput = new FillArrayStoreHoles(ti, region.getHoleHashMap(), retHoleHashMap, additionalAST).invoke();
+        if (!fillArrayLoadOutputOutput.isOk()) return null;
+        additionalAST = fillArrayLoadOutput.getAdditionalAST();
+
+
+
         FillInvokeHole fillInvokeHole = new FillInvokeHole(stackFrame, ti, holeHashMap, retHoleHashMap, additionalAST).invoke();
         if (fillInvokeHole.is()) return null;
         retHoleHashMap = fillInvokeHole.getRetHoleHashMap();
