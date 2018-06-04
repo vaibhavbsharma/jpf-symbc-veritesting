@@ -102,7 +102,7 @@ public class VeritestingListener extends PropertyListenerAdapter implements Publ
     public static boolean filterUnsat = false;
     public static int filterUnsatTimeout = 2;
     public static String pathToZ3Binary = "z3";
-    private InstantiateRegionOutput instantiateRegionOutput = null;
+    private Stack<InstantiateRegionOutput> instantiateRegionOutputStack = null;
 
 
     public VeritestingListener(Config conf, JPF jpf) {
@@ -123,6 +123,7 @@ public class VeritestingListener extends PropertyListenerAdapter implements Publ
                 }
                 if (conf.hasValue("veritestingDebug"))
                     debug = conf.getInt("veritestingDebug");
+                instantiateRegionOutputStack = new Stack<>();
             }
         } else {
             System.out.println("* Warning: no veritestingMode specified");
@@ -174,7 +175,7 @@ public class VeritestingListener extends PropertyListenerAdapter implements Publ
                     }
 
                     try {
-                         instantiateRegionOutput = instantiateRegion(ti, region); // fill holes in region
+                        InstantiateRegionOutput instantiateRegionOutput = instantiateRegion(ti, region); // fill holes in region
                         if (instantiateRegionOutput == null) return;
 
                         regionSummary = instantiateRegionOutput.summaryExpression;
@@ -182,6 +183,7 @@ public class VeritestingListener extends PropertyListenerAdapter implements Publ
                             return;
                         //System.out.println(ASTToString(regionSummary));
                         newCG.makeVeritestingCG(regionSummary, ti);
+                        instantiateRegionOutputStack.push(instantiateRegionOutput);
                     } catch (StaticRegionException sre) {
                         System.out.println(sre.toString());
                         return; //problem filling holes, abort veritesting
@@ -194,6 +196,7 @@ public class VeritestingListener extends PropertyListenerAdapter implements Publ
                 } else {
                     ChoiceGenerator<?> cg = ti.getVM().getSystemState().getChoiceGenerator();
                     if (cg instanceof StaticPCChoiceGenerator) {
+                        InstantiateRegionOutput instantiateRegionOutput = instantiateRegionOutputStack.peek();
                         StaticPCChoiceGenerator vcg = (StaticPCChoiceGenerator) cg;
                         int choice = (Integer) cg.getNextChoice();
                         Instruction nextInstruction = null;
@@ -204,12 +207,13 @@ public class VeritestingListener extends PropertyListenerAdapter implements Publ
                             return;
                         }
                         ti.setNextPC(nextInstruction);
+                        if (!cg.hasMoreChoices()) instantiateRegionOutputStack.pop();
                     }
                 }
             } else if (veritestingMode >= 1 && veritestingMode <= 3) {
                 // MWW: hopefully this code all goes away sometime soon!
                 try {
-                    instantiateRegionOutput = instantiateRegion(ti, region); // fill holes in region
+                    InstantiateRegionOutput instantiateRegionOutput = instantiateRegion(ti, region); // fill holes in region
                     if (instantiateRegionOutput == null) return;
 
                     Expression regionSummary = instantiateRegionOutput.summaryExpression;
