@@ -813,7 +813,7 @@ public class VeritestingMain {
         if (VeritestingListener.veritestingMode < 3) {
             return;
         }
-        if (currentClassName.contains("TempClassDerived") && currentMethodName.contains("nestedRegion"))
+        if (currentClassName.contains("VeritestingPerf") && currentMethodName.contains("createObjectTC7"))
             System.out.println("");
         //System.out.println("Starting doMethodAnalysis");
         //currUnit represents the next BB to be summarized

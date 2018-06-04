@@ -10,13 +10,13 @@ public class VeritestingPerf {
     public static void main(String[] args) {
 
         /**************** create New Object Tests************/
-        (new VeritestingPerf()).createObjectTC1(true, true);
+//        (new VeritestingPerf()).createObjectTC1(true, true);
         //(new VeritestingPerf()).createObjectTC2(true, true);
         //(new VeritestingPerf()).createObjectTC3(true, true);
         //(new VeritestingPerf()).createObjectTC4(true, true);
         //(new VeritestingPerf()).createObjectTC5(true, true);
         //(new VeritestingPerf()).createObjectTC6(true, true);
-        //(new VeritestingPerf()).createObjectTC7(true, true);
+        (new VeritestingPerf()).createObjectTC7(true, true);
         //(new VeritestingPerf()).createObjectTC8(true, true);
         //(new VeritestingPerf()).createObjectTC9(true, true);
         //(new VeritestingPerf()).createObjectTC10(true, true);
@@ -529,7 +529,7 @@ public class VeritestingPerf {
     public int createObjectTC7(boolean x, boolean y) {
         int a = 3;
         if (x) {
-            TempClass tempClass2 = new TempClass();
+//            TempClass tempClass2 = new TempClass();
             a = 4;
         }
         if (y) {
@@ -537,8 +537,10 @@ public class VeritestingPerf {
         } else {
             a = 2+a;
         }
-//        assert(x ? a==2: true);
-//        assert(!x ? a==3: true);
+        assert(x && y ? a == 8: true);
+        assert(x && !y ? a == 6: true);
+        assert(!x && y ? a == 7: true);
+        assert(!x && !y ? a == 5: true);
         return a;
     }
 

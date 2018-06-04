@@ -37,6 +37,7 @@ public class LocalUtil {
             if ((h == h1) && (prevWrite == null)) {
                 throw new StaticRegionException("LocalUtil.findPreviousWrite failed to find a previous write but hasWriteBefore was satisfied on hole: " + h.toString());
             }
+            if (h == h1) return prevWrite;
             if(h1.getHoleType() != HoleExpression.HoleType.LOCAL_OUTPUT)
                 continue;
             if(h.getLocalStackSlot() == h1.getLocalStackSlot())
