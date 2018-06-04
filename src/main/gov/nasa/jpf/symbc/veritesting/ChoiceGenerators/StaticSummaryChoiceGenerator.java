@@ -5,6 +5,7 @@ import gov.nasa.jpf.symbc.numeric.GreenConstraint;
 import gov.nasa.jpf.symbc.numeric.PCChoiceGenerator;
 import gov.nasa.jpf.symbc.numeric.PathCondition;
 import gov.nasa.jpf.symbc.veritesting.FillHolesOutput;
+import gov.nasa.jpf.symbc.veritesting.LogUtil;
 import gov.nasa.jpf.symbc.veritesting.StaticRegionException;
 import gov.nasa.jpf.symbc.veritesting.VeritestingRegion;
 import gov.nasa.jpf.vm.Instruction;
@@ -15,6 +16,8 @@ import za.ac.sun.cs.green.expr.Operation;
 
 import java.util.ArrayList;
 import java.util.List;
+
+import static gov.nasa.jpf.symbc.VeritestingListener.DEBUG_LIGHT;
 
 public class StaticSummaryChoiceGenerator extends StaticPCChoiceGenerator {
     public static List<Instruction> spfCasesIgnoreInstList = new ArrayList<>();
@@ -34,7 +37,7 @@ public class StaticSummaryChoiceGenerator extends StaticPCChoiceGenerator {
         assert(choice == STATIC_CHOICE || choice == SPF_CHOICE);
         Instruction nextInstruction = null;
         if (choice == STATIC_CHOICE) {
-//            System.out.println("Executing static region");
+            LogUtil.log(DEBUG_LIGHT, "Executing static region choice in SummaryCG");
             if(this.getCurrentPC().simplify())
                 nextInstruction = setupSPF(ti, instruction, getRegion(), fillHolesOutput);
             else { //ignore choice if it is unsat
@@ -43,6 +46,7 @@ public class StaticSummaryChoiceGenerator extends StaticPCChoiceGenerator {
             }
 
         } else if (choice == SPF_CHOICE) {
+            LogUtil.log(DEBUG_LIGHT, "Executing SPF choice in SummaryCG");
             PathCondition pc;
             pc = this.getCurrentPC();
             nextInstruction = instruction;

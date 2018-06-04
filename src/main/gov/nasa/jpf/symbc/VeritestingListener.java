@@ -102,7 +102,7 @@ public class VeritestingListener extends PropertyListenerAdapter implements Publ
     public static boolean filterUnsat = false;
     public static int filterUnsatTimeout = 2;
     public static String pathToZ3Binary = "z3";
-    private InstantiateRegionOutput instantiateRegionOutput = null;
+    private Stack<InstantiateRegionOutput> instantiateRegionOutputStack = null;
 
 
     public VeritestingListener(Config conf, JPF jpf) {
@@ -123,6 +123,7 @@ public class VeritestingListener extends PropertyListenerAdapter implements Publ
                 }
                 if (conf.hasValue("veritestingDebug"))
                     debug = conf.getInt("veritestingDebug");
+                instantiateRegionOutputStack = new Stack<>();
             }
         } else {
             System.out.println("* Warning: no veritestingMode specified");
@@ -158,7 +159,7 @@ public class VeritestingListener extends PropertyListenerAdapter implements Publ
 
         // Here is the real code
         String key = generateRegionKey(ti, instructionToExecute);
-        if (key.contains("VeritestingPerf"))
+        if (key.contains("Own_Below_Threat"))
             System.out.print("");
 
         if (veritestingRegions.containsKey(key)) {
@@ -174,13 +175,15 @@ public class VeritestingListener extends PropertyListenerAdapter implements Publ
                     }
 
                     try {
-                         instantiateRegionOutput = instantiateRegion(ti, region); // fill holes in region
+                        InstantiateRegionOutput instantiateRegionOutput = instantiateRegion(ti, region); // fill holes in region
+                        if (instantiateRegionOutput == null) return;
 
                         regionSummary = instantiateRegionOutput.summaryExpression;
                         if (regionSummary == null)
                             return;
                         //System.out.println(ASTToString(regionSummary));
                         newCG.makeVeritestingCG(regionSummary, ti);
+                        instantiateRegionOutputStack.push(instantiateRegionOutput);
                     } catch (StaticRegionException sre) {
                         System.out.println(sre.toString());
                         return; //problem filling holes, abort veritesting
@@ -193,6 +196,7 @@ public class VeritestingListener extends PropertyListenerAdapter implements Publ
                 } else {
                     ChoiceGenerator<?> cg = ti.getVM().getSystemState().getChoiceGenerator();
                     if (cg instanceof StaticPCChoiceGenerator) {
+                        InstantiateRegionOutput instantiateRegionOutput = instantiateRegionOutputStack.peek();
                         StaticPCChoiceGenerator vcg = (StaticPCChoiceGenerator) cg;
                         int choice = (Integer) cg.getNextChoice();
                         Instruction nextInstruction = null;
@@ -203,20 +207,28 @@ public class VeritestingListener extends PropertyListenerAdapter implements Publ
                             return;
                         }
                         ti.setNextPC(nextInstruction);
+                        if (!cg.hasMoreChoices()) instantiateRegionOutputStack.pop();
                     }
                 }
             } else if (veritestingMode >= 1 && veritestingMode <= 3) {
                 // MWW: hopefully this code all goes away sometime soon!
                 try {
-                    instantiateRegionOutput = instantiateRegion(ti, region); // fill holes in region
+                    InstantiateRegionOutput instantiateRegionOutput = instantiateRegion(ti, region); // fill holes in region
+                    if (instantiateRegionOutput == null) return;
 
                     Expression regionSummary = instantiateRegionOutput.summaryExpression;
                     if (regionSummary == null)
                         return;
 
-                    // MWW: added code back in!
-                    PathCondition pc = ((PCChoiceGenerator) ti.getVM().getSystemState().getChoiceGenerator()).getCurrentPC();
+                    PathCondition pc;
+                    if (ti.getVM().getSystemState().getChoiceGenerator() instanceof PCChoiceGenerator)
+                        pc = ((PCChoiceGenerator)(ti.getVM().getSystemState().getChoiceGenerator())).getCurrentPC();
+                    else{
+                        pc = new PathCondition();
+                        pc._addDet(new GreenConstraint(Operation.TRUE));
+                    }
                     pc._addDet(new GreenConstraint(regionSummary));
+
                     // MWW: for debugging.
                     //System.out.println("pc: " + pc);
                     ((PCChoiceGenerator) ti.getVM().getSystemState().getChoiceGenerator()).setCurrentPC(pc);
@@ -254,12 +266,8 @@ public class VeritestingListener extends PropertyListenerAdapter implements Publ
         region.ranIntoCount++;
         StackFrame sf = ti.getTopFrame();
 
-        // MWW: make emitting this stuff keyed off of a verbosity level.
-        //System.out.println("Starting region (" + region.toString()+") at instruction " + instructionToExecute
-        //+ " (pos = " + instructionToExecute.getPosition() + ")");
+        LogUtil.log(DEBUG_MEDIUM,"Starting region (" + region.toString()+")");
 
-        // What is this?  InstructionInfo tracks information related to a condition.
-        // Why is this here?  It has nothing to do with holes.
         // If we can't figure out the condition and we are not reasoning about a
         // method summary, return null.
         InstructionInfo instructionInfo = new InstructionInfo().invoke(sf);
@@ -267,25 +275,20 @@ public class VeritestingListener extends PropertyListenerAdapter implements Publ
 
 
         PathCondition pc;
-        if(VeritestingListener.veritestingMode >= 4){
+        if(!(ti.getVM().getSystemState().getChoiceGenerator() instanceof PCChoiceGenerator)){
+            //We've intercepted execution before any symbolic state was reached, so return
             pc = new PathCondition();
             pc._addDet(new GreenConstraint(Operation.TRUE));
         }
-        else {
-            //We've intercepted execution before any symbolic state was reached, so return
-            if (!(ti.getVM().getSystemState().getChoiceGenerator() instanceof PCChoiceGenerator)) return null;
-            pc = ((PCChoiceGenerator) ti.getVM().getSystemState().getChoiceGenerator()).getCurrentPC();
-        }
+        else pc = ((PCChoiceGenerator) ti.getVM().getSystemState().getChoiceGenerator()).getCurrentPC();
         // this code checks if SPF has reached a branch with both sides being infeasible
         if (!boostPerf && instructionInfo != null) {
             PathCondition eqPC = pc.make_copy();
             eqPC._addDet(new GreenConstraint(instructionInfo.getCondition()));
             boolean eqSat = eqPC.simplify();
-            //if (!eqSat) return null;
             PathCondition nePC = pc.make_copy();
             nePC._addDet(new GreenConstraint(instructionInfo.getNegCondition()));
             boolean neSat = nePC.simplify();
-            //if (!neSat) return null;
             if (!eqSat && !neSat) {
                 System.out.println("both sides of branch at offset " + ti.getTopFrame().getPC().getPosition() + " are unsat");
                 assert (false);

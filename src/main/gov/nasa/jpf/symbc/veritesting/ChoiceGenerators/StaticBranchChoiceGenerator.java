@@ -5,6 +5,7 @@ import gov.nasa.jpf.symbc.VeritestingListener;
 import gov.nasa.jpf.symbc.bytecode.IFNONNULL;
 import gov.nasa.jpf.symbc.numeric.*;
 import gov.nasa.jpf.symbc.veritesting.FillHolesOutput;
+import gov.nasa.jpf.symbc.veritesting.LogUtil;
 import gov.nasa.jpf.symbc.veritesting.StaticRegionException;
 import gov.nasa.jpf.symbc.veritesting.VeritestingRegion;
 import gov.nasa.jpf.vm.Instruction;
@@ -12,6 +13,8 @@ import gov.nasa.jpf.vm.StackFrame;
 import gov.nasa.jpf.vm.ThreadInfo;
 import za.ac.sun.cs.green.expr.Expression;
 import za.ac.sun.cs.green.expr.Operation;
+
+import static gov.nasa.jpf.symbc.VeritestingListener.DEBUG_LIGHT;
 
 
 public class StaticBranchChoiceGenerator extends StaticPCChoiceGenerator {
@@ -93,14 +96,14 @@ public class StaticBranchChoiceGenerator extends StaticPCChoiceGenerator {
 
         Instruction nextInstruction = null;
         if (choice == STATIC_CHOICE) {
-            //System.out.println("Executing static region");
+            LogUtil.log(DEBUG_LIGHT, "Executing static region choice in BranchCG");
             if(this.getCurrentPC().simplify())
                 nextInstruction = setupSPF(ti, instructionToExecute, getRegion(), fillHolesOutput);
             else //ignore choice if it is unsat
                 ti.getVM().getSystemState().setIgnored(true);
 
         } else if (choice == THEN_CHOICE || choice == ELSE_CHOICE) {
-            //System.out.println("Executing then/else choice.  Instruction: " + instructionToExecute);
+            LogUtil.log(DEBUG_LIGHT, "Executing then/else choice.  Instruction: " + instructionToExecute);
             switch (getKind(instructionToExecute)) {
                 case UNARYIF:
                     nextInstruction = executeUnaryIf(instructionToExecute, choice);
@@ -112,8 +115,7 @@ public class StaticBranchChoiceGenerator extends StaticPCChoiceGenerator {
                     nextInstruction = executeNullIf(instructionToExecute);
                     break;
                 case OTHER:
-                    System.out.println("Error: Branch choice generator instantiated on non-branch instruction!");
-                    assert(false);
+                    throw new StaticRegionException("Error: Branch choice generator instantiated on non-branch instruction!");
             }
         } else {
             // should never get here (until we make early returns)
