@@ -42,8 +42,11 @@ public class VeritestingPerf {
         //(new VeritestingPerf()).assertRegions(true,true);
 
         /****************** arrayStore Tests ********************/
-        (new VeritestingPerf()).arrayStoreTC1(1, 2);
-
+        int a[] = {200,300};
+        //(new VeritestingPerf()).arrayStoreTC1(1, 2);
+        (new VeritestingPerf()).arrayStoreTC2(1, 2, a);
+        //(new VeritestingPerf()).arrayStoreTC3(1, 2, a);
+        //(new VeritestingPerf()).arrayStoreTC4(1, 2, a);
 
         //(new VeritestingPerf()).nestedRegionThrowsException(0);
 //        (new VeritestingPerf()).simpleRegionThrowsException(0);
@@ -735,7 +738,7 @@ public class VeritestingPerf {
     }
 
 
-    public int arrayStoreTC1(int index, int length) {
+    public int arrayStoreTC1(int index, int length) { // should be treated as a new object creation
         int[] x = {300, 400};
         int temp = 1;
         try {
@@ -754,8 +757,8 @@ public class VeritestingPerf {
     }
 
 
-    public int arrayStoreTC2(int index, int length) {
-        int[] x = {300, 400};
+
+    public int arrayStoreTC2(int index, int length, int[] x) { //symbolic index - concrete operand
         int temp = 1;
         try {
             if (length <= 0) {
@@ -763,7 +766,7 @@ public class VeritestingPerf {
                 temp = 2;
             } else {
                 // System.out.println("executing else branch");
-                x[1] = temp;
+                x[index] = temp;
             }
         } catch (ArrayIndexOutOfBoundsException e) {
             temp = 3;
@@ -772,6 +775,40 @@ public class VeritestingPerf {
         return temp;
     }
 
+
+    public int arrayStoreTC3(int index, int length, int[] x) { //symbolic index - symbolic operand
+        int temp = length;
+        try {
+            if (length <= 0) {
+                //     System.out.println("executing then branch");
+                temp = 2;
+            } else {
+                // System.out.println("executing else branch");
+                x[index] = temp;
+            }
+        } catch (ArrayIndexOutOfBoundsException e) {
+            temp = 3;
+        }
+
+        return temp;
+    }
+
+    public int arrayStoreTC4(int index, int length, int[] x) { //concrete index - concrete operand
+        int temp = 1;
+        try {
+            if (length <= 0) {
+                //     System.out.println("executing then branch");
+                temp = 2;
+            } else {
+                // System.out.println("executing else branch");
+                x[temp] = temp;
+            }
+        } catch (ArrayIndexOutOfBoundsException e) {
+            temp = 3;
+        }
+
+        return temp;
+    }
 
 /*
     public int branchOnConcrete(boolean x, boolean y) {

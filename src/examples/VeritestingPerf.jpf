@@ -28,7 +28,7 @@ symbolic.debug=false
 #symbolic.method=VeritestingPerf.createObjectTC4(sym#sym)
 #symbolic.method=VeritestingPerf.createObjectTC5(sym#sym)
 #symbolic.method=VeritestingPerf.createObjectTC6(sym#sym)
-symbolic.method=VeritestingPerf.createObjectTC7(sym#sym)
+#symbolic.method=VeritestingPerf.createObjectTC7(sym#sym)
 #symbolic.method=VeritestingPerf.createObjectTC8(sym#sym)
 #symbolic.method=VeritestingPerf.createObjectTC9(sym#sym)
 #symbolic.method=VeritestingPerf.createObjectTC10(sym#sym)
@@ -47,8 +47,10 @@ symbolic.method=VeritestingPerf.createObjectTC7(sym#sym)
 
 ######## testing arrayStore  ######
 #symbolic.method=VeritestingPerf.arrayStoreTC1(sym#sym)
-#symbolic.method=VeritestingPerf.arrayStoreTC2(sym#sym)
-
+symbolic.method=VeritestingPerf.arrayStoreTC2(sym#sym#con)
+#symbolic.method=VeritestingPerf.arrayStoreTC2(sym#sym#con)
+#symbolic.method=VeritestingPerf.arrayStoreTC3(sym#sym#con)
+#symbolic.method=VeritestingPerf.arrayStoreTC4(sym#sym#con)
 
 ######## testing complexRegions  ######
 #symbolic.method=VeritestingPerf.foo(sym)
@@ -66,7 +68,7 @@ symbolic.dp=z3bitvector
 
 symbolic.min_int=-2147483648
 symbolic.max_int=2147483647
-listener = .symbc.VeritestingListener
-#listener = .symbc.SymbolicListener
-veritestingMode = 3
+#listener = .symbc.VeritestingListener
+listener = .symbc.SymbolicListener
+veritestingMode = 4
 symbolic.lazy = true

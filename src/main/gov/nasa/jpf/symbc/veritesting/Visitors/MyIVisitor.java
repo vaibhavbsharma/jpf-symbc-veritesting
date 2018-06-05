@@ -16,6 +16,7 @@ import gov.nasa.jpf.symbc.veritesting.*;
 import gov.nasa.jpf.symbc.veritesting.SPFCase.ArrayBoundsReason;
 import gov.nasa.jpf.symbc.veritesting.SPFCase.SPFCase;
 import gov.nasa.jpf.symbc.veritesting.SPFCase.TrueReason;
+import ia_parser.Exp;
 import za.ac.sun.cs.green.expr.Expression;
 
 import za.ac.sun.cs.green.expr.Operation;
@@ -133,27 +134,27 @@ public class MyIVisitor implements SSAInstruction.IVisitor {
     public void visitArrayStore(SSAArrayStoreInstruction instruction) {
         if(isMeetVisitor) return;
         LogUtil.log(DEBUG_VERBOSE, "SSAArrayStoreInstruction = " + instruction);
-        if (VeritestingListener.veritestingMode < 3) { //TODO: Change veritesting mode here back to 4. SOHA
+        if (VeritestingListener.veritestingMode < 4) {
             setCanVeritest(false, instruction);
             return;
         }
-        int rhs = instruction.getUse(2);
-        //HoleExpression rhsExpr = (HoleExpression) varUtil.makeIntermediateVar(rhs, true, PLAssign);
+
         int arrayRef = instruction.getUse(0);
         int arrayIndex = instruction.getUse(1);
-        int value = instruction.getUse(2);
+        int rhs = instruction.getUse(2);
+
         TypeReference arrayType = instruction.getElementType();
         Expression arrayRefHole = varUtil.addVal(arrayRef, PLAssign);
         Expression arrayIndexHole = varUtil.addVal(arrayIndex, PLAssign);
-        Expression rhsExpr = varUtil.addVal(rhs, PLAssign);
+        Expression value = varUtil.addVal(rhs, PLAssign);
 
-        Expression arrayStoreHoleHole = varUtil.addArrayStoreHole(arrayRefHole, arrayIndexHole,rhsExpr, arrayType, instruction, PLAssign );
+        Expression arrayStoreHole = varUtil.addArrayStoreHole(arrayRefHole, arrayIndexHole, value, arrayType, instruction, PLAssign );
 
-        ArrayBoundsReason reason = new ArrayBoundsReason(arrayRefHole, arrayIndexHole, arrayStoreHoleHole);
+        ArrayBoundsReason reason = new ArrayBoundsReason(arrayRefHole, arrayIndexHole, arrayStoreHole);
         SPFCase c = new SPFCase(conditionHole, reason);
         varUtil.addSpfCase(c);
 
-        SPFExpr = new Operation(Operator.EQ, arrayStoreHoleHole, rhsExpr);
+        SPFExpr = arrayStoreHole;
         setCanVeritest(true, instruction);
     }
 

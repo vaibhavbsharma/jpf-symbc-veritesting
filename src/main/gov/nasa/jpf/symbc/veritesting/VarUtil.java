@@ -3,6 +3,7 @@ package gov.nasa.jpf.symbc.veritesting;
 import com.ibm.wala.ssa.*;
 
 import com.ibm.wala.types.TypeReference;
+import cvc3.Expr;
 import gov.nasa.jpf.symbc.VeritestingListener;
 import gov.nasa.jpf.symbc.veritesting.SPFCase.SPFCase;
 import gov.nasa.jpf.symbc.veritesting.SPFCase.SPFCaseList;

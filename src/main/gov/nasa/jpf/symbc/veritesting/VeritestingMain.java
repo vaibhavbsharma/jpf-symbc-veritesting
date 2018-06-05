@@ -902,7 +902,7 @@ public class VeritestingMain {
                 //SH:support SPFCases for method Summary here
                 if (VeritestingListener.veritestingMode >= 4) {
                     SPFCaseList staticRegionSpfCases = veritestingRegion.getSpfCases();
-                    if (staticRegionSpfCases != null) {
+                    if (staticRegionSpfCases != null || staticRegionSpfCases.getCases().size()!=0) {
                         methodSpfCaseList.addAll(staticRegionSpfCases.cloneSPFCaseList());
                         methodSpfCaseList.replaceCondition(conditionExpression);
                     }

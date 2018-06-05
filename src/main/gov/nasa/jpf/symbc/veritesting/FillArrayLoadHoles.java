@@ -23,7 +23,7 @@ public class FillArrayLoadHoles {
         this.additionalAST = additionalAST;
     }
 
-    public FillArrayLoadOutput invoke() throws StaticRegionException {
+    public FillArrayOutput invoke() throws StaticRegionException {
         for (HashMap.Entry<Expression, Expression> entry : holeHashMap.entrySet()) {
             Expression key = entry.getKey(), finalValueGreen;
             assert (key instanceof HoleExpression);
@@ -49,11 +49,11 @@ public class FillArrayLoadHoles {
                     {
                         int indexVal = ((IntConstant) indexExpression).getValue();
                         if (indexVal < 0 || indexVal >= arrayLength) //checking concrete index is out of bound
-                            return new FillArrayLoadOutput(false, null);
+                            return new FillArrayOutput(false, null);
                         int value = ei.getIntElement(indexVal);
                         finalValueGreen = new IntConstant(value);
                     } else { //index is symbolic - fun starts here :)
-                        Expression lhsExpr = retHoleHashMap.get(arrayInfo.lhsExpr);
+                        Expression lhsExpr = retHoleHashMap.get(arrayInfo.val);
                         //Expression arrayLoadResult = new IntVariable("arrayLoadResult", Integer.MIN_VALUE, Integer.MAX_VALUE);
                         for (int i = 0; i < arrayLength; i++) { //constructing the symbolic index constraint
                             Expression exp1 = new Operation(Operation.Operator.EQ, indexExpression, new IntConstant(i));
@@ -63,21 +63,11 @@ public class FillArrayLoadHoles {
                                     new Operation(Operation.Operator.IMPLIES, exp1, exp2));
                         }
                         finalValueGreen = lhsExpr;
-                        // MWW: TODO: move this code.
-                        /*
-                        if (outOfBound(arraySymbConstraint, finalValueGreen, ti)) {//outOfBoundException is possible
-                            Expression lowerBoundConstraint = new Operation(Operation.Operator.GE, finalValueGreen, new IntConstant(0));
-                            Expression upperBoundConstraint = new Operation(Operation.Operator.LT, finalValueGreen, new IntConstant(arraySymbConstraint.length));
-                            Expression inBoundConstraint = new Operation(Operation.Operator.AND, lowerBoundConstraint, upperBoundConstraint);
-                            ExitTransition outOfBoundExit = new ExitTransition(inBoundConstraint, ((HoleExpression) key).getHoleVarName(), pathLabelConstraint);
-                            region.putExitTransition(outOfBoundExit);
-                        }
-                        */
                     }
                     retHoleHashMap.put(keyHoleExpression, finalValueGreen);
                     break;
             }
         }
-        return new FillArrayLoadOutput(true, additionalAST);
+        return new FillArrayOutput(true, additionalAST);
     }
 }

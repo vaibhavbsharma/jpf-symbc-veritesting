@@ -321,13 +321,13 @@ public class HoleExpression extends za.ac.sun.cs.green.expr.Expression{
     }
 
     public class ArrayInfo {
-        public Expression arrayRefHole, arrayIndexHole, lhsExpr;
+        public Expression arrayRefHole, arrayIndexHole, val;
         public TypeReference arrayType;
         int length;
 
         public ArrayInfo(Expression arrayRef, Expression arrayIndex, Expression lhsExpr, TypeReference arrayType){
             this.arrayRefHole = arrayRef;
-            this.lhsExpr = lhsExpr;
+            this.val = lhsExpr;
             this.arrayIndexHole = arrayIndex;
             this.arrayType = arrayType;
         }
@@ -338,7 +338,11 @@ public class HoleExpression extends za.ac.sun.cs.green.expr.Expression{
 
         @Override
         public String toString() {
-            return arrayRefHole + "[" + arrayType +":" +arrayIndexHole + "]";
+
+            if (holeType == HoleType.ARRAYLOAD)
+                return arrayRefHole + "[" + arrayType +":" +arrayIndexHole + "]";
+            else
+                return arrayRefHole + "[" + arrayType +":" +arrayIndexHole + "] = " + val;
         }
 
         public boolean equals(Object o) {

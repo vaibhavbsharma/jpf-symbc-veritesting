@@ -518,14 +518,14 @@ public class VeritestingListener extends PropertyListenerAdapter implements Publ
                 new FillInputHoles(stackFrame, ti, retHoleHashMap, null, holeHashMap, false).invoke();
         if (fillInputHoles.failure()) return null;
         retHoleHashMap = fillInputHoles.retHoleHashMap;
-        FillArrayLoadOutput fillArrayLoadOutput = new FillArrayLoadHoles(ti, region.getHoleHashMap(), retHoleHashMap, additionalAST).invoke();
+        FillArrayOutput fillArrayLoadOutput = new FillArrayLoadHoles(ti, region.getHoleHashMap(), retHoleHashMap, additionalAST).invoke();
         if (!fillArrayLoadOutput.isOk()) return null;
         additionalAST = fillArrayLoadOutput.getAdditionalAST();
 
 
-        FillArrayStoreOutput fillArrayStoreOutput = new FillArrayStoreHoles(ti, region.getHoleHashMap(), retHoleHashMap, additionalAST).invoke();
-        if (!fillArrayLoadOutputOutput.isOk()) return null;
-        additionalAST = fillArrayLoadOutput.getAdditionalAST();
+        FillArrayOutput fillArrayStoreOutput = new FillArrayStoreHoles(ti, region.getHoleHashMap(), retHoleHashMap, additionalAST).invoke();
+        if (!fillArrayStoreOutput.isOk()) return null;
+        additionalAST = fillArrayStoreOutput.getAdditionalAST();
 
 
 
@@ -945,7 +945,7 @@ public class VeritestingListener extends PropertyListenerAdapter implements Publ
             }
             retHoleHashMap = fillInputHolesMS.retHoleHashMap;
 
-            FillArrayLoadOutput fillArrayLoadOutput = new FillArrayLoadHoles(ti, methodHoles, retHoleHashMap, additionalAST).invoke();
+            FillArrayOutput fillArrayLoadOutput = new FillArrayLoadHoles(ti, methodHoles, retHoleHashMap, additionalAST).invoke();
             if (!fillArrayLoadOutput.isOk()) return null;
             additionalAST = fillArrayLoadOutput.getAdditionalAST();
 
