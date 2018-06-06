@@ -518,22 +518,22 @@ public class VeritestingListener extends PropertyListenerAdapter implements Publ
                 new FillInputHoles(stackFrame, ti, retHoleHashMap, null, holeHashMap, false).invoke();
         if (fillInputHoles.failure()) return null;
         retHoleHashMap = fillInputHoles.retHoleHashMap;
-        FillArrayOutput fillArrayLoadOutput = new FillArrayLoadHoles(ti, region.getHoleHashMap(), retHoleHashMap, additionalAST).invoke();
+        FillArrayLoadOutput fillArrayLoadOutput = new FillArrayLoadHoles(ti, region.getHoleHashMap(), retHoleHashMap, additionalAST).invoke();
         if (!fillArrayLoadOutput.isOk()) return null;
         additionalAST = fillArrayLoadOutput.getAdditionalAST();
 
 
-        FillArrayOutput fillArrayStoreOutput = new FillArrayStoreHoles(ti, region.getHoleHashMap(), retHoleHashMap, additionalAST).invoke();
+        FillArrayStoreOutput fillArrayStoreOutput = new FillArrayStoreHoles(ti, region.getHoleHashMap(), retHoleHashMap, additionalAST).invoke();
         if (!fillArrayStoreOutput.isOk()) return null;
         additionalAST = fillArrayStoreOutput.getAdditionalAST();
-
+        additionalOutputVars = fillArrayStoreOutput.getAdditionalOutputVars();
 
 
         FillInvokeHole fillInvokeHole = new FillInvokeHole(stackFrame, ti, holeHashMap, retHoleHashMap, additionalAST).invoke();
         if (fillInvokeHole.is()) return null;
         retHoleHashMap = fillInvokeHole.getRetHoleHashMap();
         additionalAST = fillInvokeHole.getAdditionalAST();
-        additionalOutputVars = fillInvokeHole.getAdditionalOutputVars();
+        additionalOutputVars.addAll(fillInvokeHole.getAdditionalOutputVars());
 
         return new FillHolesOutput(retHoleHashMap, additionalAST, additionalOutputVars);
     }
@@ -945,7 +945,7 @@ public class VeritestingListener extends PropertyListenerAdapter implements Publ
             }
             retHoleHashMap = fillInputHolesMS.retHoleHashMap;
 
-            FillArrayOutput fillArrayLoadOutput = new FillArrayLoadHoles(ti, methodHoles, retHoleHashMap, additionalAST).invoke();
+            FillArrayLoadOutput fillArrayLoadOutput = new FillArrayLoadHoles(ti, methodHoles, retHoleHashMap, additionalAST).invoke();
             if (!fillArrayLoadOutput.isOk()) return null;
             additionalAST = fillArrayLoadOutput.getAdditionalAST();
 

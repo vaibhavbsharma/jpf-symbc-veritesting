@@ -40,11 +40,13 @@ import gov.nasa.jpf.jvm.bytecode.GOTO;
 import gov.nasa.jpf.symbc.InstructionInfo;
 import gov.nasa.jpf.symbc.numeric.*;
 import gov.nasa.jpf.symbc.veritesting.*;
-import gov.nasa.jpf.vm.Instruction;
-import gov.nasa.jpf.vm.StackFrame;
-import gov.nasa.jpf.vm.ThreadInfo;
+import gov.nasa.jpf.vm.*;
 import za.ac.sun.cs.green.expr.Expression;
+import za.ac.sun.cs.green.expr.IntConstant;
+import za.ac.sun.cs.green.expr.IntVariable;
+import za.ac.sun.cs.green.expr.Operation;
 
+import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 
@@ -187,6 +189,9 @@ LOCAL_OUTPUT and FIELD_PHIs have the final value mapped in fillHolesOutput.holeH
                                 ExpressionUtil.GreenToSPFExpression(value));
                     }
                     break;
+                case ARRAYSTORE:
+                    populateArrayStoreOutput(ti, holeExpression.getArrayInfo(), retHoleHashMap);
+                    break;
             }
         }
          /* populate the return value of methodSummary regions that have a non-null return value */
@@ -198,6 +203,55 @@ LOCAL_OUTPUT and FIELD_PHIs have the final value mapped in fillHolesOutput.holeH
         }
     }
 
+    private static void populateArrayStoreOutput(ThreadInfo ti, HoleExpression.ArrayInfo arrayInfo, HashMap<Expression, Expression> retHoleHashMap) {
+
+        HoleExpression arrayRefHole = ((HoleExpression) arrayInfo.arrayRefHole);
+        Expression arrayRefExpression = retHoleHashMap.get(arrayRefHole);
+        int arrayRef = ((IntConstant) arrayRefExpression).getValue();
+
+        FillArrayStoreHoles.Where indexWhere, operandWhere = null;
+
+        indexWhere = (arrayInfo.arrayIndexHole instanceof  IntConstant) ? FillArrayStoreHoles.Where.CONCRETE : FillArrayStoreHoles.Where.SYM;
+        operandWhere = (arrayInfo.val instanceof IntConstant) ? FillArrayStoreHoles.Where.CONCRETE : FillArrayStoreHoles.Where.SYM;
+
+        ElementInfo ei = ti.getElementInfo(arrayRef);
+        int arrayLength = arrayInfo.length();
+
+        StackFrame frame = ti.getModifiableTopFrame();
+        ElementInfo eiArray = ei.getModifiableInstance();
+        switch (indexWhere) {
+            case CONCRETE:
+                int concreteIndex = ((IntConstant) arrayInfo.arrayIndexHole).getValue();
+                switch (operandWhere) {
+                    case CONCRETE: //index and rhs both concrete
+                        int concreteValue = ((IntConstant) arrayInfo.val).getValue();
+                        eiArray.setIntElement(concreteIndex, concreteValue);
+                        break;
+                    case SYM: // index concrete but operand is sym
+                        Expression operandAttr = retHoleHashMap.get(arrayInfo.val);
+                        //eiArray.setIntElement(concreteIndex, concreteValue); //even though value is SYM, as per the SPF bytecode, concrete value is also copied.
+                        eiArray.setElementAttrNoClone(concreteIndex,operandAttr);
+                        break;
+                }
+                break;
+            case SYM: // index symbolic and rhs either concrete or sym
+                setArrayAttributes(ti, arrayInfo, arrayRef);
+                break;
+        }
+    }
+
+    private static void setArrayAttributes(ThreadInfo ti, HoleExpression.ArrayInfo arrayInfo, int arrayRef) {
+        HoleExpression arrayRefHole = ((HoleExpression) arrayInfo.arrayRefHole);
+
+        ElementInfo ei = ti.getElementInfo(arrayRef);
+        ElementInfo eiArray = ei.getModifiableInstance();
+
+        for(int index = 0; index < arrayInfo.getLength(); index++){
+            String newVarName = arrayRefHole.getClass()+ "." + arrayRefHole.getMethodName() + ".v_i" + index;
+            Expression newVar = new IntVariable(newVarName, Integer.MIN_VALUE, Integer.MAX_VALUE);
+            eiArray.setElementAttrNoClone(index,ExpressionUtil.GreenToSPFExpression(newVar));
+        }
+    }
     public abstract void makeVeritestingCG(Expression regionSummary, ThreadInfo ti) throws StaticRegionException;
 
 

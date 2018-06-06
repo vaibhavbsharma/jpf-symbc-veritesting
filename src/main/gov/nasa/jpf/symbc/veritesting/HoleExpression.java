@@ -354,6 +354,10 @@ public class HoleExpression extends za.ac.sun.cs.green.expr.Expression{
                 return false;
             else return true;
         }
+
+        public int getLength() {
+            return length;
+        }
     }
 
     /*
@@ -371,6 +375,7 @@ public class HoleExpression extends za.ac.sun.cs.green.expr.Expression{
 
     public class FieldInfo {
         public final String methodName;
+        private int length;
 
         public String getFieldStaticClassName() {
             return fieldStaticClassName;

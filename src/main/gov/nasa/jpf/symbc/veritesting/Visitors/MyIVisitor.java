@@ -154,7 +154,7 @@ public class MyIVisitor implements SSAInstruction.IVisitor {
         SPFCase c = new SPFCase(conditionHole, reason);
         varUtil.addSpfCase(c);
 
-        SPFExpr = arrayStoreHole;
+        //SPFExpr = arrayStoreHole;
         setCanVeritest(true, instruction);
     }
 

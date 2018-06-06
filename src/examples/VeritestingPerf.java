@@ -42,11 +42,13 @@ public class VeritestingPerf {
         //(new VeritestingPerf()).assertRegions(true,true);
 
         /****************** arrayStore Tests ********************/
-        int a[] = {200,300};
+        int a[] = {200, 300};
         //(new VeritestingPerf()).arrayStoreTC1(1, 2);
         (new VeritestingPerf()).arrayStoreTC2(1, 2, a);
         //(new VeritestingPerf()).arrayStoreTC3(1, 2, a);
         //(new VeritestingPerf()).arrayStoreTC4(1, 2, a);
+        //(new VeritestingPerf()).arrayStoreTC5(1, 2, a);
+        //(new VeritestingPerf()).arrayLoadTC1(1,2);
 
         //(new VeritestingPerf()).nestedRegionThrowsException(0);
 //        (new VeritestingPerf()).simpleRegionThrowsException(0);
@@ -86,379 +88,380 @@ public class VeritestingPerf {
 //        list.add(Debug.makeSymbolicInteger("a2"));
 //        (new VeritestingPerf()).countArrayList(list);
     }
-/*
-    private int nestedRegionThrowsException(int i) {
-        if ( i != 0) {
+
+    /*
+        private int nestedRegionThrowsException(int i) {
+            if ( i != 0) {
+                if (i < 0)
+                throw new NullPointerException("negative");
+                else i = 1;
+            } else i = 2;
+            return i;
+        }
+
+        public int simpleRegionThrowsException(int i) {
+            int ret = -1;
+            TempClass tempClass = new TempClass();
+            if (i < 0) {
+                throw new NullPointerException("negative");
+    //            new NullPointerException("negative");
+    //            assert true;
+            }
+            else ret = ret + tempClass.getTempInt();
+            ret += 1;
+            return ret;
+        }
+
+        public int simpleRegionEarlyReturn(int i) {
+            int ret = -1;
+            TempClass tempClass = new TempClass();
             if (i < 0)
-            throw new NullPointerException("negative");
-            else i = 1;
-        } else i = 2;
-        return i;
-    }
-
-    public int simpleRegionThrowsException(int i) {
-        int ret = -1;
-        TempClass tempClass = new TempClass();
-        if (i < 0) {
-            throw new NullPointerException("negative");
-//            new NullPointerException("negative");
-//            assert true;
+                return -1;
+            else ret = ret + tempClass.getTempInt();
+            ret += 1;
+            return ret;
         }
-        else ret = ret + tempClass.getTempInt();
-        ret += 1;
-        return ret;
-    }
 
-    public int simpleRegionEarlyReturn(int i) {
-        int ret = -1;
-        TempClass tempClass = new TempClass();
-        if (i < 0)
-            return -1;
-        else ret = ret + tempClass.getTempInt();
-        ret += 1;
-        return ret;
-    }
-
-    public static void testMe2(int x, boolean b) {
-        System.out.println("!!!!!!!!!!!!!!! First step! ");
-        //System.out.println("x = " + x);
-        int[] y = {1, 2};
-        if (b) {
+        public static void testMe2(int x, boolean b) {
+            System.out.println("!!!!!!!!!!!!!!! First step! ");
+            //System.out.println("x = " + x);
+            int[] y = {1, 2};
+            if (b) {
+                x++;
+                System.out.println("Program then branch");
+            } else {
+                x--;
+                System.out.println("Program else branch");
+            }
             x++;
-            System.out.println("Program then branch");
-        } else {
-            x--;
-            System.out.println("Program else branch");
         }
-        x++;
-    }
 
-    private void testNested(int x) {
-        testNestedMiddle(x);
-        assert (x != 0 && x > 0 ? count == 3 : true);
-        assert (x != 0 && x <= 0 ? count == 4 : true);
-        assert (x == 0 ? count == 5 : true);
-    }
+        private void testNested(int x) {
+            testNestedMiddle(x);
+            assert (x != 0 && x > 0 ? count == 3 : true);
+            assert (x != 0 && x <= 0 ? count == 4 : true);
+            assert (x == 0 ? count == 5 : true);
+        }
 
-    private int testNestedMiddle(int x) {
-        int retval = 0;
-        retval += nestedRegion(x);
-//        assert(x != 0 && x > 0 ? count == 3 : true);
-//        assert(x != 0 && x <= 0 ? count == 4 : true);
-//        assert(x ==0 ? count == 5 : true);
-        return retval;
-    }
+        private int testNestedMiddle(int x) {
+            int retval = 0;
+            retval += nestedRegion(x);
+    //        assert(x != 0 && x > 0 ? count == 3 : true);
+    //        assert(x != 0 && x <= 0 ? count == 4 : true);
+    //        assert(x ==0 ? count == 5 : true);
+            return retval;
+        }
 
-    public int nestedRegion(int x) {
-        //int count = 0;
-        int a=8;
-        if (x != 0) {
+        public int nestedRegion(int x) {
+            //int count = 0;
+            int a=8;
+            if (x != 0) {
+                if (x > 0) {
+                    count = a/8;
+                } else {
+                    count = a/4;
+                }
+            } else {
+                count = a/2;
+            }
+            assert(x != 0 && x > 0 ? count == (a/8) : true);
+            assert(x != 0 && x <= 0 ? count == (a/4) : true);
+            assert(x ==0 ? count == (a/2) : true);
+            return count;
+        }
+
+        // from ProbExample1
+        public int test(int x, int y, int z) {
+            if (x > z) {
+                //calcProb();
+            }
+            if (z > 0) {
+                //calcProb();
+            }
+            System.out.println("now");
+            if (y > 0) {
+                System.out.println("now1");
+
+                //calcProb();
+            }
+            return 0;
+
+        }
+
+        public int nestedRegion1(boolean x, boolean y) {
+            //int a = 0;
+            if (y) {
+    //            a = 1;
+                if (x) {
+                    a = 2;
+                } else {
+                    a = 3;
+                }
+    //            a = 4;
+            } else {
+    //            a = 5;
+                if (x) a = 6;
+                else a = 7;
+    //            a = 8;
+            }
+    //        assert (y ? a == 4 : true);
+            assert (y && x ? a == 2 : true);
+            assert (y && !x ? a == 3 : true);
+    //        assert (!y ? a == 8 : true);
+            assert (!y && x ? a == 6 : true);
+            assert (!y && !x ? a == 7 : true);
+            return a;
+        }
+
+
+        public int simpleRegion(int x) {
+            //count = 4;
             if (x > 0) {
-                count = a/8;
+                count = 1;
+                count = 3;
             } else {
-                count = a/4;
+                count = 2;
+                count = 4;
             }
-        } else {
-            count = a/2;
+            return count;
         }
-        assert(x != 0 && x > 0 ? count == (a/8) : true);
-        assert(x != 0 && x <= 0 ? count == (a/4) : true);
-        assert(x ==0 ? count == (a/2) : true);
-        return count;
-    }
 
-    // from ProbExample1
-    public int test(int x, int y, int z) {
-        if (x > z) {
-            //calcProb();
+        public void testSimple(int x) {
+            count = simpleRegion(x);
+            assert (x > 0 ? count == 3 : true);
+            assert (x <= 0 ? count == 4 : true);
+            System.out.println("x: " + x + "; count: " + count);
         }
-        if (z > 0) {
-            //calcProb();
-        }
-        System.out.println("now");
-        if (y > 0) {
-            System.out.println("now1");
 
-            //calcProb();
-        }
-        return 0;
-
-    }
-
-    public int nestedRegion1(boolean x, boolean y) {
-        //int a = 0;
-        if (y) {
-//            a = 1;
-            if (x) {
-                a = 2;
+        public void testSimple1(int x) {
+            //int count;
+            System.out.println("Executing success case!");
+            if (x != 0) {
+                count = 3;
             } else {
-                a = 3;
+                count = 4;
             }
-//            a = 4;
-        } else {
-//            a = 5;
-            if (x) a = 6;
-            else a = 7;
-//            a = 8;
-        }
-//        assert (y ? a == 4 : true);
-        assert (y && x ? a == 2 : true);
-        assert (y && !x ? a == 3 : true);
-//        assert (!y ? a == 8 : true);
-        assert (!y && x ? a == 6 : true);
-        assert (!y && !x ? a == 7 : true);
-        return a;
-    }
 
-
-    public int simpleRegion(int x) {
-        //count = 4;
-        if (x > 0) {
-            count = 1;
-            count = 3;
-        } else {
-            count = 2;
-            count = 4;
-        }
-        return count;
-    }
-
-    public void testSimple(int x) {
-        count = simpleRegion(x);
-        assert (x > 0 ? count == 3 : true);
-        assert (x <= 0 ? count == 4 : true);
-        System.out.println("x: " + x + "; count: " + count);
-    }
-
-    public void testSimple1(int x) {
-        //int count;
-        System.out.println("Executing success case!");
-        if (x != 0) {
-            count = 3;
-        } else {
-            count = 4;
+            assert (x != 0 ? count == 3 : true);
+            assert (x == 0 ? count == 4 : true);
         }
 
-        assert (x != 0 ? count == 3 : true);
-        assert (x == 0 ? count == 4 : true);
-    }
-
-    public void testSimpleFail(int x) {
-        System.out.println("Executing fail case!");
-        int count;
-        if (x > 0) {
-            count = 3;
-        } else {
-            count = 4;
-        }
-        assert (x != 0 ? count == 3 : true);
-        assert (x == 0 ? count == 4 : true);
-    }
-
-    public void testSimple2(int x) {
-        //int count;
-        if (x != 0) {
+        public void testSimpleFail(int x) {
+            System.out.println("Executing fail case!");
+            int count;
             if (x > 0) {
                 count = 3;
             } else {
                 count = 4;
             }
-        } else {
-            count = 5;
+            assert (x != 0 ? count == 3 : true);
+            assert (x == 0 ? count == 4 : true);
         }
 
-        assert (x > 0 ? count == 3 : true);
-        assert (x < 0 ? count == 4 : true);
-        assert (x == 0 ? count == 5 : true);
-    }
-
-
-    public int countBitsSetSimple(int x) {
-        //int count = 0;
-        while (x != 0) {
-            int lowbit = x & 1;
-            int flag;// = 0;
-            if (lowbit != 0) flag = 1;
-            else flag = 0;
-            count += flag;
-            x = x >>> 1; // logical right shift
-        }
-        return count;
-    }
-
-    public int countBitsSet(int x) {
-        TempClass tempClass = new TempClassDerived();
-        int count = 0;
-        int a = 1;
-        int xOrig = x;
-        //TempClass tempClass = new TempClass();
-        while (x != 0) {
-            if ((x & 1) != 0) {
-                // nested field access test case 1
-                //count += tempClass.tempClass2.tempInt2;
-                // nested field access test case 2
-                //TempClass2 tempClass2 = tempClass.tempClass2;
-                //tempClass2.tempInt2 += count;
-                // Test case 3: method summary test + higher order region test
-
-                count += tempClass.getOne(0);
-                //TempClassDerived.myInt = 1; //creates r/w interference with tempClass.getOne's method summary
-                // Test case 4: use this to test dynamic field access
-                //count += tempClass.myInt;
-                // Test case 5: testing read-after-write in a simple region
-                //count += 1;
-//                a += count;
-//                count += 2;
-                // Test case 6
-                //count += tempClass.nestedRegion(a);
-            }
-            x = x >>> 1; // logical right shift
-        }
-        assert (xOrig == 0 || TempClassDerived.tempInt == 6);
-        if (x >= -15 && x < 16) assert (Bits.populationCount(xOrig) == count);
-        System.out.println("TempClassDerived.tempInt = " + TempClassDerived.tempInt);
-        System.out.println("TempClass.tempInt = " + TempClass.tempInt);
-        return count;
-    }
-
-    public int readAfterWriteTest(int x) {
-        TempClass tempClass1 = new TempClassDerived();
-        TempClass tempClass2 = new TempClassDerived();
-        count = 0;
-        int a = 1;
-        int xOrig = x;
-        //TempClass tempClass = new TempClass();
-        while (x != 0) {
-            if ((x & 1) != 0) {
-                //tempClass1.tempInt += 1;
-                //a = tempClass2.tempInt; // should not cause a read after write
-                //tempClass1.tempInt += 1;
-                count += 1;
-            }
-            x = x >>> 1; // logical right shift
-        }
-        assert (xOrig == 0 ? count == 0 : true);
-        assert (isPowerOf2(xOrig) ? count == 1 : true);
-        System.out.println("a = " + a);
-        return count;
-    }
-
-    public int fieldWriteTestBranch2(int x) {
-        if (x != 0) count = 1;
-        else count = 2;
-        return count;
-    }
-
-    public int fieldWriteTestBranch1(int x) {
-        if (x != 0) count = 1;
-        return count;
-    }
-
-    //testing inRangeArrayLoad for symbolic & concrete index
-    public int inRangeloadArrayTC(int index, int length) {
-        int[] x = {300, 400};
-        int temp = 1;
-        try {
-            if (length <= 0) {
-                //     System.out.println("executing then branch");
-                temp = 2;
+        public void testSimple2(int x) {
+            //int count;
+            if (x != 0) {
+                if (x > 0) {
+                    count = 3;
+                } else {
+                    count = 4;
+                }
             } else {
-                // System.out.println("executing else branch");
-                temp = x[index] + 2;
+                count = 5;
             }
-        } catch (ArrayIndexOutOfBoundsException e) {
-            temp = 3;
-        }
-        assert length <= 0 ? temp == 2 : true;
-        assert length > 0 && index == 0 ? temp == 302 : true;
-        assert length > 0 && index == 1 ? temp == 402 : true;
-        assert length > 0 && index != 0 && index != 1 ? temp == 3 : true;
-//        Debug.printPC("vaibhav: pc = ");
-//        System.out.println("temp = " + temp);
-        return temp;
-    }
 
-    //testing outRangeArrayLoad for symbolic index
-    public int outRangeloadArrayTC(int index, int length) throws ArrayIndexOutOfBoundsException {
-        int[] x = {300};
-        int temp = 1;
-        try {
-            if (length > 0) {
-                temp = x[index];
-            } else {
-                temp = 2;
+            assert (x > 0 ? count == 3 : true);
+            assert (x < 0 ? count == 4 : true);
+            assert (x == 0 ? count == 5 : true);
+        }
+
+
+        public int countBitsSetSimple(int x) {
+            //int count = 0;
+            while (x != 0) {
+                int lowbit = x & 1;
+                int flag;// = 0;
+                if (lowbit != 0) flag = 1;
+                else flag = 0;
+                count += flag;
+                x = x >>> 1; // logical right shift
             }
-        } catch (ArrayIndexOutOfBoundsException e) {
-            System.out.println("catch array out of bound, length = " + length + ", index = " + index);
-            temp = 3;
+            return count;
         }
-        System.out.println("temp = " + temp);
 
-        assert ((length <= 0) ? (temp == 2) : true);
-        assert (length > 0) && (index == 0)? (temp == 300 ) : true;
-        assert (length > 0) && (index != 0)? (temp == 3 ) : true;
-//        if (temp == 1)
-//            System.out.println("then branch");
-//        else
-//            System.out.println("else branch");
-        return 0;
-    }
+        public int countBitsSet(int x) {
+            TempClass tempClass = new TempClassDerived();
+            int count = 0;
+            int a = 1;
+            int xOrig = x;
+            //TempClass tempClass = new TempClass();
+            while (x != 0) {
+                if ((x & 1) != 0) {
+                    // nested field access test case 1
+                    //count += tempClass.tempClass2.tempInt2;
+                    // nested field access test case 2
+                    //TempClass2 tempClass2 = tempClass.tempClass2;
+                    //tempClass2.tempInt2 += count;
+                    // Test case 3: method summary test + higher order region test
 
-    public int catchOutRangeloadArrayTC(int index, int length) throws ArrayIndexOutOfBoundsException {
-        int[] x = {1, 2};
-        int temp = 1;
-        int y = 1;
-        try {
-            if (length > 0) {
-                temp = x[index];
-            } else {
-                temp = 1;
+                    count += tempClass.getOne(0);
+                    //TempClassDerived.myInt = 1; //creates r/w interference with tempClass.getOne's method summary
+                    // Test case 4: use this to test dynamic field access
+                    //count += tempClass.myInt;
+                    // Test case 5: testing read-after-write in a simple region
+                    //count += 1;
+    //                a += count;
+    //                count += 2;
+                    // Test case 6
+                    //count += tempClass.nestedRegion(a);
+                }
+                x = x >>> 1; // logical right shift
             }
-        } catch (ArrayIndexOutOfBoundsException e) {
-            System.out.println("catch array out of bound");
+            assert (xOrig == 0 || TempClassDerived.tempInt == 6);
+            if (x >= -15 && x < 16) assert (Bits.populationCount(xOrig) == count);
+            System.out.println("TempClassDerived.tempInt = " + TempClassDerived.tempInt);
+            System.out.println("TempClass.tempInt = " + TempClass.tempInt);
+            return count;
         }
-        return temp;
-    }
 
+        public int readAfterWriteTest(int x) {
+            TempClass tempClass1 = new TempClassDerived();
+            TempClass tempClass2 = new TempClassDerived();
+            count = 0;
+            int a = 1;
+            int xOrig = x;
+            //TempClass tempClass = new TempClass();
+            while (x != 0) {
+                if ((x & 1) != 0) {
+                    //tempClass1.tempInt += 1;
+                    //a = tempClass2.tempInt; // should not cause a read after write
+                    //tempClass1.tempInt += 1;
+                    count += 1;
+                }
+                x = x >>> 1; // logical right shift
+            }
+            assert (xOrig == 0 ? count == 0 : true);
+            assert (isPowerOf2(xOrig) ? count == 1 : true);
+            System.out.println("a = " + a);
+            return count;
+        }
 
-    public int innerCatchOutRangeloadArrayTC(int index, int length) throws ArrayIndexOutOfBoundsException {
-        int[] x = {300};
-        int temp = 1;
-        int y = 1;
-        if (length > 0) {
+        public int fieldWriteTestBranch2(int x) {
+            if (x != 0) count = 1;
+            else count = 2;
+            return count;
+        }
+
+        public int fieldWriteTestBranch1(int x) {
+            if (x != 0) count = 1;
+            return count;
+        }
+
+        //testing inRangeArrayLoad for symbolic & concrete index
+        public int inRangeloadArrayTC(int index, int length) {
+            int[] x = {300, 400};
+            int temp = 1;
             try {
-                temp = x[index];
+                if (length <= 0) {
+                    //     System.out.println("executing then branch");
+                    temp = 2;
+                } else {
+                    // System.out.println("executing else branch");
+                    temp = x[index] + 2;
+                }
             } catch (ArrayIndexOutOfBoundsException e) {
-                System.out.println("catch array is out of bound");
+                temp = 3;
             }
-        } else {
-            temp = 2;
+            assert length <= 0 ? temp == 2 : true;
+            assert length > 0 && index == 0 ? temp == 302 : true;
+            assert length > 0 && index == 1 ? temp == 402 : true;
+            assert length > 0 && index != 0 && index != 1 ? temp == 3 : true;
+    //        Debug.printPC("vaibhav: pc = ");
+    //        System.out.println("temp = " + temp);
+            return temp;
         }
-        return temp;
-    }
 
-    public int boundedOutRangeloadArrayTC(int index, int length) throws ArrayIndexOutOfBoundsException {
-        int[] x = {300};
-        int temp = 0;
-        int y = 2;
-        if (length > 0) {
+        //testing outRangeArrayLoad for symbolic index
+        public int outRangeloadArrayTC(int index, int length) throws ArrayIndexOutOfBoundsException {
+            int[] x = {300};
+            int temp = 1;
             try {
-                temp = x[index];
+                if (length > 0) {
+                    temp = x[index];
+                } else {
+                    temp = 2;
+                }
+            } catch (ArrayIndexOutOfBoundsException e) {
+                System.out.println("catch array out of bound, length = " + length + ", index = " + index);
+                temp = 3;
+            }
+            System.out.println("temp = " + temp);
+
+            assert ((length <= 0) ? (temp == 2) : true);
+            assert (length > 0) && (index == 0)? (temp == 300 ) : true;
+            assert (length > 0) && (index != 0)? (temp == 3 ) : true;
+    //        if (temp == 1)
+    //            System.out.println("then branch");
+    //        else
+    //            System.out.println("else branch");
+            return 0;
+        }
+
+        public int catchOutRangeloadArrayTC(int index, int length) throws ArrayIndexOutOfBoundsException {
+            int[] x = {1, 2};
+            int temp = 1;
+            int y = 1;
+            try {
+                if (length > 0) {
+                    temp = x[index];
+                } else {
+                    temp = 1;
+                }
             } catch (ArrayIndexOutOfBoundsException e) {
                 System.out.println("catch array out of bound");
             }
-        } else {
-            temp = 2;
+            return temp;
         }
 
-        if (temp != 0)
-            y = 1;
-        else
-            y = 0;
-        return y;
-    }
-*/
-    public int createObjectTC1(boolean x, boolean y) {
+
+        public int innerCatchOutRangeloadArrayTC(int index, int length) throws ArrayIndexOutOfBoundsException {
+            int[] x = {300};
+            int temp = 1;
+            int y = 1;
+            if (length > 0) {
+                try {
+                    temp = x[index];
+                } catch (ArrayIndexOutOfBoundsException e) {
+                    System.out.println("catch array is out of bound");
+                }
+            } else {
+                temp = 2;
+            }
+            return temp;
+        }
+
+        public int boundedOutRangeloadArrayTC(int index, int length) throws ArrayIndexOutOfBoundsException {
+            int[] x = {300};
+            int temp = 0;
+            int y = 2;
+            if (length > 0) {
+                try {
+                    temp = x[index];
+                } catch (ArrayIndexOutOfBoundsException e) {
+                    System.out.println("catch array out of bound");
+                }
+            } else {
+                temp = 2;
+            }
+
+            if (temp != 0)
+                y = 1;
+            else
+                y = 0;
+            return y;
+        }
+    */
+    /*public int createObjectTC1(boolean x, boolean y) {
         int a = 3;
         if (x) {
             TempClass tempClass2 = new TempClass();
@@ -522,7 +525,7 @@ public class VeritestingPerf {
     public int createObjectTC6(boolean x, boolean y) {
         int a = 0;
         if (x) {
-            a = 3+a;
+            a = 3 + a;
         } else {
             a = 2;
             TempClass tempClass2 = new TempClass();
@@ -539,9 +542,9 @@ public class VeritestingPerf {
             a = 4;
         }
         if (y) {
-            a = 4+a;
+            a = 4 + a;
         } else {
-            a = 2+a;
+            a = 2 + a;
         }
 //        assert(x ? a==2: true);
 //        assert(!x ? a==3: true);
@@ -552,18 +555,18 @@ public class VeritestingPerf {
     public int createObjectTC8(boolean x, boolean y) {
         int a = 0;
         if (x) {
-            a = 3+a;
+            a = 3 + a;
         } else {
             a = 2;
             TempClass tempClass2 = new TempClass();
         }
 
         if (y) {
-            a = 4+a;
+            a = 4 + a;
             TempClass tempClass2 = new TempClass();
-            a = 6+a;
+            a = 6 + a;
         } else {
-            a = 2+a;
+            a = 2 + a;
         }
 //        assert(x ? a==2: true);
 //        assert(!x ? a==3: true);
@@ -622,8 +625,7 @@ public class VeritestingPerf {
             } else {
                 a = 2;
             }
-        }
-        else {
+        } else {
             if (x) {
                 a = 3;
             } else {
@@ -710,6 +712,7 @@ public class VeritestingPerf {
         }
         return a;
     }
+
     public int createObjectComplexRegionTC8(boolean x, boolean y) {
         int a = 0;
         if (y) {
@@ -720,8 +723,7 @@ public class VeritestingPerf {
                 a = 2;
                 TempClass tempClass2 = new TempClass();
             }
-        }
-        else {
+        } else {
             if (x) {
                 a = 3;
                 TempClass tempClass2 = new TempClass();
@@ -735,6 +737,30 @@ public class VeritestingPerf {
 //        assert(!y ? a==0: true);
 
         return a;
+    }*/
+
+
+    public int arrayLoadTC1(int index, int length) {
+        int[] x = {300, 400};
+        int temp = 1;
+        try {
+            if (length <= 0) {
+                //     System.out.println("executing then branch");
+                temp = 2;
+            } else {
+                // System.out.println("executing else branch");
+                temp = x[temp] + 2;
+            }
+        } catch (ArrayIndexOutOfBoundsException e) {
+            temp = 3;
+        }
+        /*assert length <= 0 ? temp == 2 : true;
+        assert length > 0 && index == 0 ? temp == 302 : true;
+        assert length > 0 && index == 1 ? temp == 402 : true;
+        assert length > 0 && index != 0 && index != 1 ? temp == 3 : true;*/
+//        Debug.printPC("vaibhav: pc = ");
+//        System.out.println("temp = " + temp);
+        return temp;
     }
 
 
@@ -757,19 +783,12 @@ public class VeritestingPerf {
     }
 
 
-
     public int arrayStoreTC2(int index, int length, int[] x) { //symbolic index - concrete operand
         int temp = 1;
-        try {
-            if (length <= 0) {
-                //     System.out.println("executing then branch");
-                temp = 2;
-            } else {
-                // System.out.println("executing else branch");
-                x[index] = temp;
-            }
-        } catch (ArrayIndexOutOfBoundsException e) {
-            temp = 3;
+        if (length <= 0) {
+            temp = 2;
+        } else {
+            x[index] = temp;
         }
 
         return temp;
@@ -802,6 +821,24 @@ public class VeritestingPerf {
             } else {
                 // System.out.println("executing else branch");
                 x[temp] = temp;
+            }
+        } catch (ArrayIndexOutOfBoundsException e) {
+            temp = 3;
+        }
+
+        return temp;
+    }
+
+
+    public int arrayStoreTC5(int index, int length, int[] x) { //concrete index - concrete operand
+        int temp = 1;
+        try {
+            if (length <= 0) {
+                //     System.out.println("executing then branch");
+                temp = 2;
+            } else {
+                // System.out.println("executing else branch");
+                x[temp] = length;
             }
         } catch (ArrayIndexOutOfBoundsException e) {
             temp = 3;

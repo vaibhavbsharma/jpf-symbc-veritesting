@@ -1,6 +1,7 @@
 package gov.nasa.jpf.symbc.veritesting;
 
 //import com.ibm.wala.types.TypeReference;
+import cvc3.Expr;
 import gov.nasa.jpf.vm.ArrayFields;
 import gov.nasa.jpf.vm.ElementInfo;
 import gov.nasa.jpf.vm.ThreadInfo;
@@ -23,7 +24,7 @@ public class FillArrayLoadHoles {
         this.additionalAST = additionalAST;
     }
 
-    public FillArrayOutput invoke() throws StaticRegionException {
+    public FillArrayLoadOutput invoke() throws StaticRegionException {
         for (HashMap.Entry<Expression, Expression> entry : holeHashMap.entrySet()) {
             Expression key = entry.getKey(), finalValueGreen;
             assert (key instanceof HoleExpression);
@@ -33,26 +34,26 @@ public class FillArrayLoadHoles {
                     HoleExpression.ArrayInfo arrayInfo = keyHoleExpression.getArrayInfo();
                     HoleExpression arrayRefHole = ((HoleExpression) arrayInfo.arrayRefHole);
                     assert(retHoleHashMap.containsKey(arrayRefHole));
-                    assert(retHoleHashMap.containsKey(arrayInfo.arrayIndexHole));
                     Expression arrayRefExpression = retHoleHashMap.get(arrayRefHole);
                     if (!( arrayRefExpression instanceof IntConstant))
                         throw new StaticRegionException("cannot handle symbolic array reference expression: " + arrayRefExpression);
                     int arrayRef = ((IntConstant) arrayRefExpression).getValue();
-
-                    Expression indexExpression = retHoleHashMap.get(arrayInfo.arrayIndexHole);
-
                     ElementInfo ei = ti.getElementInfo(arrayRef);
                     int arrayLength = ((ArrayFields) ei.getFields()).arrayLength();
                     arrayInfo.setLength(arrayLength);
+
+                    Expression indexExpression;
 //                    TypeReference arrayType = arrayInfo.arrayType;
-                    if (indexExpression instanceof IntConstant) //attribute is null so index is concrete
+                    if (arrayInfo.arrayIndexHole instanceof IntConstant) //attribute is null so index is concrete
                     {
+                        indexExpression = arrayInfo.arrayIndexHole;
                         int indexVal = ((IntConstant) indexExpression).getValue();
                         if (indexVal < 0 || indexVal >= arrayLength) //checking concrete index is out of bound
-                            return new FillArrayOutput(false, null);
+                            return new FillArrayLoadOutput(false, null);
                         int value = ei.getIntElement(indexVal);
                         finalValueGreen = new IntConstant(value);
                     } else { //index is symbolic - fun starts here :)
+                        indexExpression = retHoleHashMap.get(arrayInfo.arrayIndexHole);
                         Expression lhsExpr = retHoleHashMap.get(arrayInfo.val);
                         //Expression arrayLoadResult = new IntVariable("arrayLoadResult", Integer.MIN_VALUE, Integer.MAX_VALUE);
                         for (int i = 0; i < arrayLength; i++) { //constructing the symbolic index constraint
@@ -68,6 +69,6 @@ public class FillArrayLoadHoles {
                     break;
             }
         }
-        return new FillArrayOutput(true, additionalAST);
+        return new FillArrayLoadOutput(true, additionalAST);
     }
 }
