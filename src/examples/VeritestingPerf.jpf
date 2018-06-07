@@ -47,11 +47,11 @@ symbolic.debug=false
 
 ######## testing arrayStore  ######
 #symbolic.method=VeritestingPerf.arrayStoreTC1(sym#sym)
-symbolic.method=VeritestingPerf.arrayStoreTC2(sym#sym#con)
 #symbolic.method=VeritestingPerf.arrayStoreTC2(sym#sym#con)
 #symbolic.method=VeritestingPerf.arrayStoreTC3(sym#sym#con)
 #symbolic.method=VeritestingPerf.arrayStoreTC4(sym#sym#con)
 #symbolic.method=VeritestingPerf.arrayStoreTC5(sym#sym#con)
+symbolic.method=VeritestingPerf.arrayStoreTC6(sym#sym)
 
 ######## testing complexRegions  ######
 #symbolic.method=VeritestingPerf.foo(sym)

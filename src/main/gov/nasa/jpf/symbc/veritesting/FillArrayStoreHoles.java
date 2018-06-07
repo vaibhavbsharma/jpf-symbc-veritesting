@@ -116,7 +116,6 @@ public class FillArrayStoreHoles {
 
             newValueExp = new Operation(Operation.Operator.EQ, newVar, operand);
 
-            //Expression indexExpAttr = retHoleHashMap.get(arrayInfo.arrayIndexHole);
             Expression oldValueExp = new Operation(Operation.Operator.EQ, newVar, new IntConstant(eiArray.getIntElement(index)));
 
             newValueExp = new Operation(Operation.Operator.AND, newValueExp, indexExpression);

@@ -55,11 +55,10 @@ public class FillArrayLoadHoles {
                     } else { //index is symbolic - fun starts here :)
                         indexExpression = retHoleHashMap.get(arrayInfo.arrayIndexHole);
                         Expression lhsExpr = retHoleHashMap.get(arrayInfo.val);
-                        //Expression arrayLoadResult = new IntVariable("arrayLoadResult", Integer.MIN_VALUE, Integer.MAX_VALUE);
                         for (int i = 0; i < arrayLength; i++) { //constructing the symbolic index constraint
                             Expression exp1 = new Operation(Operation.Operator.EQ, indexExpression, new IntConstant(i));
-                            int value = ei.getIntElement(i);
-                            Expression exp2 = new Operation(Operation.Operator.EQ, lhsExpr, new IntConstant(value)); //loadArrayElement(ei, arrayType)
+                            int value = ei.getIntElement(i); //elements of the array are concrete
+                            Expression exp2 = new Operation(Operation.Operator.EQ, lhsExpr, new IntConstant(value));
                             additionalAST = ExpressionUtil.nonNullOp(Operation.Operator.AND, additionalAST,
                                     new Operation(Operation.Operator.IMPLIES, exp1, exp2));
                         }

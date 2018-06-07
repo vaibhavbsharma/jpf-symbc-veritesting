@@ -9,7 +9,7 @@ public class VeritestingPerf {
 
     public static void main(String[] args) {
 
-        /**************** create New Object Tests************/
+        /**************** create New Object Tests ************/
         //(new VeritestingPerf()).createObjectTC1(true, true);
         //(new VeritestingPerf()).createObjectTC2(true, true);
         //(new VeritestingPerf()).createObjectTC3(true, true);
@@ -44,10 +44,11 @@ public class VeritestingPerf {
         /****************** arrayStore Tests ********************/
         int a[] = {200, 300};
         //(new VeritestingPerf()).arrayStoreTC1(1, 2);
-        (new VeritestingPerf()).arrayStoreTC2(1, 2, a);
+        //(new VeritestingPerf()).arrayStoreTC2(1, 2, a);
         //(new VeritestingPerf()).arrayStoreTC3(1, 2, a);
         //(new VeritestingPerf()).arrayStoreTC4(1, 2, a);
         //(new VeritestingPerf()).arrayStoreTC5(1, 2, a);
+        (new VeritestingPerf()).arrayStoreTC6(1, 2);
         //(new VeritestingPerf()).arrayLoadTC1(1,2);
 
         //(new VeritestingPerf()).nestedRegionThrowsException(0);
@@ -538,7 +539,7 @@ public class VeritestingPerf {
     public int createObjectTC7(boolean x, boolean y) {
         int a = 3;
         if (x) {
-            TempClass tempClass2 = new TempClass();
+   //         TempClass tempClass2 = new TempClass();
             a = 4;
         }
         if (y) {
@@ -546,8 +547,11 @@ public class VeritestingPerf {
         } else {
             a = 2 + a;
         }
-//        assert(x ? a==2: true);
-//        assert(!x ? a==3: true);
+        assert(x && y ? a == 8: true);
+        assert(!x ? a==3: true);
+        assert(x && !y ? a == 6: true);
+        assert(!x && y ? a == 7: true);
+        assert(!x && !y ? a == 5: true);
         return a;
     }
 
@@ -754,10 +758,10 @@ public class VeritestingPerf {
         } catch (ArrayIndexOutOfBoundsException e) {
             temp = 3;
         }
-        /*assert length <= 0 ? temp == 2 : true;
+        assert length <= 0 ? temp == 2 : true;
         assert length > 0 && index == 0 ? temp == 302 : true;
         assert length > 0 && index == 1 ? temp == 402 : true;
-        assert length > 0 && index != 0 && index != 1 ? temp == 3 : true;*/
+        assert length > 0 && index != 0 && index != 1 ? temp == 3 : true;
 //        Debug.printPC("vaibhav: pc = ");
 //        System.out.println("temp = " + temp);
         return temp;
@@ -778,7 +782,10 @@ public class VeritestingPerf {
         } catch (ArrayIndexOutOfBoundsException e) {
             temp = 3;
         }
-
+        Debug.printPC("Soha: pc = ");
+        assert (length <= 0 ? x[0] == 300 & x[1] == 400 : true);
+        assert (length > 0 && index == 0 ? x[0] == 1 && x[1] == 400 : true);
+        assert (length > 0 && index == 1 ? x[0] == 300 && x[1] == 1 : true);
         return temp;
     }
 
@@ -790,7 +797,6 @@ public class VeritestingPerf {
         } else {
             x[index] = temp;
         }
-
         return temp;
     }
 
@@ -844,6 +850,24 @@ public class VeritestingPerf {
             temp = 3;
         }
 
+        return temp;
+    }
+
+    public int arrayStoreTC6(int index, int length) { // should be treated as a new object creation
+        int[] x = {300, 400};
+        int temp = 1;
+        if (length <= 0) {
+            //     System.out.println("executing then branch");
+            temp = 2;
+        } else {
+            // System.out.println("executing else branch");
+            x[index] = temp;
+        }
+
+        Debug.printPC("Soha: pc = ");
+        assert (length <= 0 ? x[0] == 300 & x[1] == 400 : true);
+        assert (length > 0 && index == 0 ? x[0] == 1 && x[1] == 400 : true);
+        assert (length > 0 && index == 1 ? x[0] == 300 && x[1] == 1 : true);
         return temp;
     }
 

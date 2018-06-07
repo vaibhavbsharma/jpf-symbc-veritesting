@@ -44,7 +44,6 @@ import gov.nasa.jpf.vm.*;
 import za.ac.sun.cs.green.expr.Expression;
 import za.ac.sun.cs.green.expr.IntConstant;
 import za.ac.sun.cs.green.expr.IntVariable;
-import za.ac.sun.cs.green.expr.Operation;
 
 import java.util.HashMap;
 import java.util.LinkedHashMap;
@@ -235,12 +234,12 @@ LOCAL_OUTPUT and FIELD_PHIs have the final value mapped in fillHolesOutput.holeH
                 }
                 break;
             case SYM: // index symbolic and rhs either concrete or sym
-                setArrayAttributes(ti, arrayInfo, arrayRef);
+                setElementsAttributes(ti, arrayInfo, arrayRef);
                 break;
         }
     }
 
-    private static void setArrayAttributes(ThreadInfo ti, HoleExpression.ArrayInfo arrayInfo, int arrayRef) {
+    private static void setElementsAttributes(ThreadInfo ti, HoleExpression.ArrayInfo arrayInfo, int arrayRef) {
         HoleExpression arrayRefHole = ((HoleExpression) arrayInfo.arrayRefHole);
 
         ElementInfo ei = ti.getElementInfo(arrayRef);

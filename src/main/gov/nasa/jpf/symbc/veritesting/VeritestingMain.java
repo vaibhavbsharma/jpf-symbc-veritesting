@@ -928,7 +928,8 @@ public class VeritestingMain {
     private void constructSPFCaseRegion(Expression methodExpression, HashSet<Integer> methodSummarizedRegionStartBB, int endingBC, SPFCaseList methodSpfCaseList) throws StaticRegionException, InvalidClassFileException {
         VeritestingRegion veritestingRegion =
                 constructMethodRegion(methodExpression, cfg.entry().getNumber(),
-                        getMethodEndUnit(cfg.entry()).getNumber(), methodSummarizedRegionStartBB, endingBC);
+                        getMethodEndUnit(cfg.entry()).getNumber(), //points to the last block, that block can in some cases do not correspond to a bytecode.
+                        methodSummarizedRegionStartBB, endingBC);
         String key = getKey(veritestingRegion);
         FNV1 fnv = new FNV1a64();
         fnv.init(key);
@@ -975,7 +976,8 @@ public class VeritestingMain {
                 case 2:
                     try{
                         currUnit = cfg.getIPdom(currUnit.getNumber(), sanitizer, ir, cha);
-                        if(currUnit.getLastInstruction() instanceof SSAReturnInstruction) {
+                        if((((SSACFG.BasicBlock) currUnit).getAllInstructions().size() ==0) // to handle the case where we reached a block with no bytecode attached to it.
+                                || currUnit.getLastInstruction() instanceof SSAReturnInstruction) {
                             endUnit = currUnit;
                             endUnitNotfound = false;
                         }
