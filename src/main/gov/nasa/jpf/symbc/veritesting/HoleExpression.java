@@ -83,6 +83,7 @@ public class HoleExpression extends za.ac.sun.cs.green.expr.Expression{
                 case INVOKE:
                     InvokeInfo otherInvokeInfo = holeExpression.invokeInfo;
                     return (!otherInvokeInfo.equals(invokeInfo));
+                    //TODO:Support cases for ARRAYLOAD and ARRAYSTORE
             }
             return true;
         }

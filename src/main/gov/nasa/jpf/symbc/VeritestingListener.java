@@ -522,12 +522,12 @@ public class VeritestingListener extends PropertyListenerAdapter implements Publ
         if (!fillArrayLoadOutput.isOk()) return null;
         additionalAST = fillArrayLoadOutput.getAdditionalAST();
 
-
+/*
         FillArrayStoreOutput fillArrayStoreOutput = new FillArrayStoreHoles(ti, region.getHoleHashMap(), retHoleHashMap, additionalAST).invoke();
         if (!fillArrayStoreOutput.isOk()) return null;
         additionalAST = fillArrayStoreOutput.getAdditionalAST();
         additionalOutputVars = fillArrayStoreOutput.getAdditionalOutputVars();
-
+*/
 
         FillInvokeHole fillInvokeHole = new FillInvokeHole(stackFrame, ti, holeHashMap, retHoleHashMap, additionalAST).invoke();
         if (fillInvokeHole.is()) return null;
@@ -563,6 +563,7 @@ public class VeritestingListener extends PropertyListenerAdapter implements Publ
         HoleExpression.FieldInfo fieldInputInfo = holeExpression.getFieldInfo();
         final boolean isStatic = fieldInputInfo.isStaticField;
         int objRef = FieldUtil.getObjRef(ti, stackFrame, holeExpression, methodHoles, retHoleHashMap, isMethodSummary, callSiteInfo);
+
         //load the class name dynamically based on the object reference
         if(objRef != -1) fieldInputInfo.setFieldDynClassName(ti.getClassInfo(objRef).getName());
         if (objRef == 0) {
@@ -961,9 +962,9 @@ public class VeritestingListener extends PropertyListenerAdapter implements Publ
             Expression retValEq = null;
             if (methodSummary.retVal != null)
                 retValEq = new Operation(Operation.Operator.EQ, methodSummary.retVal, keyHoleExpression);
-            Expression mappingOperation = retValEq;
+            Expression mappingOperation = retValEq; // SH: when methodSummary.retVal == null, so will mappingOperation and so wrapping nonNullOp around the next definition of mappingOperation is necessarily.
             if (methodSummary.getSummaryExpression() != null)
-                mappingOperation = new Operation(Operation.Operator.AND, mappingOperation, methodSummary.getSummaryExpression());
+                mappingOperation = ExpressionUtil.nonNullOp(Operation.Operator.AND, mappingOperation, methodSummary.getSummaryExpression());
             additionalAST = ExpressionUtil.nonNullOp(Operation.Operator.AND, additionalAST, mappingOperation);
             Expression finalValueGreen = SPFToGreenExpr(makeSymbolicInteger(keyHoleExpression.getHoleVarName() + pathLabelCount));
             retHoleHashMap.put(keyHoleExpression, finalValueGreen);

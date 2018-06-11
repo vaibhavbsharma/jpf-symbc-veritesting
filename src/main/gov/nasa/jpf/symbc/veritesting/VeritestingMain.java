@@ -851,7 +851,7 @@ public class VeritestingMain {
                 }
 
                 //SH:SPFCase support
-                if(canVeritestMethod && VeritestingListener.veritestingMode >= 4) {
+                if(canVeritestMethod && VeritestingListener.veritestingMode >= 5) {
                     if (blockSummary.isHasNewOrThrow()) {
                         methodSpfCaseList.addAll(varUtil.getSpfCases());
                         methodSpfCaseList.setIsMethodCaseList(true);
@@ -879,7 +879,7 @@ public class VeritestingMain {
                 if (!canVeritestMethod) return;
 
                 //SH:SPFCase support
-                if (canVeritestMethod && VeritestingListener.veritestingMode >= 4) {
+                if (canVeritestMethod && VeritestingListener.veritestingMode >= 5) {
                     if (blockSummary.isHasNewOrThrow()) {
                         methodSpfCaseList.addAll(varUtil.getSpfCases());
                         methodSpfCaseList.setIsMethodCaseList(true);
@@ -900,7 +900,7 @@ public class VeritestingMain {
                 methodExpression = ExpressionUtil.nonNullOp(Operation.Operator.AND, methodExpression, summaryExpression);
 
                 //SH:support SPFCases for method Summary here
-                if (VeritestingListener.veritestingMode >= 4) {
+                if (VeritestingListener.veritestingMode >= 5) {
                     SPFCaseList staticRegionSpfCases = veritestingRegion.getSpfCases();
                     if (staticRegionSpfCases != null || staticRegionSpfCases.getCases().size()!=0) {
                         methodSpfCaseList.addAll(staticRegionSpfCases.cloneSPFCaseList());

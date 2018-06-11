@@ -51,7 +51,15 @@ symbolic.debug=false
 #symbolic.method=VeritestingPerf.arrayStoreTC3(sym#sym#con)
 #symbolic.method=VeritestingPerf.arrayStoreTC4(sym#sym#con)
 #symbolic.method=VeritestingPerf.arrayStoreTC5(sym#sym#con)
-symbolic.method=VeritestingPerf.arrayStoreTC6(sym#sym)
+#symbolic.method=VeritestingPerf.arrayStoreTC6(sym#sym)
+symbolic.method=VeritestingPerf.arrayStoreTC7(sym#sym)
+
+#symbolic.method=VeritestingPerf.arrayLoad0(sym#sym)
+
+
+######## testing nullPointerSPFCases  ######
+#symbolic.method=VeritestingPerf.getFieldSPFCaseTC1(sym)
+
 
 ######## testing complexRegions  ######
 #symbolic.method=VeritestingPerf.foo(sym)
