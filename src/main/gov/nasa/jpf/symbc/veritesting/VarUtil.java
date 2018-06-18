@@ -3,11 +3,9 @@ package gov.nasa.jpf.symbc.veritesting;
 import com.ibm.wala.ssa.*;
 
 import com.ibm.wala.types.TypeReference;
-import cvc3.Expr;
-import gov.nasa.jpf.symbc.VeritestingListener;
+
 import gov.nasa.jpf.symbc.veritesting.SPFCase.SPFCase;
 import gov.nasa.jpf.symbc.veritesting.SPFCase.SPFCaseList;
-import gov.nasa.jpf.vm.StackFrame;
 
 import za.ac.sun.cs.green.expr.Expression;
 import za.ac.sun.cs.green.expr.IntConstant;
@@ -20,36 +18,36 @@ import java.util.*;
 public class VarUtil {
     private SPFCaseList spfCases;
     private static int nextIntermediateCount = 1;
-    String className;
-    String methodName;
+    private String className;
+    private String methodName;
 
     public IR getIR() {
         return ir;
     }
 
-    IR ir;
+    private IR ir;
     // Maps each WALA IR variable to its corresponding stack slot, if one exists
-    HashMap<Integer, Integer> varsMap;
+    private HashMap<Integer, Integer> varsMap;
 
-    public LinkedHashMap<String, Expression> varCache;
+    LinkedHashMap<String, Expression> varCache;
 
     // these represent the outputs of a veritesting region
-    public LinkedHashSet<Expression> defLocalVars;
+    LinkedHashSet<Expression> defLocalVars;
 
     // contains all the holes in the cnlie AST
     public LinkedHashMap<Expression, Expression> holeHashMap;
 
-    public static int pathCounter=0;
+    private static int pathCounter=0;
     private static long holeID = 0;
 
     // contains the return values hole expression found in the region
-    public Expression retValVar = null;
+    public HashMap<Expression, Expression> retValList = null;
 
     public void addSpfCase(SPFCase c) { spfCases.addCase(c); }
-    public SPFCaseList getSpfCases() { return spfCases; }
-    public void setSpfCases(SPFCaseList spfCases) { this.spfCases = spfCases; }
+    SPFCaseList getSpfCases() { return spfCases; }
+    void setSpfCases(SPFCaseList spfCases) { this.spfCases = spfCases; }
 
-    public static final int getPathCounter() { pathCounter++; return pathCounter; }
+    static int getPathCounter() { pathCounter++; return pathCounter; }
 
     public Expression makeIntermediateVar(int val, boolean useVarCache, Expression PLAssign) {
         String name = "v" + val;
@@ -59,7 +57,7 @@ public class VarUtil {
     // makes a intermediate variable hole, does not use varCache if useVarCache is false
     // useVarCache is useful when creating intermediate variable hole to be used in as the writeExpr in a FIELD_OUTPUT
     // hole because we would like to creat a new intermediate variable hole for every write into a field
-    public Expression makeIntermediateVar(String name, boolean useVarCache, Expression PLAssign) {
+    Expression makeIntermediateVar(String name, boolean useVarCache, Expression PLAssign) {
         name = className + "." + methodName + "." + name;
         if(varCache.containsKey(name)) {
             if(useVarCache) return varCache.get(name);
@@ -78,7 +76,7 @@ public class VarUtil {
         return ret;
     }
 
-    public Expression makeLocalInputVar(int val, Expression PLAssign) {
+    private Expression makeLocalInputVar(int val, Expression PLAssign) {
         assert(varsMap.containsKey(val));
         String name = className + "." + methodName + ".v" + val;
         if(varCache.containsKey(name))
@@ -90,7 +88,7 @@ public class VarUtil {
         return holeExpression;
     }
 
-    public Expression makeLocalOutputVar(int val, Expression PLAssign) {
+    private Expression makeLocalOutputVar(int val, Expression PLAssign) {
         assert(varsMap.containsKey(val));
         String name = className + "." + methodName + ".v" + val;
         if(varCache.containsKey(name))
@@ -102,15 +100,16 @@ public class VarUtil {
         return holeExpression;
     }
 
-    public VarUtil(IR _ir, String _className, String _methodName) {
+    VarUtil(IR _ir, String _className, String _methodName) {
         spfCases = new SPFCaseList();
         varsMap = new HashMap<> ();
         defLocalVars = new LinkedHashSet<>();
         holeHashMap = new LinkedHashMap<>();
+        retValList = new HashMap<>();
         varCache = new LinkedHashMap<String, Expression> () {
             @Override
             public void putAll(Map<? extends String, ? extends Expression> m) {
-                m.forEach((key, value) -> this.put(key, value));
+                m.forEach(this::put);
                 super.putAll(m);
             }
 
@@ -143,12 +142,12 @@ public class VarUtil {
                     int valNum = ssaInstruction.getUse(v);
                     int[] localNumbers = _ir.findLocalsForValueNumber(ssaInstruction.iindex, valNum);
                     if (localNumbers != null) {
-                        for (int k = 0; k < localNumbers.length; k++) {
+                        for (int localNumber : localNumbers) {
                             /*System.out.println("at pc(" + ssaInstruction +
                                     "), valNum(" + valNum + ") is local var(" + localNumbers[k] + ", " +
                                     _ir.getSymbolTable().isConstant(valNum) + ") uses");*/
-                            if(!_ir.getSymbolTable().isConstant(valNum))
-                                varsMap.put(valNum, localNumbers[k]);
+                            if (!_ir.getSymbolTable().isConstant(valNum))
+                                varsMap.put(valNum, localNumber);
                         }
                     }
                 }
@@ -156,12 +155,12 @@ public class VarUtil {
                     int valNum = ssaInstruction.getDef(def);
                     int[] localNumbers = _ir.findLocalsForValueNumber(ssaInstruction.iindex, valNum);
                     if (localNumbers != null) {
-                        for (int k = 0; k < localNumbers.length; k++) {
+                        for (int localNumber : localNumbers) {
                             /*System.out.println("at pc(" + ssaInstruction +
                                     "), valNum(" + valNum + ") is local var(" + localNumbers[k] + ", " +
                                     _ir.getSymbolTable().isConstant(valNum) + ") defs");*/
-                            if(!_ir.getSymbolTable().isConstant(valNum)) {
-                                varsMap.put(valNum, localNumbers[k]);
+                            if (!_ir.getSymbolTable().isConstant(valNum)) {
+                                varsMap.put(valNum, localNumber);
                                 // Assume var defined by phi instruction must be the same local variable as all its uses
 
                             }
@@ -354,8 +353,7 @@ public class VarUtil {
         for(int use = 0; use < phiInstruction.getNumberOfUses(); use++) {
             int useValNum = phiInstruction.getUse(use);
             if(useValNum == val || isConstant(useValNum)) continue;
-            if(varsMap.containsKey(useValNum)) continue;
-            else {
+            if (!varsMap.containsKey(useValNum)) {
                 varsMap.put(useValNum, varsMap.get(val));
                 ret = true;
             }
@@ -363,8 +361,7 @@ public class VarUtil {
         for(int def = 0; def < phiInstruction.getNumberOfDefs(); def++) {
             int defValNum = phiInstruction.getDef(def);
             if(defValNum == val || isConstant(defValNum)) continue;
-            if(varsMap.containsKey(defValNum)) continue;
-            else {
+            if (!varsMap.containsKey(defValNum)) {
                 varsMap.put(defValNum, varsMap.get(val));
                 ret = true;
             }
@@ -388,19 +385,14 @@ public class VarUtil {
         return ret;
     }
 
-    public boolean isLocalVariable(int val) {
+    private boolean isLocalVariable(int val) {
         return varsMap.containsKey(val);
     }
 
-    public int getLocalVarSlot(int val) {
-        if(isLocalVariable(val)) return varsMap.get(val);
-        else return -1;
-    }
-
-    public Expression addDefVal(int def) throws StaticRegionException {
+    public Expression addDefVal(int def, Expression PLAssign) throws StaticRegionException {
         //this assumes that we dont need to do anything special for lhsExpr vars defined in a region
         if(isLocalVariable(def)) {
-            return makeLocalOutputVar(def, null);
+            return makeLocalOutputVar(def, PLAssign);
         }
         throw new StaticRegionException("we failed to map region output (" + def + ") to a local stack slot");
     }
@@ -447,7 +439,7 @@ public class VarUtil {
         // meaning use equals -1
         //But the already created object hole takes priority over a local object
         String string = this.className + "." + this.methodName + ".v" + use;
-        if(varsMap.containsKey(use) == false) assert(varCache.containsKey(string) || use == -1);
+        assert varsMap.containsKey(use) || (varCache.containsKey(string) || use == -1);
         if(varCache.containsKey(string)) useHole = (HoleExpression) varCache.get(string);
         int localStackSlot = -1;
         if(!isStaticField && (useHole == null)) {
@@ -475,7 +467,7 @@ public class VarUtil {
         // meaning use equals -1
         //But the already created object hole takes priority over a local object
         String string = this.className + "." + this.methodName + ".v" + use;
-        if(varsMap.containsKey(use) == false) assert(varCache.containsKey(string) || use == -1);
+        assert varsMap.containsKey(use) || (varCache.containsKey(string) || use == -1);
         if(varCache.containsKey(string))
             useHole = (HoleExpression) varCache.get(string);
         int localStackSlot = -1;
@@ -502,7 +494,7 @@ public class VarUtil {
                 table.isNullConstant(operand1);
     }
 
-    public int getConstant(int operand1) {
+    private int getConstant(int operand1) {
         assert(isConstant(operand1));
         SymbolTable table = ir.getSymbolTable();
         if(table.isNumberConstant(operand1))
@@ -521,7 +513,7 @@ public class VarUtil {
         varCache.clear();
         holeHashMap.clear();
         spfCases = new SPFCaseList();
-        retValVar = null;
+        retValList = new HashMap<>();
     }
 
     public static long nextInt() {
@@ -529,7 +521,7 @@ public class VarUtil {
         return holeID;
     }
 
-    public Expression addInvokeHole(InvokeInfo invokeInfo, Expression PLAssign) {
+    public void addInvokeHole(InvokeInfo invokeInfo, Expression PLAssign) {
         HoleExpression holeExpression = new HoleExpression(nextInt(), className, methodName,
                 HoleExpression.HoleType.INVOKE, PLAssign, -1, -1);
         String name = className + "." + methodName + ".v" + invokeInfo.defVal;
@@ -538,17 +530,16 @@ public class VarUtil {
         //The only way to fill this hole is to map it to the corresponding method summary return value
         holeExpression.setHoleVarName(name);
         varCache.put(name, holeExpression);
-        return holeExpression;
     }
 
-    public void addRetValHole(int use) throws StaticRegionException {
+    public void addRetValHole(HoleExpression condition, int use) throws StaticRegionException {
         if(!isConstant(use)) {
             String name = className + "." + methodName + ".v" + use;
             if(!varCache.containsKey(name)) {
                 throw new StaticRegionException("varCache does not contain " + name);
             }
-            retValVar = varCache.get(name);
-        } else retValVar = new IntConstant(getConstant(use));
+            retValList.put(condition, varCache.get(name));
+        } else retValList.put(condition, new IntConstant(getConstant(use)));
     }
 }
 

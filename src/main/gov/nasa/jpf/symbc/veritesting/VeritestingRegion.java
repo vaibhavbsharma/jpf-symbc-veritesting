@@ -4,6 +4,7 @@ package gov.nasa.jpf.symbc.veritesting;
 import gov.nasa.jpf.symbc.veritesting.SPFCase.SPFCase;
 import gov.nasa.jpf.symbc.veritesting.SPFCase.SPFCaseList;
 import za.ac.sun.cs.green.expr.Expression;
+
 import java.util.HashMap;
 import java.util.HashSet;
 
@@ -29,7 +30,7 @@ public class VeritestingRegion {
     private Expression summaryExpression;
     private LinkedHashSet<Expression> outputVars;
     private boolean isMethodSummary = false;
-    public Expression retVal;
+    public HashMap<Expression,Expression> retValList;
     private String methodSignature;
     public HashSet<Integer> summarizedRegionStartBB = null;
     public int ranIntoCount = 0, usedCount = 0;
@@ -147,11 +148,9 @@ public class VeritestingRegion {
         return isMethodSummary;
     }
 
-    public void setRetValVars(Expression retVal) {
-        this.retVal = retVal;
+    public void setRetValVars(HashMap<Expression,Expression> retVal) {
+        this.retValList = retVal;
     }
-    public Expression getRetValVars() { return retVal; }
-
     public String toString() {
         return "(" + className + ", " + methodName + ", " + startInsnPosition + ", " + endInsnPosition +
                 ", BB" + startBBNum + ", BB" + endBBNum + ", " + getNumBranchesSummarized() + ")";

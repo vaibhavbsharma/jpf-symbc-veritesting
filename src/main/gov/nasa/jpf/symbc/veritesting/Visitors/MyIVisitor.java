@@ -1,6 +1,5 @@
 package gov.nasa.jpf.symbc.veritesting.Visitors;
 
-import choco.Var;
 import com.ibm.wala.classLoader.CallSiteReference;
 import com.ibm.wala.shrikeBT.IBinaryOpInstruction;
 import com.ibm.wala.shrikeBT.IConditionalBranchInstruction;
@@ -40,6 +39,7 @@ public class MyIVisitor implements SSAInstruction.IVisitor {
     private String invokeClassName;
     private boolean isInvoke = false;
     private boolean hasNewOrThrow = false;
+    private boolean hasPhiExpr = false;
 
     public boolean isHasNewOrThrow() {
         return hasNewOrThrow;
@@ -51,10 +51,10 @@ public class MyIVisitor implements SSAInstruction.IVisitor {
 
     private Expression ifExpr = null;
 
-    public boolean isExitNode() {
-        return isExitNode;
+    public boolean isReturnNode() {
+        return isReturnNode;
     }
-    private boolean isExitNode = false;
+    private boolean isReturnNode = false;
 
     public boolean canVeritest() {
         return canVeritest;
@@ -290,15 +290,10 @@ public class MyIVisitor implements SSAInstruction.IVisitor {
             setCanVeritest(false, instruction);
             return;
         }
-        if(varUtil.retValVar != null) {
-            System.out.println("cannot handle multiple returns");
-            setCanVeritest(false, instruction);
-            return;
-        }
-        isExitNode = true;
+        isReturnNode = true;
         if(instruction.getNumberOfUses()==1) {
             try {
-                varUtil.addRetValHole(instruction.getUse(0));
+                varUtil.addRetValHole(conditionHole, instruction.getUse(0));
                 setCanVeritest(true, instruction);
             } catch (StaticRegionException e) {
                 System.out.println(e.getMessage());
@@ -483,6 +478,7 @@ public class MyIVisitor implements SSAInstruction.IVisitor {
             setCanVeritest(true, instruction);
             return;
         }
+        hasPhiExpr = true;
         LogUtil.log(DEBUG_VERBOSE, "SSAPhiInstruction = " + instruction);
         assert(instruction.getNumberOfUses()>=2);
         assert(instruction.getNumberOfDefs()==1);
@@ -491,7 +487,7 @@ public class MyIVisitor implements SSAInstruction.IVisitor {
         if (elseUseNum != -1) phiExprElse = varUtil.addVal(instruction.getUse(elseUseNum), PLAssign);
         if (thenUseNum != -1 || elseUseNum != -1) {
             try {
-                phiExprLHS = varUtil.addDefVal(instruction.getDef(0));
+                phiExprLHS = varUtil.addDefVal(instruction.getDef(0), PLAssign);
             } catch (StaticRegionException e) {
                 System.out.println(e.getMessage());
                 setCanVeritest(false, instruction);
@@ -568,7 +564,7 @@ public class MyIVisitor implements SSAInstruction.IVisitor {
     }
 
     public boolean hasPhiExpr() {
-        return phiExprLHS != null;
+        return hasPhiExpr;
     }
 
     public String getInvokeClassName() {
