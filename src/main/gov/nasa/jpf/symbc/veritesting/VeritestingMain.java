@@ -41,6 +41,7 @@ import gov.nasa.jpf.vm.ThreadInfo;
 import x10.wala.util.NatLoop;
 import x10.wala.util.NatLoopSolver;
 
+import static gov.nasa.jpf.symbc.VeritestingListener.DEBUG_VERBOSE;
 import static gov.nasa.jpf.symbc.veritesting.ClassUtils.findClasses;
 import static gov.nasa.jpf.symbc.veritesting.ExpressionUtil.*;
 import static gov.nasa.jpf.symbc.veritesting.HoleExpression.HoleType.FIELD_OUTPUT;
@@ -214,7 +215,6 @@ public class VeritestingMain {
         return false;
     }
 
-    // MWW TODO: Add support for static exceptions into veritesting region.
     // MWW: This method takes 9 parameters!
     public VeritestingRegion constructVeritestingRegion(
             Expression thenExpr,
@@ -229,7 +229,6 @@ public class VeritestingMain {
 //        if((thenUseNum == -1)&&(elseUseNum == -1))
 //            return null;
         /****SH: End of handling skipping of both branches, thus we create no region *****/
-
         if (thenExpr != null)
             thenExpr = new Operation(Operation.Operator.AND, thenExpr, thenPLAssignSPF);
         else thenExpr = thenPLAssignSPF;
@@ -288,6 +287,8 @@ public class VeritestingMain {
             myIVisitor = new MyIVisitor(varUtil, thenUseNum, elseUseNum, true, null, null);
             aCommonSucc.visit(myIVisitor);
             if (myIVisitor.hasPhiExpr()) {
+                if (!myIVisitor.canVeritest())
+                    throw new StaticRegionException("failed to summarize first statement of common successor");
                 phiExprSPF = myIVisitor.getPhiExprSPF(thenPLAssignSPF, elsePLAssignSPF);
                 finalPathExpr =
                         new Operation(Operation.Operator.AND, finalPathExpr, phiExprSPF);
@@ -331,6 +332,10 @@ public class VeritestingMain {
         // MWW: end addition
 
         pathLabelVarNum++;
+        // This is an invariant that should never be violated. We would never want to use a region that has absolutely no output
+        if (varUtil.defLocalVars.size() == 0) {
+            throw new StaticRegionException("we were about to create a region that has no outputs!!");
+        }
         return veritestingRegion;
     }
 
@@ -344,9 +349,7 @@ public class VeritestingMain {
     // we recursively invoke it, we just save off the entire structure rather than do it piecemeal.
 
     public void doAnalysis(ISSABasicBlock startingUnit, ISSABasicBlock endingUnit) throws StaticRegionException {
-        //System.out.println("Starting doAnalysis");
-        boolean thenCreateThrow = false;
-        boolean elseCreateThrow = false;
+        LogUtil.log(DEBUG_VERBOSE, "Starting doAnalysis");
 
         ISSABasicBlock currUnit = startingUnit;
         if (startingPointsHistory.contains(startingUnit)) return;
@@ -367,7 +370,7 @@ public class VeritestingMain {
                 I would have a co-recursive function that actually built the veritesting region
              */
             List<ISSABasicBlock> succs = new ArrayList<>(cfg.getNormalSuccessors(currUnit));
-            if (currentClassName.contains("VeritestingPerf") && currentMethodName.contains("outRangeloadArrayTC"))
+            if (currentClassName.contains("AbstractStringBuilder") && currentMethodName.contains("hugeCapacity"))
 //            if(currentClassName.contains("java.lang.CharacterDataLatin1") && currentMethodName.contains("toLowerCase"))
                 System.out.println("");
             ISSABasicBlock commonSucc;
@@ -504,8 +507,13 @@ public class VeritestingMain {
                             thenExpr = blockSummary.getExpression(); // outer region thenExpr
                             Expression conditionExpression = blockSummary.getIfExpression();
                             //cannot handle returns inside a if-then-else
-                            if (blockSummary.getIsExitNode()) canVeritest = false;
+                            if (blockSummary.isReturnNode()) canVeritest = false;
                             if (!canVeritest) break;
+                            if (blockSummary.isHasNewOrThrow()) { //SH: skip to the end of the region when a new Object or throw instruction encountered
+                                thenUnit = commonSucc;
+                                thenPred = null;
+                                break;
+                            }
                             ISSABasicBlock commonSuccthenUnit;
                             try {
                                 commonSuccthenUnit = cfg.getIPdom(thenUnit.getNumber(), sanitizer, ir, cha);
@@ -565,7 +573,7 @@ public class VeritestingMain {
                     //we should not encounter a BB with more than one successor at this point
                     assert (blockSummary.getIfExpression() == null);
                     //cannot handle returns inside a if-then-else
-                    if (blockSummary.getIsExitNode()) canVeritest = false;
+                    if (blockSummary.isReturnNode()) canVeritest = false;
                     if (!canVeritest) break;
                     if (blockSummary.isHasNewOrThrow()) { //SH: skip to the end of the region when a new Object or throw instruction encountered
                         thenUnit = commonSucc;
@@ -647,8 +655,13 @@ public class VeritestingMain {
                             elseExpr = blockSummary.getExpression();
                             Expression conditionExpression = blockSummary.getIfExpression();
                             //cannot handle returns inside a if-else-else
-                            if (blockSummary.getIsExitNode()) canVeritest = false;
+                            if (blockSummary.isReturnNode()) canVeritest = false;
                             if (!canVeritest) break;
+                            if (blockSummary.isHasNewOrThrow()) { //SH: skip to the end of the region when a new Object or throw instruction encountered
+                                elseUnit = commonSucc;
+                                elsePred = null;
+                                break;
+                            }
                             ISSABasicBlock commonSuccelseUnit;
                             try {
                                 commonSuccelseUnit = cfg.getIPdom(elseUnit.getNumber(), sanitizer, ir, cha);
@@ -709,7 +722,7 @@ public class VeritestingMain {
                     //we should not encounter a BB with more than one successor at this point
                     assert (blockSummary.getIfExpression() == null);
                     //cannot handle returns inside a if-else-else
-                    if (blockSummary.getIsExitNode()) canVeritest = false;
+                    if (blockSummary.isReturnNode()) canVeritest = false;
                     if (!canVeritest) break;
                     if (blockSummary.isHasNewOrThrow()) { //SH: skip to the end of the region when a new Object or throw instruction encountered
                         elseUnit = commonSucc;
@@ -813,7 +826,7 @@ public class VeritestingMain {
         if (VeritestingListener.veritestingMode < 3) {
             return;
         }
-        if (currentClassName.contains("VeritestingPerf") && currentMethodName.contains("createObjectTC7"))
+        if (currentClassName.contains("tcas") && currentMethodName.contains("Inhibit_Biased_Climb"))
             System.out.println("");
         //System.out.println("Starting doMethodAnalysis");
         //currUnit represents the next BB to be summarized
@@ -861,7 +874,7 @@ public class VeritestingMain {
                 }
                 //End Support
 
-                if (blockSummary.getIsExitNode() || succs.size() == 0 ) {
+                if (blockSummary.isReturnNode() || succs.size() == 0 ) {
                     constructSPFCaseRegion(methodExpression, methodSummarizedRegionStartBB, endingBC, methodSpfCaseList);
                     return;
                 }
@@ -889,8 +902,6 @@ public class VeritestingMain {
                 }
                 //End Support
 
-                //cannot handle returns inside a if-then-else
-                if (blockSummary.getIsExitNode()) return;
                 int startingBC = ((IBytecodeMethod) (ir.getMethod())).getBytecodeIndex(currUnit.getLastInstructionIndex());
                 String key = getCurrentKey(startingBC);
                 if (!VeritestingListener.veritestingRegions.containsKey(key)) return;
@@ -1006,7 +1017,7 @@ public class VeritestingMain {
         // assuming ending instruction position is not needed for using a method summary
         veritestingRegion.setEndInsnPosition(endingBC);
         veritestingRegion.setOutputVars(varUtil.defLocalVars);
-        veritestingRegion.setRetValVars(varUtil.retValVar);
+        veritestingRegion.setRetValVars(varUtil.retValList);
         veritestingRegion.setPackageName(currentPackageName);
         veritestingRegion.setClassName(currentClassName);
         veritestingRegion.setMethodName(currentMethodName);
@@ -1030,7 +1041,7 @@ public class VeritestingMain {
         private ISSABasicBlock unit;
         private Expression expression;
         private Expression lastExpression;
-        private boolean isExitNode = false;
+        private boolean isReturnNode = false;
         private boolean hasNewOrThrow = false;
 
         boolean isHasNewOrThrow() {
@@ -1089,8 +1100,8 @@ public class VeritestingMain {
                 lastExpression = myIVisitor.getSPFExpr();
                 ifExpression = myIVisitor.getIfExpr();
                 expression = ExpressionUtil.nonNullOp(Operation.Operator.AND, expression, lastExpression);
-                if (myIVisitor.isExitNode()) {
-                    isExitNode = true;
+                if (myIVisitor.isReturnNode()) {
+                    isReturnNode = true;
                     break;
                 }
                 if (myIVisitor.isHasNewOrThrow() && VeritestingListener.veritestingMode >= 4) {
@@ -1101,8 +1112,8 @@ public class VeritestingMain {
             return this;
         }
 
-        boolean getIsExitNode() {
-            return isExitNode;
+        boolean isReturnNode() {
+            return isReturnNode;
         }
     }
 }

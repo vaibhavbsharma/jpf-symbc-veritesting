@@ -132,7 +132,7 @@ public abstract class StaticPCChoiceGenerator extends PCChoiceGenerator {
 
         /* methodSummary regions with a non-null return value should finish at a return statement.
         This invariant is checked here but the return value is populated inside fillHoles. */
-        if(region.isMethodSummary() && region.retVal != null) {
+        if(region.isMethodSummary() && region.retValList != null) {
             assert(insn.getMnemonic().contains("return"));
         }
         //((PCChoiceGenerator) ti.getVM().getSystemState().getChoiceGenerator()).setCurrentPC(pc);
@@ -194,11 +194,12 @@ LOCAL_OUTPUT and FIELD_PHIs have the final value mapped in fillHolesOutput.holeH
             }
         }
          /* populate the return value of methodSummary regions that have a non-null return value */
-        if(region.isMethodSummary() && region.retVal != null) {
+        if(region.isMethodSummary() && region.retValList != null) {
             ti.getModifiableTopFrame().push(0);
-            if(region.retVal instanceof HoleExpression)
-                ti.getModifiableTopFrame().setOperandAttr(ExpressionUtil.GreenToSPFExpression(retHoleHashMap.get(region.retVal)));
-            else ti.getModifiableTopFrame().setOperandAttr(ExpressionUtil.GreenToSPFExpression(region.retVal));
+            Expression firstRetVal = region.retValList.entrySet().iterator().next().getValue();
+            if(firstRetVal instanceof HoleExpression)
+                ti.getModifiableTopFrame().setOperandAttr(ExpressionUtil.GreenToSPFExpression(retHoleHashMap.get(firstRetVal)));
+            else ti.getModifiableTopFrame().setOperandAttr(ExpressionUtil.GreenToSPFExpression(firstRetVal));
         }
     }
 
