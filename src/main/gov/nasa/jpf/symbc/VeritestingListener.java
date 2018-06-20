@@ -959,8 +959,8 @@ public class VeritestingListener extends PropertyListenerAdapter implements Publ
             additionalOutputVars.addAll(fillInvokeHole.getAdditionalOutputVars());
 
             Expression retValEq = null;
-            if (methodSummary.retVal != null)
-                retValEq = new Operation(Operation.Operator.EQ, methodSummary.retVal, keyHoleExpression);
+            if (methodSummary.retValList != null)
+                retValEq = new Operation(Operation.Operator.EQ, methodSummary.retValList.entrySet().iterator().next().getValue(), keyHoleExpression);
             Expression mappingOperation = retValEq;
             if (methodSummary.getSummaryExpression() != null)
                 mappingOperation = new Operation(Operation.Operator.AND, mappingOperation, methodSummary.getSummaryExpression());
