@@ -13,6 +13,7 @@ import com.ibm.wala.util.strings.Atom;
 import gov.nasa.jpf.symbc.VeritestingListener;
 import gov.nasa.jpf.symbc.veritesting.*;
 import gov.nasa.jpf.symbc.veritesting.SPFCase.ArrayBoundsReason;
+import gov.nasa.jpf.symbc.veritesting.SPFCase.NullPointerReason;
 import gov.nasa.jpf.symbc.veritesting.SPFCase.SPFCase;
 import gov.nasa.jpf.symbc.veritesting.SPFCase.TrueReason;
 import ia_parser.Exp;
@@ -155,7 +156,7 @@ public class MyIVisitor implements SSAInstruction.IVisitor {
         varUtil.addSpfCase(c);
 
         //SPFExpr = arrayStoreHole;
-        setCanVeritest(true, instruction);
+        setCanVeritest(false, instruction);
     }
 
     @Override
@@ -334,8 +335,15 @@ public class MyIVisitor implements SSAInstruction.IVisitor {
                 instruction.isStatic(), this.PLAssign) == null) {
                 setCanVeritest(false, instruction);
         } else {
+            //SH: Supporting SPFCases
+            /*NullPointerReason reason = new NullPointerReason(varUtil.addFieldInputVal(def, objRef, declaringClass, fieldName,
+                    instruction.isStatic(), this.PLAssign));
+            SPFCase c = new SPFCase(conditionHole, reason);
+            varUtil.addSpfCase(c);*/
+            //end Support
             setCanVeritest(true, instruction);
         }
+
     }
 
     @Override

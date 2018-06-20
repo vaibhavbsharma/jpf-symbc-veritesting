@@ -10,7 +10,7 @@ public class VeritestingPerf {
     public static void main(String[] args) {
 
         /**************** create New Object Tests ************/
-        //(new VeritestingPerf()).createObjectTC1(true, true);
+        (new VeritestingPerf()).createObjectTC1(true, true);
         //(new VeritestingPerf()).createObjectTC2(true, true);
         //(new VeritestingPerf()).createObjectTC3(true, true);
         //(new VeritestingPerf()).createObjectTC4(true, true);
@@ -48,8 +48,15 @@ public class VeritestingPerf {
         //(new VeritestingPerf()).arrayStoreTC3(1, 2, a);
         //(new VeritestingPerf()).arrayStoreTC4(1, 2, a);
         //(new VeritestingPerf()).arrayStoreTC5(1, 2, a);
-        (new VeritestingPerf()).arrayStoreTC6(1, 2);
+        //(new VeritestingPerf()).arrayStoreTC6(1, 2);
+        (new VeritestingPerf()).arrayStoreTC7(1, 2);
         //(new VeritestingPerf()).arrayLoadTC1(1,2);
+
+
+        //(new VeritestingPerf()).arrayLoad0(1,2);
+
+        /****************** getFieldSPFCases Tests ********************/
+        //(new VeritestingPerf()).getFieldSPFCaseTC1(true);
 
         //(new VeritestingPerf()).nestedRegionThrowsException(0);
 //        (new VeritestingPerf()).simpleRegionThrowsException(0);
@@ -462,7 +469,7 @@ public class VeritestingPerf {
             return y;
         }
     */
-    /*public int createObjectTC1(boolean x, boolean y) {
+    public int createObjectTC1(boolean x, boolean y) {
         int a = 3;
         if (x) {
             TempClass tempClass2 = new TempClass();
@@ -472,7 +479,7 @@ public class VeritestingPerf {
 //        assert(!x ? a==3: true);
         return a;
     }
-
+/*
     public int createObjectTC2(boolean x, boolean y) {
         int a = 0;
         if (x) {
@@ -777,25 +784,32 @@ public class VeritestingPerf {
                 temp = 2;
             } else {
                 // System.out.println("executing else branch");
-                x[index] = temp;
+             //   x[index] = temp;
             }
         } catch (ArrayIndexOutOfBoundsException e) {
             temp = 3;
         }
-        Debug.printPC("Soha: pc = ");
+        /*Debug.printPC("Soha: pc = ");
         assert (length <= 0 ? x[0] == 300 & x[1] == 400 : true);
         assert (length > 0 && index == 0 ? x[0] == 1 && x[1] == 400 : true);
         assert (length > 0 && index == 1 ? x[0] == 300 && x[1] == 1 : true);
+        */
         return temp;
     }
 
 
     public int arrayStoreTC2(int index, int length, int[] x) { //symbolic index - concrete operand
         int temp = 1;
-        if (length <= 0) {
-            temp = 2;
-        } else {
-            x[index] = temp;
+
+        try {
+            if (length <= 0) {
+                temp = 2;
+            } else {
+                x[index] = temp;
+            }
+        }
+        catch (ArrayIndexOutOfBoundsException e){
+            temp = 3;
         }
         return temp;
     }
@@ -871,6 +885,56 @@ public class VeritestingPerf {
         return temp;
     }
 
+
+
+    public int arrayStoreTC7(int index, int length) { // should be treated as a new object creation
+        int[] x = {300, 400};
+        int temp = 1;
+        if (length <= 0) {
+            //     System.out.println("executing then branch");
+            x[index] = 2;
+        } else {
+            // System.out.println("executing else branch");
+            x[index] = temp;
+        }
+
+        Debug.printPC("Soha: pc = ");
+        assert (length <= 0 && index == 0 ? x[0] == 2 & x[1] == 400 : true);
+        assert (length <= 0 && index == 1 ? x[0] == 300 & x[1] == 2 : true);
+        assert (length > 0 && index == 0 ? x[0] == 1 && x[1] == 400 : true);
+        assert (length > 0 && index == 1 ? x[0] == 300 && x[1] == 1 : true);
+        return temp;
+    }
+
+/*
+    public int getFieldSPFCaseTC1(boolean x){
+        TempClass2 tempClass2 = null;
+        int y = 0;
+        if(x){
+            y = tempClass2.tempInt2;
+        }
+        return y;
+
+    }
+*/
+    public int arrayLoad0(int index, int length) {
+        int[] x = {300, 400};
+        int temp = 1;
+        try {
+            if (length <= 0) {
+                temp = 2;
+            } else {
+                temp = x[index] + 2;
+            }
+        } catch (ArrayIndexOutOfBoundsException e) {
+            temp = 3;
+        }
+        assert length <= 0 ? temp == 2 : true;
+        assert length > 0 && index == 0 ? temp == 302 : true;
+        assert length > 0 && index == 1 ? temp == 402 : true;
+        assert length > 0 && index != 0 && index != 1 ? temp == 3 : true;
+        return temp;
+    }
 /*
     public int branchOnConcrete(boolean x, boolean y) {
         int a = 0;

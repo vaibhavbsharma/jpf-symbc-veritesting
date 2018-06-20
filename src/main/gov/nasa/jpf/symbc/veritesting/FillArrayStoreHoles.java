@@ -122,6 +122,7 @@ public class FillArrayStoreHoles {
             oldValueExp = new Operation(Operation.Operator.AND, oldValueExp, new Operation(Operation.Operator.NOT, indexExpression));
 
             Expression arrayStoreExp = new Operation(Operation.Operator.OR, oldValueExp, newValueExp);
-            additionalAST = ExpressionUtil.nonNullOp(Operation.Operator.AND, additionalAST, arrayStoreExp);        }
+            additionalAST = ExpressionUtil.nonNullOp(Operation.Operator.AND, additionalAST, arrayStoreExp);
+        }
     }
 }

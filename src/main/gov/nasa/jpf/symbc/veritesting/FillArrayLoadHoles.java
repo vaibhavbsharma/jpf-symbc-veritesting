@@ -57,8 +57,16 @@ public class FillArrayLoadHoles {
                         Expression lhsExpr = retHoleHashMap.get(arrayInfo.val);
                         for (int i = 0; i < arrayLength; i++) { //constructing the symbolic index constraint
                             Expression exp1 = new Operation(Operation.Operator.EQ, indexExpression, new IntConstant(i));
-                            int value = ei.getIntElement(i); //elements of the array are concrete
-                            Expression exp2 = new Operation(Operation.Operator.EQ, lhsExpr, new IntConstant(value));
+                            int value;
+                            Expression exp2;
+                            if(ei.getArrayType().equals("B")){
+                                value = ei.getByteElement(i); //elements of the array are concrete
+                            }
+                            else {
+                                value = ei.getIntElement(i); //elements of the array are concrete
+                            }
+                            exp2 = new Operation(Operation.Operator.EQ, lhsExpr, new IntConstant(value));
+
                             additionalAST = ExpressionUtil.nonNullOp(Operation.Operator.AND, additionalAST,
                                     new Operation(Operation.Operator.IMPLIES, exp1, exp2));
                         }

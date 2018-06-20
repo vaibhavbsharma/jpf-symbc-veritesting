@@ -7,7 +7,7 @@ public class TestVeritestingPerf extends InvokeTest {
     private static final String CLASSPATH = "+classpath=../build/tests,../lib/com.ibm.wala.util-1.4.4-SNAPSHOT.jar";
     protected static final String INSN_FACTORY = "+jvm.insn_factory.class=gov.nasa.jpf.symbc.SymbolicInstructionFactory";
     private static final String SYM_METHOD = "+symbolic.method=gov.nasa.jpf.symbc.TestVeritestingPerf.wrapNestedRegion(sym#sym)" +
-            ",gov.nasa.jpf.symbc.TestVeritestingPerf.wrapSimple1(sym)" +
+          /*  ",gov.nasa.jpf.symbc.TestVeritestingPerf.wrapSimple1(sym)" +
             ",gov.nasa.jpf.symbc.TestVeritestingPerf.wrapCountBitsSet1(sym)" +
             ",gov.nasa.jpf.symbc.TestVeritestingPerf.wrapCountBitsSet1_1(sym)" +
             ",gov.nasa.jpf.symbc.TestVeritestingPerf.wrapCountBitsSet2(sym)" +
@@ -18,7 +18,7 @@ public class TestVeritestingPerf extends InvokeTest {
             ",gov.nasa.jpf.symbc.TestVeritestingPerf.wrapCountBitsSet6(sym)" +
             ",gov.nasa.jpf.symbc.TestVeritestingPerf.wrapCountBitsSet7(sym)" +
             ",gov.nasa.jpf.symbc.TestVeritestingPerf.wrapCountBitsSet8(sym)" +
-            ",gov.nasa.jpf.symbc.TestVeritestingPerf.wrapCountBitsSet9(sym)" +
+            ",gov.nasa.jpf.symbc.TestVeritestingPerf.wrapCountBitsSet9(sym)" +*/
             ",gov.nasa.jpf.symbc.TestVeritestingPerf.wrapArrayLoad0(sym#sym)" +
             ",gov.nasa.jpf.symbc.TestVeritestingPerf.wrapArrayLoad1(sym#sym)" +
             ",gov.nasa.jpf.symbc.TestVeritestingPerf.wrapArrayLoad2(sym#sym)";
@@ -56,6 +56,7 @@ public class TestVeritestingPerf extends InvokeTest {
     public static void main(String[] args) {
         hideSummary = false;
         runTestsOfThisClass(args);
+        System.out.println("inside main");
     }
 
     @Test
@@ -382,7 +383,7 @@ public class TestVeritestingPerf extends InvokeTest {
         }
     }
     public int wrapArrayLoad0(int x, int y) {
-        System.out.println("running wrapArrayLoad1");
+        System.out.println("running wrapArrayLoad0");
         return arrayLoad0(x, y);
     }
     public int arrayLoad0(int index, int length) {
@@ -443,7 +444,7 @@ public class TestVeritestingPerf extends InvokeTest {
         }
     }
     public int wrapArrayLoad2(int x, int y) {
-        System.out.println("running wrapArrayLoad1");
+        System.out.println("running wrapArrayLoad2");
         return arrayLoad2(x, y);
     }
     public int arrayLoad2(int index, int length) throws ArrayIndexOutOfBoundsException {
