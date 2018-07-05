@@ -194,7 +194,7 @@ LOCAL_OUTPUT and FIELD_PHIs have the final value mapped in fillHolesOutput.holeH
             }
         }
          /* populate the return value of methodSummary regions that have a non-null return value */
-        if(region.isMethodSummary() && region.retValList != null) {
+        if(region.isMethodSummary() && !region.retValList.isEmpty()) {
             ti.getModifiableTopFrame().push(0);
             Expression firstRetVal = region.retValList.entrySet().iterator().next().getValue();
             if(firstRetVal instanceof HoleExpression)
