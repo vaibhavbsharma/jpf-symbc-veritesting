@@ -1,0 +1,11 @@
+public class Silly {
+  public int f = 10;
+};
+
+void testDynObject(boolean cond, int index) {
+  Silly [] arrayOfSilly = { new Silly(), new Silly() } ;
+  int l; 
+  if (cond) {
+     l = arrayOfSilly[index].f; 
+  }
+}  

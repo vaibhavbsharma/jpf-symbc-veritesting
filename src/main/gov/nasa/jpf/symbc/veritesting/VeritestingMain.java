@@ -35,6 +35,8 @@ import com.ibm.wala.util.graph.impl.GraphInverter;
 import com.ibm.wala.util.io.FileProvider;
 import com.ibm.wala.util.strings.StringStuff;
 import gov.nasa.jpf.symbc.VeritestingListener;
+import gov.nasa.jpf.symbc.veritesting.CFGConversion.CreateStaticRegions;
+import gov.nasa.jpf.symbc.veritesting.CFGConversion.FindStructuredBlockEndNode;
 import gov.nasa.jpf.symbc.veritesting.SPFCase.SPFCaseList;
 import gov.nasa.jpf.symbc.veritesting.Visitors.MyIVisitor;
 import gov.nasa.jpf.vm.ThreadInfo;
@@ -196,6 +198,9 @@ public class VeritestingMain {
             NatLoopSolver.findAllLoops(cfg, uninverteddom, loops, visited, cfg.getNode(0));
             // Here is where the magic happens.
             if (!methodAnalysis) {
+                // MWW code for test.
+                CreateStaticRegions regionCreator = new CreateStaticRegions();
+                regionCreator.createStructuredRegions(cfg, cfg.entry(), cfg.exit());
                 doAnalysis(cfg.entry(), null);
             } else doMethodAnalysis(cfg.entry(), cfg.exit());
         } catch (InvalidClassFileException e) {
@@ -339,6 +344,14 @@ public class VeritestingMain {
         return veritestingRegion;
     }
 
+
+    /*
+        Begin MWW code - determining Veritesting regions.
+     */
+
+
+
+
     // MWW: WTF?!?
     // MWW: A two-hundred-line method?
     // MWW: I feel a great disturbance in the force...
@@ -373,9 +386,22 @@ public class VeritestingMain {
             if (currentClassName.contains("AbstractStringBuilder") && currentMethodName.contains("hugeCapacity"))
 //            if(currentClassName.contains("java.lang.CharacterDataLatin1") && currentMethodName.contains("toLowerCase"))
                 System.out.println("");
-            ISSABasicBlock commonSucc;
+            ISSABasicBlock commonSucc1 = null;
+            ISSABasicBlock commonSucc2 = null;
+            ISSABasicBlock commonSucc = null;
+
             try {
-                commonSucc = cfg.getIPdom(currUnit.getNumber(), sanitizer, ir, cha);
+                FindStructuredBlockEndNode d = new FindStructuredBlockEndNode(cfg, currUnit, endingUnit);
+                commonSucc2 = cfg.getIPdom(currUnit.getNumber(), sanitizer, ir, cha);
+                try {
+                    commonSucc1 = d.findMinConvergingNode();
+                    if (commonSucc1 != commonSucc2) {
+                        System.out.println("Successor functions provided different answers!");
+                    }
+                } catch(StaticRegionException e) {
+                    System.out.println("Failed to find a region.");
+                }
+                commonSucc = commonSucc2;
             } catch (WalaException | IllegalArgumentException e) {
                 //The IllegalArgumentException happens when we try to find the immediate post-dominator of basic blocks
                 // that are inside an infinite loop. An infinite loop body does not have a path to the exit node.
