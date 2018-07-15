@@ -26,7 +26,7 @@ import gov.nasa.jpf.symbc.Debug;
 public class TestPathsSimple {
 
   public static void main (String[] args){
-   testMe(42, false);
+   //testMe(42, false);
   System.out.println("!!!!!!!!!!!!!!! Start Testing! ");
   //(new TestPathsSimple()).testMe3(0,0,0);
   }
@@ -64,7 +64,7 @@ public class TestPathsSimple {
   }
 */
   // how many tests do we need to cover all paths?
-  public static int testMe (int x, boolean b) {
+ public static int testMe (int x, boolean b) {
     System.out.println("x = " + x);
     int y=0;
     if (x <= 1200){

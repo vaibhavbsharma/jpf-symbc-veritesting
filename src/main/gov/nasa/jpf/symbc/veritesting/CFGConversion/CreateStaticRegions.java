@@ -41,6 +41,16 @@ public class CreateStaticRegions {
                 blk.getFirstInstructionIndex());
     }
 
+    public static String constructMethodIdentifier(String className, String methodName, String methodSignature) {
+        return className + "." + methodName + methodSignature;
+    }
+
+    public static String constructMethodIdentifier(ISSABasicBlock blk) {
+        return constructMethodIdentifier(blk.getClass().getCanonicalName(),
+                blk.getMethod().getName().toString(),
+                blk.getMethod().getSignature());
+    }
+
     public boolean isBranch(SSACFG cfg, ISSABasicBlock block) {
         return cfg.getNormalSuccessors(block).size() == 2;
     }
@@ -89,10 +99,8 @@ public class CreateStaticRegions {
         return appendSkipToEmpty(s);
     }
 
-    public String conditionalBranch(SSACFG cfg, ISSABasicBlock currentBlock, ISSABasicBlock endingBlock) throws StaticRegionException {
-
-        FindStructuredBlockEndNode finder = new FindStructuredBlockEndNode(cfg, currentBlock, endingBlock);
-        ISSABasicBlock terminus = finder.findMinConvergingNode();
+    // precondiion: terminus is the loop join.
+    public String conditionalBranch(SSACFG cfg, ISSABasicBlock currentBlock, ISSABasicBlock terminus) throws StaticRegionException {
 
         SSAInstruction ins = currentBlock.getLastInstruction();
         if (!(ins instanceof SSAConditionalBranchInstruction)) {
@@ -117,48 +125,51 @@ public class CreateStaticRegions {
         }
         s += "}" + System.lineSeparator();
 
-        // if terminus == endingBlock, let parent handle it.
-        if (terminus != endingBlock) {
-            s += attemptSubregionRec(cfg, terminus, endingBlock);
-        }
         return s;
     }
 
     /*
-        A block can have zero, one, or two "Normal" exits.
+        This method translates from currentBlock up to but not including endingBlock.
+        Doing it this way makes it much simpler to deal with nested if/then/elses that land in the same spot.
 
-        Also, we want to treat the first and last block of a static region specially:
-        the first block instructions should not be translated, other than the conditional at the end.
-        the last block instructions should not be translated, other than the \phi instructions.
+        It also makes it simpler to tailor the end of the translation: for methods, we want to grab the
+        remaining code within the method, while for conditional blocks we only want to grab the subsequent \phi
+        functions.
 
-        I assume that any single-normal-successor region ends with a GOTO at the end of a branch, so
-        I do not translate them.  If this assumption is wrong, a more sophisticated mechanism will have
-        to be created to distinguish differnt single-successor regions.
      */
 
     public String attemptSubregionRec(SSACFG cfg, ISSABasicBlock currentBlock, ISSABasicBlock endingBlock) throws StaticRegionException {
 
+        if (currentBlock == endingBlock) {
+            return skip;
+        }
+
         String s = translateInternalBlock(currentBlock);
 
-        if (currentBlock == endingBlock) {
-            return s;
-        }
         if (cfg.getNormalSuccessors(currentBlock).size() == 2) {
-            s += conditionalBranch(cfg, currentBlock, endingBlock);
+            FindStructuredBlockEndNode finder = new FindStructuredBlockEndNode(cfg, currentBlock, endingBlock);
+            ISSABasicBlock terminus = finder.findMinConvergingNode();
+            s += conditionalBranch(cfg, currentBlock, terminus);
+            s += attemptSubregionRec(cfg, terminus, endingBlock);
         }
-        // single successor block
-/*        else if (cfg.getNormalSuccessors(currentBlock).size() == 1){
+        else if (cfg.getNormalSuccessors(currentBlock).size() == 1){
+            SSAInstruction last = (currentBlock.iterator().hasNext()) ? currentBlock.getLastInstruction() : null;
+
+            // gets rid of a few extra 'skips'
             ISSABasicBlock nextBlock = cfg.getNormalSuccessors(currentBlock).iterator().next();
-            s += attemptSubregion(cfg, nextBlock, endingBlock, optTruncateFirstBlock, optTruncateLastBlock);
-        } */
+            if (nextBlock.getNumber() < endingBlock.getNumber()) {
+                s += attemptSubregionRec(cfg, nextBlock, endingBlock);
+            }
+        }
         return s;
     }
 
-    public String attemptConditionalSubregion(SSACFG cfg, ISSABasicBlock startingBlock, ISSABasicBlock endingBlock) throws StaticRegionException {
+    // precondition: endingBlock is the terminus of the loop
+    public String attemptConditionalSubregion(SSACFG cfg, ISSABasicBlock startingBlock, ISSABasicBlock terminus) throws StaticRegionException {
 
         assert(isBranch(cfg, startingBlock));
-        String s = conditionalBranch(cfg, startingBlock, endingBlock);
-        s += translateTruncatedFinalBlock(endingBlock);
+        String s = conditionalBranch(cfg, startingBlock, terminus);
+        s += translateTruncatedFinalBlock(terminus);
         return s;
     }
 
@@ -168,7 +179,7 @@ public class CreateStaticRegions {
         return s;
     }
 
-    public void createStructuredRegions(SSACFG cfg, ISSABasicBlock startingBlock, ISSABasicBlock endingBlock) throws StaticRegionException {
+    public void createStructuredConditionalRegions(SSACFG cfg, ISSABasicBlock startingBlock, ISSABasicBlock endingBlock) throws StaticRegionException {
         ISSABasicBlock currentBlock = startingBlock;
 
         // terminating conditions
@@ -185,15 +196,24 @@ public class CreateStaticRegions {
                 String s = attemptConditionalSubregion(cfg, currentBlock, terminus);
                 this.veritestingRegions.put(CreateStaticRegions.constructRegionIdentifier(currentBlock), s);
                 System.out.println("Subregion: " + System.lineSeparator() + s);
-                createStructuredRegions(cfg, terminus, endingBlock);
+                createStructuredConditionalRegions(cfg, terminus, endingBlock);
                 return;
             } catch (StaticRegionException sre) {
                 System.out.println("Unable to create subregion");
             }
         }
         for (ISSABasicBlock nextBlock: cfg.getNormalSuccessors(currentBlock)) {
-            createStructuredRegions(cfg, nextBlock, endingBlock);
+            createStructuredConditionalRegions(cfg, nextBlock, endingBlock);
         }
     }
 
+    public void createStructuredMethodRegion(SSACFG cfg, ISSABasicBlock startingBlock, ISSABasicBlock endingBlock) throws StaticRegionException {
+        try {
+            String s = attemptMethodSubregion(cfg, startingBlock, endingBlock);
+            System.out.println("Method" + System.lineSeparator() + s);
+            this.veritestingRegions.put(CreateStaticRegions.constructMethodIdentifier(startingBlock), s);
+        } catch (StaticRegionException sre) {
+            System.out.println("Unable to create a method summary subregion for: " + cfg.getMethod().getName().toString());
+        }
+    }
 }

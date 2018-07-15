@@ -200,9 +200,12 @@ public class VeritestingMain {
             if (!methodAnalysis) {
                 // MWW code for test.
                 CreateStaticRegions regionCreator = new CreateStaticRegions();
-                regionCreator.createStructuredRegions(cfg, cfg.entry(), cfg.exit());
+                regionCreator.createStructuredConditionalRegions(cfg, cfg.entry(), cfg.exit());
+                regionCreator.createStructuredMethodRegion(cfg, cfg.entry(), cfg.exit());
                 doAnalysis(cfg.entry(), null);
-            } else doMethodAnalysis(cfg.entry(), cfg.exit());
+            } else {
+                doMethodAnalysis(cfg.entry(), cfg.exit());
+            }
         } catch (InvalidClassFileException e) {
             e.printStackTrace();
         } catch (StaticRegionException e) {
